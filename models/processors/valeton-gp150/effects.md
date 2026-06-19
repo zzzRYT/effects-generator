@@ -1,7 +1,7 @@
 # GP-150 이펙트 블록 레퍼런스
 
 AMP/CAB 외 모든 이펙트 모듈(NR · PRE · WAH · DST · EQ · MOD · DLY · RVB · VOL)의 전체 모델 목록.
-모델명은 상표 회피 변형이며 괄호에 실제 기반 기기를 적었다. 체인 순서·DSP 규칙은 [[gp150-hardware]] 참고.
+모델명은 상표 회피 변형이며 괄호에 실제 기반 기기를 적었다. 체인 순서·DSP 규칙은 [[hardware]] 참고.
 
 ---
 
@@ -73,7 +73,7 @@ AMP/CAB 외 모든 이펙트 모듈(NR · PRE · WAH · DST · EQ · MOD · DLY 
 - **C-Wah** (기반: VOX V846) — V846 또 다른 변형. 노브: Range, Q, Volume
 - **B-Wah** — 베이스 전용 와. 노브: Range, Q, Volume
 
-> 와우는 익스프레션 페달에 Position을 먼저 할당해야 동작. → [[gp150-hardware]]
+> 와우는 익스프레션 페달에 Position을 먼저 할당해야 동작. → [[hardware]]
 
 ## Special / Simulator (PRE)
 
@@ -166,4 +166,4 @@ AMP/CAB 외 모든 이펙트 모듈(NR · PRE · WAH · DST · EQ · MOD · DLY 
 
 - 곡에 실제로 들리는 이펙트만 넣는다. 안 들리면 빼는 게 톤·DSP에 이롭다.
 - 공간계(DLY/RVB) Mix는 합주에서 묻히지 않게 과하지 않게.
-- 곡 중 톤이 바뀌면 패치의 스위칭 플랜에 풋스위치(CTRL) 할당 명시. → [[gp150-hardware]]
+- 곡 중 톤이 바뀌면 패치의 스위칭 플랜에 풋스위치(CTRL) 할당 명시. → [[hardware]]

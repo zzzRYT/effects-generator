@@ -14,20 +14,35 @@ Cort G250 + Valeton GP-150로 곡마다 맞는 기타 사운드를 빠르게 세
 
 ## 구조
 
+장비를 **모델**로 분리하고, 기타 + 프로세서 **조합(rig)** 을 정의해 패치가 그 rig를 참조하게 한다.
+GP-150처럼 여러 기타에서 공통으로 쓰는 장비는 한 번만 정의하고 rig에서 재사용한다.
+
 ```
-reference/
-  gear-profile.md   # 내 장비(G250 HSS + GP-150) 고정 스펙 + 픽업/체인 규칙
-  gp150-hardware.md # 본체 패널·시그널 체인·EXP/CTRL·글로벌 EQ 운용
-  gp150-amps.md     # 앰프 모델 전체(60여 종) ↔ 기반 앰프 ↔ 노브 (핵심 데이터)
-  gp150-cabs.md     # 캐비넷 모델 전체 ↔ 기반 스피커 ↔ 노브
-  gp150-effects.md  # 이펙트 블록 전체(NR·PRE·WAH·DST·EQ·MOD·DLY·RVB·VOL) ↔ 기반 페달 ↔ 노브
+models/
+  guitars/
+    cort-g250.md          # 기타 모델 — 바디/픽업/셀렉터/픽업 선택 가이드
+  processors/
+    valeton-gp150/        # 프로세서 모델 (여러 기타에서 공통 사용)
+      profile.md          # 개요 + 시그널 체인 규칙
+      hardware.md         # 본체 패널·시그널 체인·EXP/CTRL·글로벌 EQ
+      amps.md             # 앰프 모델 전체(60여 종) ↔ 기반 앰프 ↔ 노브
+      cabs.md             # 캐비넷 모델 전체 ↔ 기반 스피커 ↔ 노브
+      effects.md          # 이펙트 블록 전체 ↔ 기반 페달 ↔ 노브
+rigs/
+  g250-gp150.md           # 조합 정의(기타 + 프로세서). default rig
 patches/
-  INDEX.md          # 전체 곡 목록
-  <artist>-<song>.md
+  INDEX.md                # 전체 곡 목록 (Rig 컬럼 포함)
+  <rig>/<artist>-<song>.md
 .claude/skills/tone-builder/SKILL.md
 ```
 
 레퍼런스는 V1.0.5 영문 온라인 매뉴얼(PDF)에서 추출·정리했다.
+
+### 장비 추가하는 법
+
+- **새 기타**: `models/guitars/<guitar>.md` 추가 → 기존 프로세서와 묶어 `rigs/<guitar>-gp150.md` 생성
+- **새 프로세서**: `models/processors/<processor>/` 추가 → `rigs/<guitar>-<processor>.md` 생성
+- 패치는 `patches/<rig>/`에 쌓이므로 같은 곡을 여러 조합으로도 만들 수 있다.
 
 ## 현재 상태
 

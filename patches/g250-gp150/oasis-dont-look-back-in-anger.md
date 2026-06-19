@@ -1,5 +1,6 @@
 # Oasis – Don't Look Back in Anger
 
+- **Rig**: g250-gp150 (Cort G250 + Valeton GP-150)
 - **장르/톤 요약**: 90년대 브릿팝. 미드 풍부한 마샬 크런치 리듬 + 두껍고 서스테인 긴 마샬 솔로. 모듈레이션 거의 없음.
 - **확신도**: 보통~높음. 오아시스 = Marshall(JCM/Plexi) + Les Paul/Sheraton 크런치 "월 오브 사운드"는 정설. 정확한 노브 값은 기기에서 귀로 보정.
 

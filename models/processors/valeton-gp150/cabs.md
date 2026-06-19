@@ -1,7 +1,7 @@
 # GP-150 캐비넷(CAB) 모델 레퍼런스
 
 CAB 모듈의 스피커/캐비넷 시뮬 전체 목록. 모든 CAB 공통 노브: **Volume, Low Cut, High Cut, Precision**(IR 정밀도/마이킹 위치 성격).
-AMP를 바꾸면 **Auto CAB Match**(켜둔 경우)가 어울리는 CAB를 자동 선택한다. → [[gp150-amps]]
+AMP를 바꾸면 **Auto CAB Match**(켜둔 경우)가 어울리는 CAB를 자동 선택한다. → [[amps]]
 
 ## 기타 캐비넷 (Fender/American)
 
@@ -68,6 +68,6 @@ AMP를 바꾸면 **Auto CAB Match**(켜둔 경우)가 어울리는 CAB를 자동
 
 ### 사용 메모
 
-- 풀레인지 모니터/PA/녹음 출력이면 CAB **ON**. 실제 기타 앰프 INPUT에 물릴 땐 CAB **OFF**(또는 No CAB Mode) 권장. → [[gp150-hardware]]
+- 풀레인지 모니터/PA/녹음 출력이면 CAB **ON**. 실제 기타 앰프 INPUT에 물릴 땐 CAB **OFF**(또는 No CAB Mode) 권장. → [[hardware]]
 - **Low Cut / High Cut**으로 합주에서 베이스·보컬과 겹치는 저역/치찰음 정리.
 - 4x12(Mess/Bog/Flagman/Solo/Orange/Dizz/Eagle)는 하이게인용, 1x12·2x12(Deluxe/AC15/Twin)는 클린·크런치용.

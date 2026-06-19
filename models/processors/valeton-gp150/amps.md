@@ -114,4 +114,4 @@ AMP 모듈에 들어있는 앰프 시뮬 전체 목록. 매뉴얼(펌웨어 V1.0
 - **크런치**: UK 45/50, Foxy 30TB, Match OD — 60~70년대 록.
 - **하이게인 록**: UK 800/900, Flagman, Solo100 LD.
 - **메탈**: Mess2C+, Mess DualM, EV 51, Eagle 120, Power LD, Dizz VH.
-- AMP를 바꾸면 **Auto CAB Match**가 캐비넷을 자동으로 맞춰줌(켜둔 경우). → [[gp150-cabs]]
+- AMP를 바꾸면 **Auto CAB Match**가 캐비넷을 자동으로 맞춰줌(켜둔 경우). → [[cabs]]
