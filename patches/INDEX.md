@@ -4,4 +4,4 @@
 
 | 곡 | 아티스트 | 앰프 모델 | 장르/톤 | 파일 |
 |----|----------|-----------|---------|------|
-| _아직 없음_ | | | | |
+| Don't Look Back in Anger | Oasis | UK 800 (JCM800) | 브릿팝 마샬 크런치 + 솔로 부스트 | [oasis-dont-look-back-in-anger.md](oasis-dont-look-back-in-anger.md) |
