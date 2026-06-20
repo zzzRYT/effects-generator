@@ -3,6 +3,15 @@
 각 항목 = `docs/web-harness.md`의 루프 한 사이클. 위에서부터 의존 순서.
 사이클 시작 = `/superpowers:brainstorm <항목>`.
 
+## 현재 상태 (resume 포인터) — 2026-06-20
+
+> 새 세션은 이 줄부터 읽으면 어디서 이어갈지 안다. CLAUDE.md → 이 파일이 트랙2 진입점.
+
+- ✅ **선행 셋업** 완료: `web/`(Next 16 · App Router · CSS Modules · 이중 게이트 tsgo/tsc/eslint/vitest/playwright) + `docs/data-contract-ui.md`.
+- ✅ **사이클 #0 `patch-parser`** 완료 — `patches/**/*.md` → `web/lib/patches.generated.ts` 빌드 파서. 오아시스 3변주(16블록·44노브) 검증, 45 테스트·커버리지 funcs 100%, lint/tsgo/tsc/build green, CE 병렬 리뷰(실버그 1건 수정)·QA 루브릭 파서 기준 9/9 통과. 복기: `docs/reviews/patch-parser.md`.
+- ▶ **다음: 사이클 #1 `signal-chain-view`** — `/superpowers:brainstorm signal-chain-view`부터. brainstorm에서 **GP-150 스킨 비주얼 방향 + 블록 타입 색 토큰**(`docs/data-contract-ui.md` 잠정값 확정)을 사용자와 정한다.
+- 브랜치: `feat/web-patch-parser` (커밋 cb25fbd · 3e527a3 · 01cc5e4, main 미병합·origin 미push).
+
 | # | 피처 | slug | 비고 |
 |---|------|------|------|
 | 0 | **md 파서 → `patches.generated.ts`** | `patch-parser` | 인프라 척추. `docs/parser-contract.md` 구현. 오아시스 1곡 검증. UI 전에 이게 먼저. TDD 강하게. |
