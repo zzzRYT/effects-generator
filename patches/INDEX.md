@@ -5,4 +5,4 @@
 
 | 곡 | 아티스트 | Rig | 앰프 모델 | 장르/톤 | 파일 |
 |----|----------|-----|-----------|---------|------|
-| Don't Look Back in Anger | Oasis | g250-gp150 | UK 800 (JCM800) | 브릿팝 마샬 크런치 + 솔로 부스트 | [g250-gp150/oasis-dont-look-back-in-anger.md](g250-gp150/oasis-dont-look-back-in-anger.md) |
+| Don't Look Back in Anger | Oasis | g250-gp150 | UK 800 · UK SLP · UK 900 (3변주) | 브릿팝 마샬 크런치 + 솔로 부스트 | [g250-gp150/oasis-dont-look-back-in-anger.md](g250-gp150/oasis-dont-look-back-in-anger.md) |
