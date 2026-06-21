@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Song } from "@/lib/types";
-import { VariationPanel } from "./VariationPanel";
+import { VariationTabs } from "./VariationTabs";
 import styles from "./song-detail.module.css";
 
 interface SongDetailProps {
@@ -39,15 +39,7 @@ export function SongDetail({ song }: SongDetailProps) {
         ) : null}
       </header>
 
-      <div className={styles.variations}>
-        {song.variations.map((variation, i) => (
-          <VariationPanel
-            key={`${song.slug}-${i}`}
-            variation={variation}
-            index={i}
-          />
-        ))}
-      </div>
+      <VariationTabs song={song} />
     </main>
   );
 }

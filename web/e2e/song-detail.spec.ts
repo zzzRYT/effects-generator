@@ -16,8 +16,8 @@ test("곡 상세 — 헤더와 시그널 체인이 순서대로 렌더된다 (ui
 }) => {
   await page.goto(OASIS);
   await expect(page.locator("h1")).toContainText("Don't Look Back");
-  // 변주 3개
-  const variations = page.locator('article[aria-label^="변주"]');
+  // 변주 3개 (탭 패널 — 숨김 포함 DOM 카운트)
+  const variations = page.locator('article[role="tabpanel"]');
   await expect(variations).toHaveCount(3);
   // 첫 변주의 블록들이 좌→우(또는 위→아래) DOM 순서대로
   const firstChain = page

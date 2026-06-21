@@ -20,6 +20,13 @@ vi.mock("next/link", () => ({
   ),
 }));
 
+// SongDetail → VariationTabs → VariationTabsClient(useSearchParams) 경로를 위한 모킹.
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => new URLSearchParams(""),
+  useRouter: () => ({ replace: vi.fn() }),
+  usePathname: () => "/songs/g250-gp150/oasis-dont-look-back-in-anger",
+}));
+
 const song: Song = {
   artist: "Oasis",
   title: "Don't Look Back in Anger",
@@ -51,12 +58,16 @@ describe("SongDetail", () => {
     expect(screen.getByText(/높음/)).toBeInTheDocument();
   });
 
-  it("모든 변주를 세로로 나열한다", () => {
+  it("모든 변주를 탭 + 패널로 렌더한다(2개 이상이면 탭바)", () => {
     render(<SongDetail song={song} />);
-    expect(screen.getByLabelText("변주 1")).toBeInTheDocument();
-    expect(screen.getByLabelText("변주 2")).toBeInTheDocument();
-    expect(screen.getByText("정석 JCM800")).toBeInTheDocument();
-    expect(screen.getByText("빈티지 Plexi")).toBeInTheDocument();
+    // 패널 — 모든 변주 정적 렌더(no-JS 폴백). 접근명은 aria-labelledby(탭 라벨)가 제공.
+    const panels = screen.getAllByRole("tabpanel");
+    expect(panels).toHaveLength(2);
+    // 탭바 — 변주 라벨이 탭으로
+    expect(
+      screen.getByRole("tab", { name: "정석 JCM800" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "빈티지 Plexi" })).toBeInTheDocument();
   });
 
   it("곡 목록 백링크가 있다 (키보드 접근 + 내비)", () => {

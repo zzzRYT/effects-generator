@@ -10,9 +10,10 @@
 - ✅ **선행 셋업** 완료: `web/`(Next 16 · App Router · CSS Modules · 이중 게이트 tsgo/tsc/eslint/vitest/playwright) + `docs/data-contract-ui.md`.
 - ✅ **사이클 #0 `patch-parser`** 완료 — `patches/**/*.md` → `web/lib/patches.generated.ts` 빌드 파서. 복기: `docs/reviews/patch-parser.md`.
 - ✅ **사이클 #1 `signal-chain-view`** 완료 — `/songs/[slug]` 정적 라우트 + 곡의 모든 변주 세로 나열. GP-150 **기계 패널 리얼리즘**(다크 단일테마, 가로 신호흐름, LCD 텍스트 노브, LED, 풋스위치 배지/그룹). 범용 블록-체인 렌더러(`block.type`만 보고 그림). 순수함수(contrast/renderKnob/blockType)+불변제약 자동검증. **113 vitest(funcs 100%) + 36 Playwright(4브레이크포인트 비주얼 + axe a11y=0), lint/tsgo/tsc/build green.** CE 병렬리뷰(3) 검증우선 처리, CRITICAL/HIGH=0. 설계 `docs/plans/2026-06-21-signal-chain-view-design.md`, 복기 `docs/reviews/signal-chain-view.md`.
-- ▶ **다음: 사이클 #2 `variation-compare`** — `/superpowers:brainstorm variation-compare`부터. 같은 곡 변주를 나란히/탭으로 비교(ui-1.8 변주 탭 = 이 사이클). 선행 권장: `cd web && npx playwright install`(브라우저 버전 갱신 시 필요했음).
-- **미해결 메모**: ✅ ~~① yb-white-whale slug 충돌~~ 해소(커밋 0b9a3b5 — 라우트를 /songs/[rig]/[song] 복합키로). ② cross-5.5/5.7(LCP/CLS) Lighthouse 미측정(정적이라 위험 낮음). ③ hanroro switching.B 경고 2건(설명만, 블록 없음).
-- 브랜치: `feat/web-patch-parser` (#0 커밋 + #1 미커밋, main 미병합·origin 미push).
+- ✅ **사이클 #2 `variation-compare`** 완료 — 변주 **탭 위젯**(한 번에 하나, `?v=N` URL 공유). 점진적 향상: 서버가 모든 패널을 정적 HTML 로 그려 **no-JS=전부 표시**, JS 아일랜드(null 렌더)가 `getElementById`로 강화 → 한 번에 하나. `useSearchParams`는 Suspense 격리(SSG 유지). WAI-ARIA Tabs(roving tabindex·←/→/Home/End). **145 vitest + 72 Playwright(4 브레이크포인트, axe 0, no-JS, reduced-motion), lint/tsgo/tsc/build green(● SSG).** CE 병렬리뷰(6) 검증우선, CRITICAL/HIGH=0. 설계 `docs/plans/2026-06-21-variation-compare-design.md`, 복기 `docs/reviews/variation-compare.md`.
+- ▶ **다음: 사이클 #3 `song-index`** — `/superpowers:brainstorm song-index`부터. 곡 목록/검색 진입점(정적 목록 + 클라이언트 필터). 현재 홈(`/`)은 #1 의 임시 링크 목록 → 이걸 제대로. 선행 권장: `cd web && npx playwright install`(브라우저 버전 갱신 시 필요했음).
+- **미해결 메모**: ✅ ~~① yb-white-whale slug 충돌~~ 해소(0b9a3b5). ② cross-5.5/5.7(LCP/CLS) Lighthouse 미측정(정적이라 위험 낮음). ③ hanroro switching.B 경고 2건(설명만, 블록 없음).
+- 브랜치: `feat/web-patch-parser` (#0~#2 커밋, main 미병합·origin 미push).
 
 | # | 피처 | slug | 비고 |
 |---|------|------|------|

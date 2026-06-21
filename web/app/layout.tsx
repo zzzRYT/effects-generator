@@ -25,7 +25,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body>{children}</body>
+      <body>
+        {/* 무플래시: 패널 페인트 전 html.js 부착 → 변주 탭 CSS(비활성 패널 숨김)가 즉시 적용.
+            1st-party 한 줄, no-JS 면 미실행(=모든 패널 visible 폴백). 정적 사이트라 CSP 미설정. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "document.documentElement.classList.add('js')",
+          }}
+        />
+        {children}
+      </body>
     </html>
   );
 }
