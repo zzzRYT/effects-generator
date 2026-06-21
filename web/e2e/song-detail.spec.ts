@@ -3,7 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 
 // 검증 루브릭(docs/verification-rubric.md) 기준의 비주얼·a11y·반응형 회귀.
 // 오아시스 = 3변주 × (disabled 2 + footswitch 2 + switching) → 핵심 케이스 커버.
-const OASIS = "/songs/oasis-dont-look-back-in-anger";
+const OASIS = "/songs/g250-gp150/oasis-dont-look-back-in-anger";
 
 test("홈이 곡 목록을 렌더한다", async ({ page }) => {
   await page.goto("/");

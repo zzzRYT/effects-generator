@@ -10,8 +10,11 @@ export default function Home() {
       <p className={styles.homeSub}>곡을 골라 시그널 체인을 봅니다.</p>
       <ul className={styles.songList}>
         {PATCHES.map((song) => (
-          <li key={song.slug}>
-            <Link className={styles.songLink} href={`/songs/${song.slug}`}>
+          <li key={`${song.rig}/${song.slug}`}>
+            <Link
+              className={styles.songLink}
+              href={`/songs/${song.rig}/${song.slug}`}
+            >
               <span className={styles.songArtist}>{song.artist}</span>
               <span className={styles.songName}>{song.title}</span>
               <span className={styles.songRig}>
