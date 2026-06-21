@@ -14,32 +14,28 @@
 
 블록 타입을 한눈에 구분하는 **악센트 색**(좌측 보더 / 타입 배지 배경). 카드 본문은 중립 표면, 노브 텍스트는 고대비 — 즉 "장식 색"과 "텍스트 대비"를 **분리**해서 ui-1.1과 cross-5.1을 동시에 만족시킨다.
 
-### 기본값(잠정) — `lib/tokens.css` `:root`
+### 확정값 (#1 brainstorm) — `lib/tokens.css` `:root`
+
+GP-150 **기계 패널 리얼리즘 / 다크 단일 테마**로 확정. 악센트는 다크 패널 위에서 발광하는 밝은 톤이되, 배지 텍스트는 흰/검 자동선택(`lib/contrast.ts pickTextColor`)으로 ≥4.5:1을 만족한다. 실제 값 검증은 `lib/__tests__/tokens.test.ts`가 자동 수행.
 
 ```css
 :root {
-  /* 블록 타입 악센트 (잠정 — #1 brainstorm 확정) */
-  --color-od:  #c2410c; /* OD/BOOST/DST/FUZZ — 드라이브 계열 (주황) */
-  --color-amp: #1d4ed8; /* AMP — 앰프 (파랑) */
-  --color-cab: #6d28d9; /* CAB — 캐비닛/IR (보라) */
-  --color-dly: #0e7490; /* DLY — 딜레이 (시안) */
-  --color-rvb: #be185d; /* RVB — 리버브 (핑크) */
-  --color-mod: #047857; /* MOD/FILTER/WAH/PITCH — 모듈레이션 (초록) */
-  --color-util: #525252; /* NR/COMP/EQ/VOL — 유틸 (회색) */
-
-  /* 표면·텍스트 (고대비 기본) */
-  --surface:    #fafaf9; /* 카드 표면 */
-  --surface-2:  #ffffff; /* 노브 영역 */
-  --text:       #1c1917; /* 본문/노브 값 — 표면 대비 ≥ 4.5:1 */
-  --text-muted: #57534e; /* 보조 — 대비 ≥ 4.5:1 */
+  /* 표면 — 다크 하드웨어 */
+  --panel:   #16161a; --panel-2: #1e1e24; --bezel: #2a2a31; --lcd: #0c1410;
+  /* 텍스트 — 고대비 (패널/LCD 대비 ≥4.5:1) */
+  --text: #e7e5e4; --text-muted: #a8a29e; --lcd-text: #b6f0c8;
+  /* 상태 LED */
+  --led-on: #4ade80; --led-off: #3a3a40;
+  /* 블록 타입 악센트 (패널과 명도차 ≥0.20, 검정 텍스트 대비 ≥4.5:1) */
+  --color-od:  #fb923c; --color-amp: #60a5fa; --color-cab: #a78bfa;
+  --color-dly: #22d3ee; --color-rvb: #f472b6; --color-mod: #34d399;
+  --color-util:#a8a29e;
 }
 ```
 
-> 루브릭 예시는 `#f97316`(orange-500) 등 밝은 톤을 들었으나, 흰 배경 4.5:1을 못 넘긴다(ui-1.1 피드백 예시가 `#f97316 → #d97706` 하향을 명시). 그래서 위 기본값은 **명도를 낮춘 진한 톤**으로 잡아 텍스트/배지 대비를 선제적으로 통과시킨다.
-
 ### 제약(불변)
 
-1. **타입 구분 명도차**: 인접 타입 색의 상대 명도(0.2126R+0.7152G+0.0722B 정규화) 차이 ≥ 20%. (ui-1.1)
+1. **배경 구분 명도차**: 각 타입 악센트 색이 **패널 배경**과 상대 명도(0.2126R+0.7152G+0.0722B 정규화, 0–1) 차이 ≥ 0.20. 악센트가 배경 위에서 또렷이 떠야 한다. (ui-1.1 = "배경 구분 명도 ≥20%") — *주: 7개 그룹이라 "인접 타입끼리 ≥20%"는 수학적으로 불가능. 루브릭 ui-1.1의 실제 측정 대상은 배경 대비이므로 그에 맞춘다. 타입 간 구분은 색상(hue) + 약어 텍스트(제약 4)가 담당.*
 2. **배지/보더 위 텍스트 대비** ≥ 4.5:1 (WCAG AA). 악센트 색을 배경으로 'A'/'B'·타입약어를 올릴 땐 텍스트 색을 흰/검 중 대비 통과하는 쪽으로 자동 선택. (ui-1.1, cross-5.1)
 3. **타입 → 색 매핑은 1곳**(`lib/tokens.css` + `lib/blockType.ts`)에서만 정의. 컴포넌트는 `data-type` 속성으로 토큰을 참조(`.block[data-type="OD"]{--c:var(--color-od)}`). 하드코딩 금지.
 4. **색만으로 의미 전달 금지** — 타입은 색 + **타입 약어 텍스트**(OD/AMP/CAB/DLY/RVB…) 병기. (edge-3.11)
@@ -103,6 +99,7 @@ type KnobRender = {
 ### 제약 (불변)
 
 - enabled=true 대 false 의 **opacity 차이 ≥ 50%p** + **grayscale 적용**. (ui-1.3)
+- **대비 면제 (inactive 컴포넌트)**: `enabled=false` = 신호 체인에서 바이패스된 **비활성 이펙트**다. WCAG 1.4.3 은 "inactive user interface component" 텍스트를 대비 요건에서 면제하므로, disabled 블록의 흐려진 텍스트는 cross-5.1/ui-1.1 의 4.5:1 대상에서 **제외**한다(값은 읽기용으로 전부 보존 — 정보 손실 0). 이로써 ui-1.3(흐리게)과 cross-5.1(대비)의 충돌을 해소한다. QA 의 axe 스캔도 `[data-enabled="false"]` 를 대비 검사에서 exclude 한다.
 - 상태를 **색만으로 구분 금지** — opacity·grayscale + 텍스트 상태 라벨('OFF'/'기본 OFF') + `aria-disabled` 까지 다중 신호. 색맹 모드(grayscale 시뮬)에서도 구분 가능해야. (edge-3.11)
 - 모든 타입(OD/AMP/CAB/DLY/RVB…)에서 disabled 렌더가 동일하게 동작. (edge-3.4)
 

@@ -1,0 +1,104 @@
+/* 시그널 체인 — 좌→우 신호 흐름. 좁은 화면에선 세로 wrap(흐름 축 유지). */
+
+.chain {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: var(--gap-block, 0.75rem);
+}
+
+.node {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-block, 0.75rem);
+}
+
+.connector {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  user-select: none;
+}
+
+/* 모바일(좁은 폭): 세로 스택 — 커넥터는 회전해 아래 방향 흐름 표시 */
+@media (max-width: 600px) {
+  .chain {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .node {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .connector {
+    align-self: center;
+    transform: rotate(90deg);
+  }
+}
+
+/* 스위칭 플랜 — signal_chain 과 분리된 섹션 */
+.switching {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--bezel);
+  border-left: 3px solid var(--text-muted);
+  border-radius: var(--radius-module, 4px);
+  background: var(--panel-2);
+}
+
+.switchingHeading {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.pickup {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+.pickupLabel {
+  font-family: var(--font-geist-mono, monospace);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-right: 0.3rem;
+}
+
+.switchingList {
+  margin-top: 0.6rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.switchingRow {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.6rem;
+  align-items: baseline;
+}
+
+.switchingKey {
+  font-family: var(--font-geist-mono, monospace);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.switchingDesc {
+  font-size: 0.88rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.switchingModels {
+  display: block;
+  margin-top: 0.15rem;
+  font-family: var(--font-geist-mono, monospace);
+  font-size: 0.75rem; /* ≥12px — cross-5.10 */
+  color: var(--text-muted);
+}
