@@ -73,11 +73,16 @@ test("스위칭 플랜이 분리된 섹션에 표시된다 (fs-4.6, fs-4.10)", a
   await expect(plan).toContainText(/\(\d+개:/);
 });
 
-test("키보드 내비 — 링크 포커스 가능 (cross-5.2)", async ({ page }) => {
+test("키보드 내비 — 홈 첫 포커스는 검색창 (cross-5.2)", async ({ page }) => {
   await page.goto("/");
+  // song-index 진입점: 필터바(검색창)가 목록보다 앞 → 첫 Tab 은 검색 입력.
   await page.keyboard.press("Tab");
-  const focused = await page.evaluate(() => document.activeElement?.tagName);
-  expect(focused).toBe("A");
+  const focused = await page.evaluate(() => ({
+    tag: document.activeElement?.tagName,
+    type: (document.activeElement as HTMLInputElement | null)?.type,
+  }));
+  expect(focused.tag).toBe("INPUT");
+  expect(focused.type).toBe("search");
 });
 
 test("axe 접근성 위반 0 (cross-5.1, cross-5.3)", async ({ page }) => {

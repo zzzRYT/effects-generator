@@ -24,10 +24,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className={`${geistSans.variable} ${geistMono.variable}`}>
+    // suppressHydrationWarning: 아래 무플래시 스크립트가 하이드레이션 전 html.classList 에 'js' 를
+    // 더하므로 server/client className 이 의도적으로 다르다(next-themes 패턴). 이 요소만 경고 억제.
+    <html
+      lang="ko"
+      className={`${geistSans.variable} ${geistMono.variable}`}
+      suppressHydrationWarning
+    >
       <body>
-        {/* 무플래시: 패널 페인트 전 html.js 부착 → 변주 탭 CSS(비활성 패널 숨김)가 즉시 적용.
-            1st-party 한 줄, no-JS 면 미실행(=모든 패널 visible 폴백). 정적 사이트라 CSP 미설정. */}
+        {/* 공유 점진적-향상 게이트: 페인트 전 html.js 를 부착한다. 여러 CSS 가 이 클래스를 게이트로 쓴다
+            (변주 탭 비활성 패널 숨김: variation-tabs.module.css / 곡목록 필터바 표시: song-index.module.css).
+            1st-party 한 줄, no-JS 면 미실행(=정적 폴백: 모든 패널/목록 visible, 컨트롤 부재).
+            이 스크립트나 :global(html.js) 셀렉터를 바꾸면 그 폴백들이 깨진다. 정적 사이트라 CSP 미설정. */}
         <script
           dangerouslySetInnerHTML={{
             __html: "document.documentElement.classList.add('js')",

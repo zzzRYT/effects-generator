@@ -12,9 +12,12 @@
 
 ## 확정 결정 (brainstorm)
 
-1. **검색/필터 = 검색창 1개 + rig/genre 필터 칩**. (단순 단일 검색창보다 칩 패싯 추가, 정렬은 미채택.)
-2. **활성 상태 = URL** (`?q=&rig=&genre=`, 공유·북마크·뒤로가기). web "URL As State", #2 `?v=` 선례.
-3. **필터 칩 = 카테고리당 단일 선택** (전체 또는 하나). 결합 = 검색어 AND rig AND genre. (다중선택 기각 — URL/로직 복잡, 소규모에 과함.)
+1. **검색/필터 = 검색창 1개 + rig 필터 칩**. (정렬 미채택.)
+   - **genre 칩은 제외**: `genre` 필드가 짧은 태그가 아니라 긴 서술문(예: "한국 모던/얼터너티브 록 — 차갑고
+     공간감 있는 클린 벌스…")이라 7곡이 거의 다 고유값 → 칩으로 무의미(칩 1개당 곡 1개, 그룹핑 0). rig 은
+     `g250-gp150`/`xt-450-gp150` 2개로 칩에 적합. **genre 키워드는 검색창이 부분문자열 매칭**(검색 대상에 genre 포함).
+2. **활성 상태 = URL** (`?q=&rig=`, 공유·북마크·뒤로가기). web "URL As State", #2 `?v=` 선례.
+3. **rig 칩 = 단일 선택** (전체 또는 하나). 결합 = 검색어 AND rig. (다중선택 기각 — URL/로직 복잡, 소규모에 과함.)
 4. **구현 = 점진적 향상**:
    - 100% 정적이라 런타임 쿼리 서버필터 불가 → **서버가 모든 곡 행을 정적 HTML 로** 렌더(SEO·no-JS).
    - **필터 컨트롤(검색창+칩)은 클라이언트 아일랜드**가 렌더, `<Suspense fallback={null}>` 격리.
@@ -40,34 +43,35 @@ lib/
   songFilter.ts                   # 순수 함수 (단일 출처)
 ```
 
-- 서버 렌더: 모든 `<li data-search="artist title genre(소문자)" data-rig data-genre data-key>` + 링크.
+- 서버 렌더: 모든 `<li data-search="artist title genre(소문자)" data-rig data-key>` + 링크. (genre 는
+  data-search 에 녹여 검색 대상에 포함하되, 별도 칩/필터 차원으로는 안 씀.)
 - 아일랜드: `parseFilters(useSearchParams)` → 각 행 `matchesRow(행.dataset, filters)` → `hidden` 토글 →
   보이는 수 세어 count(`aria-live`) + 0이면 빈상태 표시. 입력/칩 변경 → `router.replace(?…, {scroll:false})`.
-- rig/genre 옵션은 서버가 PATCHES 에서 유니크 추출해 아일랜드 props 로(작은 string[]).
+- rig 옵션은 서버가 PATCHES 에서 유니크 추출해 아일랜드 props 로(작은 string[]).
 - 무플래시: #2 의 `html.js` 인라인 스크립트 재사용 가능하나, 여기선 리스트가 기본 전부 visible 이라
   필터는 JS 후 적용(초기 전체표시→필터는 자연스러운 향상). 별도 무플래시 불필요.
 
 ## 섹션 2 — 컴포넌트 & 필터 로직 & 엣지케이스
 
 **순수 함수(`lib/songFilter.ts`, 전수 테스트)**:
-- `parseFilters(sp): {q, rig, genre}` — `?q/rig/genre` 정규화(소문자·trim, 없으면 빈값=전체).
-- `matchesRow(row: {search,rig,genre}, f: {q,rig,genre}): boolean` — `q` 부분문자열 AND `rig`(빈값이면 무시) AND `genre`(빈값이면 무시).
+- `parseFilters(sp): {q, rig}` — `?q/rig` 정규화(소문자·trim, 없으면 빈값=전체).
+- `matchesRow(row: {search,rig}, f: {q,rig}): boolean` — `q` 부분문자열(search 에 artist+title+genre 포함) AND `rig`(빈값이면 무시).
 
 **엣지케이스**:
 - **0 결과**(edge-3.6): "검색 결과 없음" + **필터 초기화** 링크(`/`). 서버 숨김, 아일랜드가 0일 때 표시.
 - **결과 수 라이브**: `aria-live="polite"` "N곡"(SR status message).
-- **활성 칩**: `<button aria-pressed>` + 시각 강조(색만 아님). 단일선택 → 카테고리 내 하나만 active.
+- **활성 칩(rig)**: `<button aria-pressed>` + 시각 강조(색만 아님). 단일선택 → 전체/하나만 active.
 - **검색 입력**: `router.replace`(히스토리 누적 0). 소규모라 디바운스 불필요(즉시 필터).
 - 긴 곡명·특수문자 검색·0곡 graceful. 칩은 `<button>`(no-JS 엔 아일랜드 미렌더라 부재).
 
 ## 섹션 3 — 테스트 & 검증
 
 **유닛(Vitest)**: `songFilter.test`(parseFilters·matchesRow 전수) + `SongIndex.test`(모든 행 정적 렌더·
-data-*·rigs/genres 추출·칩 렌더(next/navigation mock)·칩 클릭→`?rig=`·검색→`?q=`·0결과 빈상태·count).
+data-*·rigs 추출·rig 칩 렌더(next/navigation mock)·칩 클릭→`?rig=`·검색→`?q=`·0결과 빈상태·count).
 
-**E2E(Playwright, 320/768/1024/1440)**: 검색→행 필터+`?q=`, 칩→rig/genre 필터+`aria-pressed`, 검색+칩 AND,
-딥링크 `?q=&rig=`, **0결과 메시지+초기화**(edge-3.6), **no-JS 전체목록**, 키보드·axe·reduced-motion·
-모바일 오버플로0·터치≥44px, 라이브 카운트. 스냅샷(목록/필터/빈상태). 기존 홈 e2e 갱신.
+**E2E(Playwright, 320/768/1024/1440)**: 검색→행 필터+`?q=`(genre 키워드도 검색됨), rig 칩→필터+`aria-pressed`,
+검색+칩 AND, 딥링크 `?q=&rig=`, **0결과 메시지+초기화**(edge-3.6), **no-JS 전체목록**, 키보드·axe·
+reduced-motion·모바일 오버플로0·터치≥44px, 라이브 카운트. 스냅샷(목록/필터/빈상태). 기존 홈 e2e 갱신.
 
 **QA = 루브릭**: edge-3.6(0결과 필수), cross-5.1/5.2/5.3, edge-3.1 반응형. ui 기준 대부분은 곡상세(#1·#2)라
 이 사이클은 진입/엣지/교차품질 중심.
