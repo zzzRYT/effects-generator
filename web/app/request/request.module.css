@@ -1,0 +1,41 @@
+/* /request · /request/sent — 정적 제보 페이지(no-JS 폴백). song-index 와 같은 폭/리듬. */
+
+.page {
+  flex: 1;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: clamp(2.5rem, 6vw, 5rem) 1.25rem;
+}
+
+.head {
+  margin-bottom: 1.75rem;
+}
+
+.title {
+  font-size: clamp(1.75rem, 1.2rem + 2.4vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.sub {
+  margin-top: 0.5rem;
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.back {
+  margin-top: 1.75rem;
+}
+
+.backLink {
+  color: var(--color-amp);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.backLink:focus-visible {
+  outline: 2px solid var(--color-dly);
+  outline-offset: 2px;
+}

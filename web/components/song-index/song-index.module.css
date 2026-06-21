@@ -168,6 +168,12 @@
   font-size: 0.95rem;
 }
 
+.emptyCta {
+  display: block;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
 .resetLink {
   color: var(--color-amp);
   text-decoration: underline;

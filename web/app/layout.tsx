@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "@/lib/tokens.css";
 import "./globals.css";
+import { Footer } from "@/components/layout/Footer";
+import { RequestDialogClient } from "@/components/request-form/RequestDialogClient";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,6 +44,9 @@ export default function RootLayout({
           }}
         />
         {children}
+        <Footer />
+        {/* 전역 제보 dialog — 닫힘=display:none(흐름 영향 0). no-JS 면 트리거 <a> 가 /request 로 navigate. */}
+        <RequestDialogClient />
       </body>
     </html>
   );

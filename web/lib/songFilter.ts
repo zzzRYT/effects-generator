@@ -7,6 +7,8 @@
 export const SONG_LIST_ID = "song-list";
 export const SONG_COUNT_ID = "song-count";
 export const SONG_EMPTY_ID = "song-empty";
+/** 검색 input id — request-form dialog 가 프리필 소스(라이브 값)로 읽는다(크로스 피처 계약). */
+export const SONG_SEARCH_ID = "song-search";
 
 export interface Filters {
   /** 검색어 — 소문자·trim 됨. 빈값이면 검색 필터 무시. */

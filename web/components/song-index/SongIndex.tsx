@@ -4,6 +4,7 @@ import type { Song } from "@/lib/types";
 import { SONG_COUNT_ID, SONG_EMPTY_ID, SONG_LIST_ID } from "@/lib/songFilter";
 import { SongRow } from "./SongRow";
 import { SongFilterClient } from "./SongFilterClient";
+import { RequestLink } from "@/components/request-form/RequestLink";
 import styles from "./song-index.module.css";
 
 interface SongIndexProps {
@@ -40,6 +41,9 @@ export function SongIndex({ songs }: SongIndexProps) {
         <Link className={styles.resetLink} href="/">
           필터 초기화
         </Link>
+        <span className={styles.emptyCta}>
+          찾는 곡이 라이브러리에 없나요? <RequestLink>이 곡 제보하기 →</RequestLink>
+        </span>
       </p>
     </main>
   );

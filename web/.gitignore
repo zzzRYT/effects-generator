@@ -32,6 +32,8 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# 예외: 제보 폼 env 템플릿은 추적(실제 키 없는 placeholder 문서)
+!.env.example
 
 # vercel
 .vercel

@@ -8,6 +8,7 @@ import {
   SONG_COUNT_ID,
   SONG_EMPTY_ID,
   SONG_LIST_ID,
+  SONG_SEARCH_ID,
 } from "@/lib/songFilter";
 import styles from "./song-index.module.css";
 
@@ -92,6 +93,7 @@ export function SongFilterClient({ rigs }: SongFilterClientProps) {
     <div className={styles.filterbar}>
       <input
         ref={inputRef}
+        id={SONG_SEARCH_ID}
         type="search"
         className={styles.search}
         placeholder="곡·아티스트·장르 검색"

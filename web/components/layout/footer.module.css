@@ -1,0 +1,22 @@
+/* 전역 푸터 — 제보 진입점. 본문과 구분되는 상단 보더 + 차분한 정렬. */
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem 0.9rem;
+  margin-top: auto;
+  padding: 2.5rem 1.25rem;
+  border-top: 1px solid var(--bezel);
+  text-align: center;
+}
+
+.note {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.cta {
+  font-size: 0.95rem;
+}

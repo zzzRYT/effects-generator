@@ -1,0 +1,286 @@
+/* 곡 제보 — 트리거 링크 / dialog 모달 / 공유 폼. GP-150 패널 토큰 재사용(다크 하드웨어 모듈). */
+
+/* 트리거 링크 — 빈상태·푸터 어디서나. 텍스트 강조 + 밑줄, 충분한 탭 타깃. */
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--color-amp);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--color-dly);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .trigger:hover {
+    color: var(--text);
+  }
+}
+
+/* ── dialog 모달 ─────────────────────────────────────────────────────── */
+/* dialog 요소 자체를 전체 뷰포트 투명 레이어로 만들고 그 안에 패널(.dialogInner)을 가운데 배치한다.
+   → 패널 바깥(=dialog 요소) 클릭이 backdrop 닫기로 잡힌다(::backdrop 의사요소 클릭 타깃은 불안정). */
+.dialog {
+  width: 100vw;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: clamp(1rem, 4vw, 2rem);
+  border: none;
+  background: transparent;
+  color: var(--text);
+  /* 모달일 때만 flex 중앙정렬(닫힘=display:none 은 UA 유지). */
+}
+
+.dialog[open] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialog::backdrop {
+  background: rgb(0 0 0 / 55%);
+  backdrop-filter: blur(2px);
+}
+
+.dialogInner {
+  width: min(30rem, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  padding: clamp(1.25rem, 4vw, 1.75rem);
+  border: 1px solid var(--bezel);
+  border-radius: var(--radius-module, 4px);
+  background: var(--panel-2);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 5%),
+    0 24px 60px rgb(0 0 0 / 55%);
+}
+
+.dialogHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.dialogTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: -0.5rem -0.5rem -0.5rem 0;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: var(--radius-module, 4px);
+  transition: color var(--dur, 150ms) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .close:hover {
+    color: var(--text);
+  }
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--color-dly);
+  outline-offset: 2px;
+}
+
+/* ── 폼 ──────────────────────────────────────────────────────────────── */
+.form {
+  display: grid;
+  gap: 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.req {
+  color: var(--color-od);
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--bezel);
+  border-radius: var(--radius-module, 4px);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.input:focus-visible,
+.textarea:focus-visible {
+  outline: 2px solid var(--color-dly);
+  outline-offset: 2px;
+  border-color: var(--color-amp);
+}
+
+.input[aria-invalid="true"],
+.textarea[aria-invalid="true"] {
+  border-color: var(--color-rvb);
+}
+
+.error {
+  font-size: 0.78rem;
+  color: var(--color-rvb);
+}
+
+.formError {
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--color-rvb);
+  border-radius: var(--radius-module, 4px);
+  background: rgb(244 114 182 / 10%);
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+/* honeypot — 화면 밖. 시각·탭·접근성 트리에서 제외(aria-hidden + tabindex=-1 은 마크업에서). */
+.honeypot {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* 제출 — '보내기' = LED 그린(액션). 비활성/제출중 흐리게. */
+.submit {
+  min-height: 44px;
+  padding: 0.6rem 1.1rem;
+  border: 1px solid var(--led-on);
+  border-radius: var(--radius-module, 4px);
+  background: var(--led-on);
+  color: #0c1410;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition:
+    filter var(--dur, 150ms) ease,
+    transform var(--dur, 150ms) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .submit:hover:not(:disabled) {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+  }
+}
+
+.submit:focus-visible {
+  outline: 2px solid var(--color-dly);
+  outline-offset: 2px;
+}
+
+.submit:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+/* 보조 버튼 — '또 제보' 고스트. */
+.ghost {
+  min-height: 44px;
+  padding: 0.6rem 1.1rem;
+  border: 1px solid var(--bezel);
+  border-radius: var(--radius-module, 4px);
+  background: transparent;
+  color: var(--text);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: border-color var(--dur, 150ms) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ghost:hover {
+    border-color: var(--color-amp);
+  }
+}
+
+.ghost:focus-visible {
+  outline: 2px solid var(--color-dly);
+  outline-offset: 2px;
+}
+
+/* ── 성공 상태 ────────────────────────────────────────────────────────── */
+.success {
+  display: grid;
+  gap: 1.25rem;
+  padding: 0.5rem 0;
+}
+
+.successMsg {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.successMsg:focus-visible {
+  outline: 2px solid var(--color-dly);
+  outline-offset: 4px;
+}
+
+.successActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trigger,
+  .close,
+  .submit,
+  .ghost {
+    transition: none;
+  }
+}
