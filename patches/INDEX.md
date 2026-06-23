@@ -12,3 +12,4 @@
 | Time Is Running Out | Muse | g250-gp150 | Dizz VH · UK 900 · UK SLP (3변주) | 얼터너티브 록, 타이트 하이게인 리듬 + 게이티드 퍼즈 리드 | [g250-gp150/muse-time-is-running-out.md](g250-gp150/muse-time-is-running-out.md) |
 | 踊り子 (Odoriko / 무희) | Vaundy (バウンディ) | g250-gp150 | Foxy 30TB · J-120 CL · Dark Twin (3변주) | J-POP/시티팝 클린, 코러스 머금은 글래시 미드 커팅 (드라이브 없음) | [g250-gp150/vaundy-odoriko.md](g250-gp150/vaundy-odoriko.md) |
 | 얼음요새 (Ice Fortress) | 디어클라우드 (The Dear Cloud) | g250-gp150 | J-120 CL · UK 900 · Foxy 30TB (3변주) | 한국 모던록, 차가운 클린 벌스 → 디스토션 벽 코러스 (합주용 세컨 기타) | [g250-gp150/dear-cloud-ice-fortress.md](g250-gp150/dear-cloud-ice-fortress.md) |
+| I Want to Break Free | Queen | g250-gp150 | Foxy 30TB · J-120 CL · UK 45 (3변주) | 글램/팝 록, 브라이언 메이 AC30 Top Boost 크런치 — 후렴 리듬 / 신스 훅 커버 / 합주 미드 푸시 (세컨 기타) | [g250-gp150/queen-i-want-to-break-free.md](g250-gp150/queen-i-want-to-break-free.md) |
