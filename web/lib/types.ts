@@ -1,16 +1,14 @@
 // 패치 데이터 단일 타입 정의. 빌드 파서(scripts/gen-patches.ts)와 렌더러(#1+)가 공유한다.
 // docs/parser-contract.md 와 1:1. 이 파일이 signal_chain block/knob 모양의 권위 타입.
 
+// GP-150 실제 12 모듈 슬롯. block.type = 모듈(효과명 아님).
+// 근거·매핑: docs/parser-contract.md "모듈 ↔ 효과", models/processors/valeton-gp150/hardware.md.
 export type BlockType =
-  | "NR"
-  | "COMP"
-  | "BOOST"
-  | "OD"
-  | "FUZZ"
-  | "DST"
-  | "FILTER"
-  | "PITCH"
-  | "WAH"
+  | "NR" // Noise Gate
+  | "PRE" // Pre-Effects (컴프/부스트/필터/피치)
+  | "WAH" // Wah
+  | "DST" // Distortion/Overdrive (드라이브/디스토션/퍼즈)
+  | "NS" // SnapTone (N→S)
   | "AMP"
   | "CAB"
   | "EQ"
@@ -18,6 +16,17 @@ export type BlockType =
   | "DLY"
   | "RVB"
   | "VOL";
+
+// PRE/DST 모듈 안의 효과 종류(선택). 단일 의미 모듈은 category 없음.
+// PRE: COMP·BOOST·FILTER·PITCH / DST: OD·DST·FUZZ.
+export type BlockCategory =
+  | "COMP"
+  | "BOOST"
+  | "FILTER"
+  | "PITCH"
+  | "OD"
+  | "DST"
+  | "FUZZ";
 
 export type Footswitch = "A" | "B";
 
@@ -31,6 +40,8 @@ export interface Knob {
 
 export interface Block {
   type: BlockType;
+  /** PRE/DST 모듈 안의 효과 종류(선택). 없으면 단일 의미 모듈. */
+  category?: BlockCategory;
   model: string;
   base_gear?: string;
   enabled: boolean;

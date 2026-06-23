@@ -170,6 +170,7 @@ function parseVariation(
     }
     blocks.push({
       type: b.type as Block["type"],
+      ...(present(b.category) ? { category: b.category as Block["category"] } : {}),
       model: String(b.model),
       ...(present(b.base_gear) ? { base_gear: String(b.base_gear) } : {}),
       enabled: b.enabled as boolean,

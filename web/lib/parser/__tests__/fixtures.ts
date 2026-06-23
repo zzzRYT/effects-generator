@@ -13,7 +13,7 @@ const FM = (...extra: string[]): string[] => [
   "",
 ];
 
-/** 정상 5블록 패치 — OD(A)/AMP/CAB(빈)/DLY(A)/RVB, switching A. 경고 없음. */
+/** 정상 5블록 패치 — DST(category OD, A)/AMP/CAB(빈)/DLY(A)/RVB, switching A. 경고 없음. */
 export const VALID = lines(
   ...FM("genre: test", "confidence: 높음"),
   "# Test Artist – Test Song",
@@ -23,7 +23,7 @@ export const VALID = lines(
   "",
   "```signal_chain",
   "[",
-  '  {"type":"OD","model":"TS-808","base_gear":"Ibanez TS-808","enabled":false,"footswitch":"A","knobs":[{"name":"Gain","value":2},{"name":"Tone","value":6}]},',
+  '  {"type":"DST","category":"OD","model":"TS-808","base_gear":"Ibanez TS-808","enabled":false,"footswitch":"A","knobs":[{"name":"Gain","value":2},{"name":"Tone","value":6}]},',
   '  {"type":"AMP","model":"UK 800","base_gear":"Marshall JCM800","enabled":true,"knobs":[{"name":"Gain","value":5.5},{"name":"Mid","value":7}]},',
   '  {"type":"CAB","model":"UK 30","enabled":true,"knobs":[]},',
   '  {"type":"DLY","model":"Slapback","enabled":false,"footswitch":"A","knobs":[{"name":"Time","value":120,"unit":"ms"},{"name":"Mix","value":20,"unit":"%"}]},',
@@ -97,6 +97,26 @@ export const BAD_BLOCK_TYPE = lines(
   "",
   "```signal_chain",
   '[{"type":"XYZ","model":"???","enabled":true,"knobs":[]}]',
+  "```",
+);
+
+/** block.category 가 그 type 에 허용되지 않는 값 → 규칙4 위반(DST 에 NOPE 없음). */
+export const BAD_CATEGORY = lines(
+  ...FM(),
+  "## Variation: Base",
+  "",
+  "```signal_chain",
+  '[{"type":"DST","category":"NOPE","model":"TS-808","enabled":true,"knobs":[]}]',
+  "```",
+);
+
+/** category 가 단일 의미 모듈에 붙음(AMP 는 category 없음) → 규칙4 위반(의미상 잘못된 조합). */
+export const ORPHAN_CATEGORY = lines(
+  ...FM(),
+  "## Variation: Base",
+  "",
+  "```signal_chain",
+  '[{"type":"AMP","category":"OD","model":"UK 800","enabled":true,"knobs":[]}]',
   "```",
 );
 

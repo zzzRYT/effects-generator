@@ -57,6 +57,19 @@
   gap: 0.4rem;
 }
 
+/* 효과종류 라벨(오버드라이브/부스트…) — 모듈 약어 배지와 모델명 사이. 색맹/grayscale 대비 텍스트 신호. */
+.category {
+  flex: none;
+  font-size: 0.72rem; /* ≥12px — cross-5.10 */
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.category::after {
+  content: "·";
+  margin-left: 0.3rem;
+  color: var(--text-muted);
+}
+
 .model {
   flex: 1;
   min-width: 0;

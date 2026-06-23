@@ -4,7 +4,7 @@ import type { Block } from "@/lib/types";
 import { SignalChain } from "@/components/signal-chain/SignalChain";
 
 const blocks: Block[] = [
-  { type: "OD", model: "TS-808", enabled: true, knobs: [] },
+  { type: "DST", category: "OD", model: "TS-808", enabled: true, knobs: [] },
   { type: "AMP", model: "UK 800", enabled: true, knobs: [] },
   { type: "CAB", model: "UK 30", enabled: true, knobs: [] },
 ];

@@ -36,6 +36,19 @@ describe("실제 데이터 — 오아시스 3변주 (AC1)", () => {
     expect(amp.knobs.find((k) => k.name === "Mid")!.value).toBe(7);
   });
 
+  it("TS-808 솔로 부스트는 DST 모듈 + category OD (모듈 택소노미 회귀 가드)", () => {
+    const blocks = song!.variations.flatMap((v) => v.signalChain);
+    const ts = blocks.filter((b) => b.model === "TS-808");
+    expect(ts.length).toBeGreaterThan(0);
+    for (const b of ts) {
+      expect(b.type).toBe("DST"); // OD 모듈이 아니라 DST 모듈의 모델
+      expect(b.category).toBe("OD");
+    }
+    // 단일 의미 모듈(AMP)엔 category 없음
+    const amp = blocks.find((b) => b.type === "AMP")!;
+    expect("category" in amp).toBe(false);
+  });
+
   it("CAB 은 IR-only(빈 knobs)", () => {
     const cab = song!.variations[0].signalChain.find((b) => b.type === "CAB")!;
     expect(cab.knobs).toEqual([]);

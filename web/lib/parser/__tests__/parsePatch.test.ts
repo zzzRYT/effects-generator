@@ -17,15 +17,22 @@ describe("parsePatch — 정상", () => {
     expect(song!.variations).toHaveLength(1);
   });
 
-  it("signal_chain block 순서를 보존한다", () => {
+  it("signal_chain block(모듈) 순서를 보존한다", () => {
     const { song } = parsePatch(F.VALID, FILE);
     expect(song!.variations[0].signalChain.map((b) => b.type)).toEqual([
-      "OD",
+      "DST",
       "AMP",
       "CAB",
       "DLY",
       "RVB",
     ]);
+  });
+
+  it("category(효과종류)를 보존한다 — DST/OD, 없는 블록은 생략", () => {
+    const { song } = parsePatch(F.VALID, FILE);
+    const chain = song!.variations[0].signalChain;
+    expect(chain[0].category).toBe("OD"); // DST 모듈의 오버드라이브
+    expect("category" in chain[1]).toBe(false); // AMP — category 없음
   });
 
   it("unit 을 보존한다", () => {
@@ -94,6 +101,8 @@ describe("parsePatch — 검증 실패(빌드 실패 케이스)", () => {
     ["TWO_SIGNAL_CHAIN", F.TWO_SIGNAL_CHAIN, "signal-chain-count"],
     ["MALFORMED_JSON", F.MALFORMED_JSON, "signal-chain-json"],
     ["BAD_BLOCK_TYPE", F.BAD_BLOCK_TYPE, "block-field"],
+    ["BAD_CATEGORY", F.BAD_CATEGORY, "block-field"],
+    ["ORPHAN_CATEGORY", F.ORPHAN_CATEGORY, "block-field"],
     ["BLOCK_MISSING_FIELD", F.BLOCK_MISSING_FIELD, "block-field"],
     ["KNOB_VALUE_NOT_NUMBER", F.KNOB_VALUE_NOT_NUMBER, "knob-field"],
     ["SWITCHING_MALFORMED", F.SWITCHING_MALFORMED, "switching-json"],

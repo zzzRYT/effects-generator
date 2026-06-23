@@ -5,7 +5,7 @@ import { BlockModule } from "@/components/signal-chain/BlockModule";
 
 function block(overrides: Partial<Block> = {}): Block {
   return {
-    type: "OD",
+    type: "DST",
     model: "TS-808",
     enabled: true,
     knobs: [{ name: "Gain", value: 5.5 }],
@@ -14,19 +14,40 @@ function block(overrides: Partial<Block> = {}): Block {
 }
 
 describe("BlockModule", () => {
-  it("모델명·타입 약어·노브를 렌더한다", () => {
-    render(<BlockModule block={block()} />);
+  it("모델명·모듈 약어·효과종류 라벨·노브를 렌더한다", () => {
+    render(<BlockModule block={block({ category: "OD" })} />);
     expect(screen.getByText("TS-808")).toBeInTheDocument();
-    expect(screen.getByText("OD")).toBeInTheDocument(); // 배지 약어
+    expect(screen.getByText("DST")).toBeInTheDocument(); // 모듈 배지 약어
+    expect(screen.getByText("오버드라이브")).toBeInTheDocument(); // category 라벨
     expect(screen.getByText("Gain")).toBeInTheDocument();
   });
 
-  it("data-group 으로 타입 토큰을 노출한다", () => {
+  it("category 를 data-category 로 노출한다", () => {
+    const { container } = render(
+      <BlockModule block={block({ category: "OD" })} />,
+    );
+    expect(container.querySelector("article")).toHaveAttribute(
+      "data-category",
+      "OD",
+    );
+  });
+
+  it("category 없으면 효과종류 라벨 미표기", () => {
+    render(<BlockModule block={block({ type: "AMP" })} />);
+    expect(screen.queryByText("오버드라이브")).toBeNull();
+  });
+
+  it("data-group 으로 토큰을 노출한다 (category 우선)", () => {
     const { container } = render(<BlockModule block={block({ type: "AMP" })} />);
     expect(container.querySelector("article")).toHaveAttribute(
       "data-group",
       "amp",
     );
+    // PRE 모듈이라도 category=BOOST 면 드라이브색(od) 그룹
+    const { container: c2 } = render(
+      <BlockModule block={block({ type: "PRE", category: "BOOST" })} />,
+    );
+    expect(c2.querySelector("article")).toHaveAttribute("data-group", "od");
   });
 
   it("enabled=false 면 data-enabled=false + OFF 라벨, 노브 값은 유지", () => {

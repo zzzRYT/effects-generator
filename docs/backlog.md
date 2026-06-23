@@ -3,7 +3,7 @@
 각 항목 = `docs/web-harness.md`의 루프 한 사이클. 위에서부터 의존 순서.
 사이클 시작 = `/superpowers:brainstorm <항목>`.
 
-## 현재 상태 (resume 포인터) — 2026-06-21
+## 현재 상태 (resume 포인터) — 2026-06-23
 
 > 새 세션은 이 줄부터 읽으면 어디서 이어갈지 안다. CLAUDE.md → 이 파일이 트랙2 진입점.
 
@@ -13,7 +13,8 @@
 - ✅ **사이클 #2 `variation-compare`** 완료 — 변주 **탭 위젯**(한 번에 하나, `?v=N` URL 공유). 점진적 향상: 서버가 모든 패널을 정적 HTML 로 그려 **no-JS=전부 표시**, JS 아일랜드(null 렌더)가 `getElementById`로 강화 → 한 번에 하나. `useSearchParams`는 Suspense 격리(SSG 유지). WAI-ARIA Tabs(roving tabindex·←/→/Home/End). **145 vitest + 72 Playwright(4 브레이크포인트, axe 0, no-JS, reduced-motion), lint/tsgo/tsc/build green(● SSG).** CE 병렬리뷰(6) 검증우선, CRITICAL/HIGH=0. 설계 `docs/plans/2026-06-21-variation-compare-design.md`, 복기 `docs/reviews/variation-compare.md`.
 - ✅ **사이클 #3 `song-index`** 완료 — 홈을 **곡 목록/검색 진입점**으로. 정적 목록 + 검색창 + rig 칩, URL `?q=&rig=`(공유), 0결과 빈상태 + 라이브 카운트. 점진적 향상: 리스트 정적(no-JS=전부) + 컨트롤 아일랜드(`useSyncExternalStore` 하이드레이션 게이트), genre 는 칩 대신 검색 대상(긴 서술문이라). **169 vitest + 124 Playwright(4 bp, axe 0, no-JS, 레이스가드), lint/tsgo/tsc/build green(○ Static).** CE 병렬리뷰(6) CRITICAL/HIGH=0. 복기 `docs/reviews/song-index.md`(⚠ dev서버 재사용·하이드레이션 교훈 포함).
 - ✅ **사이클 #4 `request-form`** 완료 — 곡 제보 폼(곡·아티스트·요청자·메모) → Web3Forms → Gmail. **백엔드 0.** PE: 트리거 `<a href="/request">` 가 no-JS=정적 `/request` 네이티브 POST / JS=`<dialog>` 모달 fetch 제출. 폼 컴포넌트 1개 공유, 전역 진입점=빈상태 + 신설 `<footer>`. 프리필=라이브 검색값(SONG_SEARCH_ID), honeypot 스팸가드, 키 fail-fast(prod)/placeholder(dev·test). **213 vitest + 188 Playwright(no-JS·dialog·프리필·성공/실패·ESC/백드롭·포커스트랩·더블서브밋·비주얼 4bp·axe 0·reduced-motion), lint/tsgo/tsc/build green(`/request`·`/request/sent` ○ Static).** CE 병렬리뷰(6) 실제 CRITICAL/HIGH 수정 후 0(더블서브밋 가드+AbortController+role=dialog, 나머지는 verify-first 로 기각). 복기 `docs/reviews/request-form.md`(⚠ ::backdrop 클릭·native 포커스트랩 교훈).
-- **🎉 트랙2 모든 사이클(#0~#4) 완료.** 다음: 실제 Web3Forms 키 연결(사용자, `jinjinstar3@gmail.com`)·`web/.env.local`+Vercel 설정 → origin push → main 병합/PR → Vercel 배포.
+- ✅ **사이클 #5 `block-module-taxonomy`** 완료 — 사용자 지적("GP-150엔 OD 모듈이 없다, 모듈은 12개")을 받아 데이터 계약 교정. `block.type`을 효과 카테고리(OD/BOOST/FUZZ/COMP) → **GP-150 실제 12모듈**(NR·PRE·WAH·DST·NS·AMP·CAB·EQ·MOD·DLY·RVB·VOL)로, 효과 종류는 선택 필드 **`category`**(PRE: COMP·BOOST·FILTER·PITCH / DST: OD·DST·FUZZ)로 분리. 화면 = `[DST] 오버드라이브 · TS-808`(모듈 배지+효과종류 라벨+모델). 설계는 **사용자 AskUserQuestion으로 수렴**(type+category / 전체 마이그레이션). 파서가 **per-type 시맨틱 페어링 검증**(잘못된 조합 빌드 차단) + **드리프트 가드 테스트**(런타임 허용목록↔TS union). 패치 5개 마이그레이션(누락 0). **235 vitest(커버리지 96%) + 188 Playwright(오아시스 스냅샷 4bp 갱신), lint/tsgo/tsc/build green(●SSG 7곡/21변주).** CE 병렬리뷰(4) CRITICAL/HIGH=0, MEDIUM 3종(시맨틱 검증·드리프트 가드·회귀 가드) 수정. 설계 `docs/plans/2026-06-23-block-module-taxonomy-design.md`, 복기 `docs/reviews/block-module-taxonomy.md`.
+- **🎉 트랙2 사이클(#0~#5) 완료.** 다음: 실제 Web3Forms 키 연결(사용자, `jinjinstar3@gmail.com`)·`web/.env.local`+Vercel 설정 → origin push → main 병합/PR → Vercel 배포.
 - **미해결 메모**: ✅ ~~① yb slug 충돌~~ 해소(0b9a3b5). ② cross-5.5/5.7(LCP/CLS) Lighthouse 미측정(정적이라 위험 낮음). ③ hanroro switching.B 경고 2건. ④ rig 칩 radiogroup 업그레이드(선택적 a11y). ⑤ NEXT_PUBLIC_SITE_URL 설정 시 no-JS redirect→/request/sent 활성(코드 대비됨). ⑥ request CSS page-shell 중복(2페이지, 수용).
 - 브랜치: `feat/web-patch-parser` (#0~#4 커밋, main 미병합·origin 미push).
 
@@ -24,6 +25,7 @@
 | 2 | **변주 3개 비교 뷰** | `variation-compare` | 같은 곡의 변주를 나란히. 탭/카드. |
 | 3 | **곡 목록 / 검색** | `song-index` | 진입점. 정적 목록 + 클라이언트 필터. |
 | 4 | **제보 폼** | `request-form` | 폼-투-이메일(Web3Forms) → Gmail. 백엔드 없음. |
+| 5 | **모듈 택소노미 교정** | `block-module-taxonomy` | (계획 외/반응형) `block.type` = GP-150 실제 12모듈, 효과종류는 `category` 필드. 데이터 계약 척추 교정. |
 
 ## 선행: 앱 부트스트랩 + UI 렌더 계약
 위 사이클 전에 일회성으로:

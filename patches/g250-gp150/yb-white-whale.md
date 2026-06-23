@@ -19,9 +19,9 @@ BPM이 느린 곡(≈72)이라 딜레이는 **탭템포로 점8분에 맞추는 
 
 ```signal_chain
 [
-  {"type":"OD","model":"Force","base_gear":"Fulltone OCD","enabled":false,"footswitch":"A",
+  {"type":"DST","category":"OD","model":"Force","base_gear":"Fulltone OCD","enabled":false,"footswitch":"A",
    "knobs":[{"name":"Gain","value":4},{"name":"Tone","value":5.5},{"name":"Volume","value":6}]},
-  {"type":"BOOST","model":"Micro Boost","base_gear":"MXR M133 Micro Amp","enabled":false,"footswitch":"B",
+  {"type":"PRE","category":"BOOST","model":"Micro Boost","base_gear":"MXR M133 Micro Amp","enabled":false,"footswitch":"B",
    "knobs":[{"name":"Gain","value":6}]},
   {"type":"AMP","model":"Dark Twin","base_gear":"Fender '65 Twin Reverb","enabled":true,
    "knobs":[{"name":"Gain","value":3},{"name":"Bass","value":5},{"name":"Mid","value":6},
@@ -44,9 +44,9 @@ switching: {"A":"후렴 — Force ON (크런치)","B":"클라이맥스 솔로 �
 
 ```signal_chain
 [
-  {"type":"OD","model":"TS-808","base_gear":"Ibanez TS-808","enabled":false,"footswitch":"A",
+  {"type":"DST","category":"OD","model":"TS-808","base_gear":"Ibanez TS-808","enabled":false,"footswitch":"A",
    "knobs":[{"name":"Gain","value":2},{"name":"Tone","value":6},{"name":"Volume","value":7}]},
-  {"type":"BOOST","model":"Micro Boost","base_gear":"MXR M133 Micro Amp","enabled":false,"footswitch":"B",
+  {"type":"PRE","category":"BOOST","model":"Micro Boost","base_gear":"MXR M133 Micro Amp","enabled":false,"footswitch":"B",
    "knobs":[{"name":"Gain","value":6}]},
   {"type":"AMP","model":"UK 900","base_gear":"Marshall JCM900","enabled":true,
    "knobs":[{"name":"Gain","value":5},{"name":"Bass","value":5},{"name":"Mid","value":6.5},
@@ -69,9 +69,9 @@ switching: {"A":"후렴 — TS-808 ON (타이트 푸시)","B":"솔로 — Micro 
 
 ```signal_chain
 [
-  {"type":"OD","model":"Blues OD","enabled":false,"footswitch":"A",
+  {"type":"DST","category":"OD","model":"Blues OD","enabled":false,"footswitch":"A",
    "knobs":[{"name":"Gain","value":4.5},{"name":"Tone","value":6},{"name":"Volume","value":6}]},
-  {"type":"BOOST","model":"EP Booster","base_gear":"Xotic EP Booster","enabled":false,"footswitch":"B",
+  {"type":"PRE","category":"BOOST","model":"EP Booster","base_gear":"Xotic EP Booster","enabled":false,"footswitch":"B",
    "knobs":[{"name":"Gain","value":5}]},
   {"type":"AMP","model":"J-120 CL","base_gear":"Roland Jazz Chorus","enabled":true,
    "knobs":[{"name":"Gain","value":3},{"name":"Bass","value":5},{"name":"Mid","value":5.5},
