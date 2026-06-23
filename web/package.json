@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "npm run gen:patches && next build",
-    "start": "next start",
+    "start": "serve out -l 3000",
     "gen:patches": "tsx scripts/gen-patches.ts",
     "lint": "eslint --fix",
     "lint:check": "eslint",
@@ -37,6 +37,7 @@
     "eslint-config-next": "16.2.9",
     "gray-matter": "^4.0.3",
     "jsdom": "^29.1.1",
+    "serve": "^14.2.6",
     "tsx": "^4.22.4",
     "typescript": "^5",
     "vitest": "^4.1.9"
