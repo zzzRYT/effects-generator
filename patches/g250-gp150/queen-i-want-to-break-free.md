@@ -4,6 +4,7 @@ title: I Want to Break Free
 rig: g250-gp150
 genre: 글램/팝 록 (Queen, 1984, 작곡 John Deacon) — 신스(Roland Jupiter-8) 주도 곡, 기타는 후렴 파워코드 + 브라이언 메이 솔로 담당. 레퍼런스 톤 = Red Special → 트레블 부스터 → VOX AC30. E장조·약 109 BPM·세컨(리듬) 기타 관점
 confidence: 보통 — BPM(약 109)·조성(E장조)은 BPM/탭 DB로 확인. 브라이언 메이 톤 방향(VOX AC30 Top Boost + 트레블 부스터, 미드·베이스 올려 트레블을 매끄럽게, 게인은 과하지 않게 — 너무 크면 crackly)은 가이드(prosoundhq)로 확인. 단 (1) 이 곡은 기타가 곡 전체를 끌지 않고 후렴·솔로 위주라 "세컨 기타"가 정확히 무엇을 맡는지는 커버 편곡에 달림(키보드 유무 등) → 변주로 분기, (2) 요청자가 언급한 "외국 여자 보컬 커버(밴드 엔터프라이즈)"의 실제 사용 장비는 미확인 → 원곡 기타 파트를 세컨/리듬 관점으로 매핑. 합주에서 듣고 보정 권장.
+---
 
 # Queen – I Want to Break Free
 
