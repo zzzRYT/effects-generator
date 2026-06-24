@@ -1,6 +1,6 @@
 import matter from "gray-matter";
 
-// 줄글은 건드리지 않고, 기계가 읽는 부분(frontmatter + ## Variation 블록의 signal_chain 펜스·pickup·switching)만
+// 줄글은 건드리지 않고, 기계가 읽는 부분(frontmatter + ## Variation 블록의 signal_chain 펜스·guitar·switching)만
 // 라인 번호와 함께 추출한다. JSON 파싱·검증은 parsePatch 가 한다.
 
 export interface RawVariation {
@@ -12,7 +12,9 @@ export interface RawVariation {
   signalChainRaw: string | null;
   /** 펜스 시작 줄 (1-based). */
   signalChainLine: number;
-  pickup?: string;
+  /** guitar: 라인의 JSON 문자열(기타 본체 세팅). 없으면 undefined. */
+  guitarRaw?: string;
+  guitarLine: number;
   switchingRaw?: string;
   switchingLine: number;
 }
@@ -74,7 +76,8 @@ function parseRegion(
   let fenceCount = 0;
   let signalChainRaw: string | null = null;
   let signalChainLine = startLine;
-  let pickup: string | undefined;
+  let guitarRaw: string | undefined;
+  let guitarLine = startLine;
   let switchingRaw: string | undefined;
   let switchingLine = startLine;
 
@@ -105,9 +108,10 @@ function parseRegion(
       continue;
     }
 
-    const pm = line.match(/^pickup:\s*(.*)$/);
-    if (pm) {
-      pickup = pm[1].trim();
+    const gm = line.match(/^guitar:\s*(.*)$/);
+    if (gm) {
+      guitarRaw = gm[1].trim();
+      guitarLine = i + 1;
       i++;
       continue;
     }
@@ -129,7 +133,8 @@ function parseRegion(
     fenceCount,
     signalChainRaw,
     signalChainLine,
-    pickup,
+    guitarRaw,
+    guitarLine,
     switchingRaw,
     switchingLine,
   };

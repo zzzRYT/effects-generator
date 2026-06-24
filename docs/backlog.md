@@ -16,7 +16,7 @@
 - ✅ **사이클 #5 `block-module-taxonomy`** 완료 — 사용자 지적("GP-150엔 OD 모듈이 없다, 모듈은 12개")을 받아 데이터 계약 교정. `block.type`을 효과 카테고리(OD/BOOST/FUZZ/COMP) → **GP-150 실제 12모듈**(NR·PRE·WAH·DST·NS·AMP·CAB·EQ·MOD·DLY·RVB·VOL)로, 효과 종류는 선택 필드 **`category`**(PRE: COMP·BOOST·FILTER·PITCH / DST: OD·DST·FUZZ)로 분리. 화면 = `[DST] 오버드라이브 · TS-808`(모듈 배지+효과종류 라벨+모델). 설계는 **사용자 AskUserQuestion으로 수렴**(type+category / 전체 마이그레이션). 파서가 **per-type 시맨틱 페어링 검증**(잘못된 조합 빌드 차단) + **드리프트 가드 테스트**(런타임 허용목록↔TS union). 패치 5개 마이그레이션(누락 0). **235 vitest(커버리지 96%) + 188 Playwright(오아시스 스냅샷 4bp 갱신), lint/tsgo/tsc/build green(●SSG 7곡/21변주).** CE 병렬리뷰(4) CRITICAL/HIGH=0, MEDIUM 3종(시맨틱 검증·드리프트 가드·회귀 가드) 수정. 설계 `docs/plans/2026-06-23-block-module-taxonomy-design.md`, 복기 `docs/reviews/block-module-taxonomy.md`.
 - **🎉 트랙2 사이클(#0~#5) 완료.** 다음: 실제 Web3Forms 키 연결(사용자, `jinjinstar3@gmail.com`)·`web/.env.local`+Vercel 설정 → origin push → main 병합/PR → Vercel 배포.
 - 🔧 **배포 픽스**(2026-06-23): 루트 `vercel.json`에 `cleanUrls:true` 추가 — 정적 export `*.html`을 확장자 없는 경로로 서빙(상세 페이지 새로고침 404 해소). 배포 후 검증 필요.
-- 📐 **사이클 #6 `guitar-controls`** 설계 확정(brainstorm=AskUserQuestion 4문) — 곡 상세에 **기타 본체 세팅 박스**(셀렉터 위치/볼륨/톤/코일스플릿 + 메모). 변주별 `pickup` 자유문자열 → 구조화 `guitar` JSON으로 교체, 셀렉터 라벨은 rig→기타모델 5-way 맵에서 빌드타임 파생, 전체 백필. 설계 `docs/plans/2026-06-23-guitar-controls-design.md`. **다음 구현 대상.**
+- ✅ **사이클 #6 `guitar-controls`** 완료 — 곡 상세에 **기타 본체 세팅 박스**(셀렉터 위치/볼륨/톤/코일스플릿 + 메모), 신호 출발점(체인 위). 변주별 `pickup` 자유문자열 → 구조화 `guitar` JSON, 셀렉터 라벨은 rig→기타모델 5-way 맵에서 빌드타임 파생(`selectorLabel`, 드리프트 0). `guitarRegistry`(순수) + `parseGuitar`(범위검증·rig가드·코일스플릿경고). 패치 8파일 24변주 전체 백필(pickup 0). tone-builder 스킬에 `guitar:` 규칙 추가. **vitest 258 + Playwright 170(axe 0, 스냅샷 4bp 갱신), lint/tsgo/tsc/build green(●SSG 8곡/24변주).** CE 병렬리뷰(3) HIGH 2(배치·rig가드) 수정 후 0, typescript 승인. 설계 `docs/plans/2026-06-23-guitar-controls-design.md`, 복기 `docs/reviews/guitar-controls.md`.
 - 📌 **사이클 #7 `new-badge`** 대기(별도 brainstorm) — frontmatter `added:` 날짜 → 곡 목록+상세 "New" 배지, **클라이언트 판정**(`now−added<7일`, 정적빌드 무관 정확, no-JS=배지없음). #6과 독립.
 - **미해결 메모**: ✅ ~~① yb slug 충돌~~ 해소(0b9a3b5). ② cross-5.5/5.7(LCP/CLS) Lighthouse 미측정(정적이라 위험 낮음). ③ hanroro switching.B 경고 2건. ④ rig 칩 radiogroup 업그레이드(선택적 a11y). ⑤ NEXT_PUBLIC_SITE_URL 설정 시 no-JS redirect→/request/sent 활성(코드 대비됨). ⑥ request CSS page-shell 중복(2페이지, 수용).
 - 브랜치: `feat/web-patch-parser` (#0~#4 커밋, main 미병합·origin 미push).
@@ -29,8 +29,8 @@
 | 3 | **곡 목록 / 검색** | `song-index` | 진입점. 정적 목록 + 클라이언트 필터. |
 | 4 | **제보 폼** | `request-form` | 폼-투-이메일(Web3Forms) → Gmail. 백엔드 없음. |
 | 5 | **모듈 택소노미 교정** | `block-module-taxonomy` | (계획 외/반응형) `block.type` = GP-150 실제 12모듈, 효과종류는 `category` 필드. 데이터 계약 척추 교정. |
-| 6 | **기타 본체 세팅 박스** | `guitar-controls` | 변주별 `pickup` 자유문자열 → 구조화 `guitar`(셀렉터/볼륨/톤/코일스플릿+메모). 셀렉터 라벨 rig→기타모델 파생, 전체 백필. 설계 확정. **다음.** |
-| 7 | **New 배지** | `new-badge` | frontmatter `added:` → 목록+상세 "New" 배지. 클라이언트 판정(7일). 별도 brainstorm. |
+| 6 | **기타 본체 세팅 박스** | `guitar-controls` | ✅ 완료. 변주별 `pickup` → 구조화 `guitar`(셀렉터/볼륨/톤/코일스플릿+메모), 셀렉터 라벨 rig→기타모델 파생, 전체 백필. 복기 `docs/reviews/guitar-controls.md`. |
+| 7 | **New 배지** | `new-badge` | frontmatter `added:` → 목록+상세 "New" 배지. 클라이언트 판정(7일). **다음(별도 brainstorm).** |
 
 ## 선행: 앱 부트스트랩 + UI 렌더 계약
 위 사이클 전에 일회성으로:

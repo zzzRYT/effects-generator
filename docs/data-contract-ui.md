@@ -124,7 +124,7 @@ type KnobRender = {
 
 ### 4.3 switching 플랜 섹션
 
-`switching:` 한 줄(JSON 객체)을 파싱한 메타필드. signal_chain 과 **구분된 섹션**(heading 명시: "스위칭 플랜" 등)에 표시. pickup 필드와도 분리. (fs-4.6, fs-4.8)
+`switching:` 한 줄(JSON 객체)을 파싱한 메타필드. signal_chain 과 **구분된 섹션**(heading 명시: "스위칭 플랜" 등)에 표시. 기타 세팅 박스(아래 4.4)와도 분리. (fs-4.6, fs-4.8)
 
 파서가 산출하는 형식 (불변):
 
@@ -141,6 +141,28 @@ type SwitchingPlan = {
 - `blockModels` 는 파서가 **자동 추출**: 해당 변주의 signal_chain 에서 `footswitch` 가 그 키(A/B)인 블록들의 `model` 목록. UI 는 "(N개: TS-808, Slapback)" 형식으로 개수·모델 병기. (fs-4.10)
 - description 에 언급된 모델명이 실제 signal_chain 블록과 일치하는지 파서가 검증(미스매치는 경고). (fs-4.2)
 - 변주마다 switching 이 다를 수 있음 — 탭 전환 시 독립 재렌더, 데이터 혼합 0. (fs-4.7)
+
+### 4.4 기타 세팅 박스 (guitar)
+
+`guitar:` 한 줄(JSON 객체)을 파싱한 메타필드. signal_chain·switching 과 **구분된 별도 박스**(heading "기타 세팅")로 표시 — 톤의 출발점인 기타 본체 컨트롤. signal_chain 위(신호 출발점)에 배치. (gs-1)
+
+파서가 산출하는 형식 (불변):
+
+```ts
+type GuitarSetting = {
+  selector?: number;       // 1–5 (md 원시 위치)
+  selectorLabel?: string;  // 빌드 파생 — 기타 모델 5-way 맵의 이름
+  volume?: number;         // 0–10
+  tone?: number;           // 0–10
+  coilSplit?: boolean;
+  note?: string;
+};
+```
+
+- **라벨-값 `<dl>`**: 셀렉터(위치 칩 + `selectorLabel`)·볼륨·톤·코일스플릿·메모. **있는 행만** 렌더, 전부 없으면 박스 미렌더. (gs-2)
+- **코일스플릿은 `true`일 때만** 행 표시("걸기"). `false`는 숨김(노이즈 감소). (gs-3)
+- `selectorLabel` 은 빌드 타임 파생(rig→기타모델) — 렌더러는 룩업 없이 그대로 출력. 없으면 `위치 N` 폴백. (gs-4)
+- 색·아이콘 비의존(텍스트 `<dl>`) — no-JS·grayscale·색맹에서 동일. 위치 칩은 LCD 토큰(`--lcd`/`--lcd-text`). (gs-5)
 
 ---
 

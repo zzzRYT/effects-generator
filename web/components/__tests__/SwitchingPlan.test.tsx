@@ -18,13 +18,7 @@ describe("SwitchingPlan", () => {
     expect(screen.getByText(/\(2개: TS-808, Slapback\)/)).toBeInTheDocument();
   });
 
-  it("pickup 은 별도 줄로 표시 (fs-4.8)", () => {
-    render(<SwitchingPlan switching={plan} pickup="브리지 험버커" />);
-    expect(screen.getByText("픽업")).toBeInTheDocument();
-    expect(screen.getByText(/브리지 험버커/)).toBeInTheDocument();
-  });
-
-  it("switching 도 pickup 도 없으면 아무것도 렌더하지 않는다", () => {
+  it("switching 이 없으면 아무것도 렌더하지 않는다", () => {
     const { container } = render(<SwitchingPlan />);
     expect(container.firstChild).toBeNull();
   });

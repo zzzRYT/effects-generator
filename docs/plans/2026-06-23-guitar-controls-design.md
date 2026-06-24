@@ -79,7 +79,7 @@ export interface GuitarSetting {
 - **계약**: `docs/parser-contract.md`(`pickup:` → `guitar:` JSON 스펙·검증·rig→기타 라벨 해석 규칙·변경이력), `docs/data-contract-ui.md`(기타 세팅 박스 표기 규칙).
 - **타입**: `web/lib/types.ts`(`GuitarSetting`, `Variation.pickup` 제거).
 - **파서**: `lib/parser/guitarRegistry.ts`(신규), `lib/parser/extractVariations.ts`(`pickup` 매칭 제거·`guitarRaw` 추가), `lib/parser/parsePatch.ts`(`parseGuitar` — JSON·범위·라벨·코일스플릿경고), `lib/parser/index.ts`·`gen-patches.ts`(registry 스레딩).
-- **렌더**: `components/song-detail/GuitarSetting.tsx`(신규) + `guitar-setting.module.css`, `VariationPanel.tsx`(SwitchingPlan 위 배치, `pickup`→`guitar` prop), `SwitchingPlan.tsx`(pickup 줄 제거).
+- **렌더**: `components/song-detail/GuitarSetting.tsx`(신규) + `guitar-setting.module.css`, `VariationPanel.tsx`(**SignalChain 위** 배치 — 신호 출발점이 기타, `pickup`→`guitar` prop), `SwitchingPlan.tsx`(pickup 줄 제거).
 - **데이터**: 패치 전체 + `web/lib/patches.generated.ts`(재생성).
 - **스킬**: `.claude/skills/tone-builder/SKILL.md`(변주마다 `guitar:` 항상 출력 규칙).
 - **테스트**: `guitarRegistry.test.ts`·`parseGuitar`(parsePatch.test) 신규, `GuitarSetting.test.tsx` + Playwright 비주얼(4bp)·axe, 기존 `pickup` 참조 테스트 수정.

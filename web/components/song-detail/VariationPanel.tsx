@@ -2,6 +2,7 @@ import type { Variation } from "@/lib/types";
 import { panelId, tabId } from "@/lib/variationTab";
 import { SignalChain } from "@/components/signal-chain/SignalChain";
 import { SwitchingPlan } from "@/components/signal-chain/SwitchingPlan";
+import { GuitarSetting } from "./GuitarSetting";
 import styles from "./song-detail.module.css";
 
 interface VariationPanelProps {
@@ -31,11 +32,9 @@ export function VariationPanel({ variation, index, tabbed }: VariationPanelProps
         <span className={styles.variationNo}>{index + 1}</span>
         <h2 className={styles.variationLabel}>{variation.label}</h2>
       </header>
+      <GuitarSetting guitar={variation.guitar} />
       <SignalChain blocks={variation.signalChain} />
-      <SwitchingPlan
-        switching={variation.switching}
-        pickup={variation.pickup}
-      />
+      <SwitchingPlan switching={variation.switching} />
     </article>
   );
 }

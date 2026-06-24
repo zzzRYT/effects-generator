@@ -30,7 +30,7 @@ export const VALID = lines(
   '  {"type":"RVB","model":"Room","enabled":true,"knobs":[{"name":"Decay","value":0.8,"unit":"s"}]}',
   "]",
   "```",
-  "pickup: 브릿지 험버커",
+  'guitar: {"selector":1,"volume":8,"tone":7,"coilSplit":false,"note":"테스트 메모"}',
   'switching: {"A":"솔로 — TS-808 + Slapback ON"}',
 );
 
@@ -241,6 +241,61 @@ export const KNOB_IS_ARRAY = lines(
   "```signal_chain",
   '[{"type":"AMP","model":"UK 800","enabled":true,"knobs":[[]]}]',
   "```",
+);
+
+/** guitar JSON 깨짐 → 빌드 실패(guitar-json). */
+export const GUITAR_MALFORMED = lines(
+  ...FM(),
+  "## Variation: Base",
+  "",
+  "```signal_chain",
+  '[{"type":"AMP","model":"UK 800","enabled":true,"knobs":[]}]',
+  "```",
+  "guitar: {selector: 1}",
+);
+
+/** guitar 가 객체 아님(배열) → 빌드 실패(guitar-json). */
+export const GUITAR_NOT_OBJECT = lines(
+  ...FM(),
+  "## Variation: Base",
+  "",
+  "```signal_chain",
+  '[{"type":"AMP","model":"UK 800","enabled":true,"knobs":[]}]',
+  "```",
+  "guitar: [1, 2]",
+);
+
+/** guitar.selector 가 1–5 밖 → 빌드 실패(guitar-field). */
+export const GUITAR_BAD_SELECTOR = lines(
+  ...FM(),
+  "## Variation: Base",
+  "",
+  "```signal_chain",
+  '[{"type":"AMP","model":"UK 800","enabled":true,"knobs":[]}]',
+  "```",
+  'guitar: {"selector":9}',
+);
+
+/** guitar.volume 이 0–10 밖 → 빌드 실패(guitar-field). */
+export const GUITAR_BAD_VOLUME = lines(
+  ...FM(),
+  "## Variation: Base",
+  "",
+  "```signal_chain",
+  '[{"type":"AMP","model":"UK 800","enabled":true,"knobs":[]}]',
+  "```",
+  'guitar: {"volume":11}',
+);
+
+/** guitar.coilSplit:true — 경고/지원 검증용(selector 없음). */
+export const GUITAR_COILSPLIT = lines(
+  ...FM(),
+  "## Variation: Base",
+  "",
+  "```signal_chain",
+  '[{"type":"AMP","model":"UK 800","enabled":true,"knobs":[]}]',
+  "```",
+  'guitar: {"coilSplit":true}',
 );
 
 /** optional 필드가 null → "null" 문자열로 새지 않고 생략돼야 함. */

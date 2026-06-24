@@ -9,6 +9,7 @@ import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
 import {
   parseAll,
+  buildGuitarRegistry,
   formatError,
   formatWarning,
   type PatchFile,
@@ -18,7 +19,16 @@ import { serialize } from "../lib/parser/serialize";
 const WEB_DIR = process.cwd();
 const REPO_ROOT = resolve(WEB_DIR, "..");
 const PATCHES_DIR = resolve(REPO_ROOT, "patches");
+const RIGS_DIR = resolve(REPO_ROOT, "rigs");
+const GUITARS_DIR = resolve(REPO_ROOT, "models", "guitars");
 const OUTPUT = resolve(WEB_DIR, "lib", "patches.generated.ts");
+
+// 디렉터리 바로 아래 *.md 의 내용만(셀렉터 라벨 파생용 rig/기타 모델).
+function readMdRaws(dir: string): string[] {
+  return readdirSync(dir, { withFileTypes: true })
+    .filter((e) => e.isFile() && e.name.endsWith(".md"))
+    .map((e) => readFileSync(join(dir, e.name), "utf8"));
+}
 
 function walkMd(dir: string): string[] {
   const out: string[] = [];
@@ -40,7 +50,13 @@ function main(): void {
     .filter((p) => relative(PATCHES_DIR, p).includes(sep))
     .map((p) => ({ path: toRepoPath(p), raw: readFileSync(p, "utf8") }));
 
-  const { songs, errors, warnings } = parseAll(files);
+  // rig + 기타 모델 → 셀렉터 라벨 파생 레지스트리.
+  const registry = buildGuitarRegistry(
+    readMdRaws(RIGS_DIR),
+    readMdRaws(GUITARS_DIR),
+  );
+
+  const { songs, errors, warnings } = parseAll(files, registry);
 
   for (const w of warnings) console.warn(formatWarning(w));
 
