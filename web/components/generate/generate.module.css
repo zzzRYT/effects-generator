@@ -147,29 +147,54 @@
   text-align: center;
 }
 
-.spinner {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  border: 3px solid var(--bezel);
-  border-top-color: var(--color-dly);
-  animation: gen-spin 0.9s linear infinite;
-}
-
-@keyframes gen-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .progressText {
   color: var(--text);
   font-size: 1.05rem;
 }
 
 .progressSub {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.1rem;
   color: var(--text-muted);
   font-size: 0.9rem;
+}
+
+/* 순환 단계 라벨 — LCD 인광 톤, 모노. 교체 시 페이드인. */
+.stage {
+  font-family: var(--font-geist-mono, monospace);
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  color: var(--lcd-text);
+  animation: stage-in var(--dur, 240ms) ease-out;
+}
+
+@keyframes stage-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hint {
+  color: var(--text-muted);
+}
+
+/* 시각상 숨김, 스크린리더 전용 */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .progressErr {
@@ -236,8 +261,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .spinner {
-    animation-duration: 2s;
+  .stage {
+    animation: none;
   }
   .submit {
     transition: none;

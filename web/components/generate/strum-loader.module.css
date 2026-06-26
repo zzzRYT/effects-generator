@@ -1,0 +1,130 @@
+/* 기타 줄 튕김 로더 — 정상파 진동(scaleY 반전) + 스트럼 글린트.
+ * compositor 친화 속성(transform, opacity)만 애니메이트. 토큰은 lib/tokens.css. */
+
+.wrap {
+  width: min(280px, 80%);
+  margin-inline: auto;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* 프렛보드 표면 — 베젤을 또렷이 해 함몰된 LCD 패널 느낌을 강조 */
+.board {
+  fill: var(--lcd);
+  stroke: var(--bezel);
+  stroke-width: 1.5;
+}
+
+.fret {
+  stroke: var(--bezel);
+  stroke-width: 1;
+  opacity: 0.55;
+}
+
+.nut {
+  stroke: var(--text-muted);
+  stroke-width: 2;
+  opacity: 0.45;
+  stroke-linecap: round;
+}
+
+/* 현 — color(인라인)로 stroke 색 지정. 평상시 scaleY≈0(거의 직선).
+ * transform-origin 은 명시 50% 50% (브라우저 간 fill-box 중심 해석 일관). */
+.string {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  transform: scaleY(0.04);
+  animation: pluck 2.6s cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
+}
+
+/* 픽이 닿는 순간 풀 진폭 → 감쇠 링다운 → 다음 스트럼까지 휴지. */
+@keyframes pluck {
+  0% {
+    transform: scaleY(0.04);
+  }
+  3% {
+    transform: scaleY(1);
+  }
+  8% {
+    transform: scaleY(-0.74);
+  }
+  13% {
+    transform: scaleY(0.55);
+  }
+  18% {
+    transform: scaleY(-0.4);
+  }
+  23% {
+    transform: scaleY(0.28);
+  }
+  28% {
+    transform: scaleY(-0.18);
+  }
+  33% {
+    transform: scaleY(0.1);
+  }
+  38% {
+    transform: scaleY(-0.05);
+  }
+  42%,
+  100% {
+    transform: scaleY(0.04);
+  }
+}
+
+/* 스트럼 글린트 — 위→아래로 쓸며 현 튕김과 동기. 어두운 LCD 위 반투명 광원(blend 불필요). */
+.sweep {
+  fill: var(--lcd-text);
+  opacity: 0;
+  animation: sweep 2.6s linear infinite;
+}
+
+@keyframes sweep {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  3% {
+    opacity: 0.5;
+  }
+  14% {
+    opacity: 0.28;
+  }
+  20%,
+  100% {
+    transform: translateY(64px);
+    opacity: 0;
+  }
+}
+
+/* 호흡 — 모션 최소화 시 유일한 모션(opacity, 비전정계 안전). @media 밖 루트 정의. */
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* 모션 최소화 — 진동·글린트 정지, 정적 현 + 아주 느린 호흡(opacity)만. */
+@media (prefers-reduced-motion: reduce) {
+  .string {
+    animation: none;
+    transform: scaleY(0.16);
+  }
+  .sweep {
+    display: none;
+  }
+  .wrap {
+    animation: breathe 3s ease-in-out infinite;
+  }
+}
