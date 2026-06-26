@@ -1,0 +1,235 @@
+/* 생성 폼 + 진행 UI — GP-150 패널 토큰 재사용(lib/tokens.css). 다크 패널·시안 포커스. */
+
+.hero {
+  flex: 1;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: clamp(2.5rem, 7vw, 5.5rem) 1.25rem;
+  display: grid;
+  gap: clamp(1.75rem, 4vw, 2.75rem);
+}
+
+.heroHead {
+  text-align: center;
+}
+
+.heroTitle {
+  font-size: clamp(2rem, 1.3rem + 3vw, 3.25rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--text);
+  line-height: 1.05;
+}
+
+.heroSub {
+  margin-top: 0.7rem;
+  color: var(--text-muted);
+  font-size: clamp(0.95rem, 0.9rem + 0.3vw, 1.1rem);
+}
+
+/* 폼 카드 — 본체 패널 위 모듈 표면 */
+.form {
+  display: grid;
+  gap: 1.1rem;
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  border: 1px solid var(--bezel);
+  border-radius: 8px;
+  background: var(--panel-2);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 4%),
+    0 8px 24px rgb(0 0 0 / 25%);
+}
+
+.field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.label {
+  font-family: var(--font-geist-mono, monospace);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.input {
+  min-height: 48px;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--bezel);
+  border-radius: var(--radius-module, 4px);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--color-dly);
+  outline-offset: 2px;
+  border-color: var(--color-amp);
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--color-rvb);
+}
+
+.fieldErr {
+  color: var(--color-rvb);
+  font-size: 0.8rem;
+}
+
+.formErr {
+  color: var(--color-rvb);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* 주 액션 — 앰프 블루 채움, 검정 텍스트(토큰 대비 ≥4.5:1) */
+.submit {
+  min-height: 52px;
+  margin-top: 0.25rem;
+  border: none;
+  border-radius: var(--radius-module, 4px);
+  background: var(--color-amp);
+  color: #0a0a0c;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    filter var(--dur, 150ms) ease,
+    transform var(--dur, 150ms) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .submit:hover:not(:disabled) {
+    filter: brightness(1.08);
+  }
+}
+
+.submit:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.submit:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.submit:focus-visible {
+  outline: 2px solid var(--color-dly);
+  outline-offset: 3px;
+}
+
+/* 진행 화면 */
+.progress {
+  display: grid;
+  justify-items: center;
+  gap: 0.9rem;
+  padding: clamp(2rem, 5vw, 3rem) 1.25rem;
+  border: 1px solid var(--bezel);
+  border-radius: 8px;
+  background: var(--panel-2);
+  text-align: center;
+}
+
+.spinner {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 3px solid var(--bezel);
+  border-top-color: var(--color-dly);
+  animation: gen-spin 0.9s linear infinite;
+}
+
+@keyframes gen-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.progressText {
+  color: var(--text);
+  font-size: 1.05rem;
+}
+
+.progressSub {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.progressErr {
+  color: var(--color-rvb);
+  font-size: 1rem;
+}
+
+.retry {
+  min-height: 44px;
+  padding: 0.5rem 1.2rem;
+  border: 1px solid var(--color-amp);
+  border-radius: var(--radius-module, 4px);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.retry:focus-visible {
+  outline: 2px solid var(--color-dly);
+  outline-offset: 2px;
+}
+
+/* 최근 톤 미리보기 */
+.recent {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.recentHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.recentTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.recentMore {
+  font-size: 0.85rem;
+  color: var(--color-amp);
+  text-decoration: none;
+}
+
+.recentMore:hover {
+  text-decoration: underline;
+}
+
+.recentMore:focus-visible {
+  outline: 2px solid var(--color-dly);
+  outline-offset: 2px;
+}
+
+.recentList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2s;
+  }
+  .submit {
+    transition: none;
+  }
+}

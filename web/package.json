@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "npm run gen:patches && next build",
-    "start": "serve out -l 3000",
+    "start": "next start",
     "gen:patches": "tsx scripts/gen-patches.ts",
     "lint": "eslint --fix",
     "lint:check": "eslint",
