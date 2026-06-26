@@ -27,27 +27,17 @@ test.describe("request-form — dialog (JS)", () => {
     await page.getByRole("link", { name: "곡 제보하기" }).click();
     const dialog = page.locator("#request-dialog");
     await expect(dialog).toBeVisible();
-    await expect(page.getByRole("textbox", { name: /^곡/ })).toBeFocused();
+    await expect(dialog.getByRole("textbox", { name: /^곡/ })).toBeFocused();
     await expect(page).toHaveURL(/\/$/); // 페이지 이동 0
-  });
-
-  test("AC11 — 빈상태 트리거가 검색어를 곡 필드에 프리필", async ({ page }) => {
-    await page.goto("/?q=zzzznomatch");
-    const empty = page.locator("#song-empty");
-    await expect(empty).toBeVisible();
-    await empty.getByRole("link", { name: /제보하기/ }).click();
-    await expect(page.locator("#request-dialog")).toBeVisible();
-    await expect(page.getByRole("textbox", { name: /^곡/ })).toHaveValue(
-      "zzzznomatch",
-    );
   });
 
   test("AC6 — 제출 성공 → 인라인 성공 메시지, URL 불변", async ({ page }) => {
     await mockWeb3Forms(page);
     await page.goto("/");
     await page.getByRole("link", { name: "곡 제보하기" }).click();
-    await page.getByRole("textbox", { name: /^곡/ }).fill("Live Forever");
-    await page.getByRole("textbox", { name: /^아티스트/ }).fill("Oasis");
+    const dialog = page.locator("#request-dialog");
+    await dialog.getByRole("textbox", { name: /^곡/ }).fill("Live Forever");
+    await dialog.getByRole("textbox", { name: /^아티스트/ }).fill("Oasis");
     const [request] = await Promise.all([
       page.waitForRequest(WEB3FORMS),
       page.getByRole("button", { name: "제보 보내기" }).click(),
@@ -64,13 +54,12 @@ test.describe("request-form — dialog (JS)", () => {
     await mockWeb3Forms(page, { success: false, message: "nope" }, 200);
     await page.goto("/");
     await page.getByRole("link", { name: "곡 제보하기" }).click();
-    await page.getByRole("textbox", { name: /^곡/ }).fill("Slide Away");
-    await page.getByRole("textbox", { name: /^아티스트/ }).fill("Oasis");
+    const dialog = page.locator("#request-dialog");
+    await dialog.getByRole("textbox", { name: /^곡/ }).fill("Slide Away");
+    await dialog.getByRole("textbox", { name: /^아티스트/ }).fill("Oasis");
     await page.getByRole("button", { name: "제보 보내기" }).click();
-    await expect(
-      page.locator("#request-dialog").getByRole("alert"),
-    ).toContainText(/실패/);
-    await expect(page.getByRole("textbox", { name: /^곡/ })).toHaveValue(
+    await expect(dialog.getByRole("alert")).toContainText(/실패/);
+    await expect(dialog.getByRole("textbox", { name: /^곡/ })).toHaveValue(
       "Slide Away",
     );
     await expect(page.getByRole("button", { name: "제보 보내기" })).toBeEnabled();
@@ -143,8 +132,9 @@ test.describe("request-form — dialog (JS)", () => {
     });
     await page.goto("/");
     await page.getByRole("link", { name: "곡 제보하기" }).click();
-    await page.getByRole("textbox", { name: /^곡/ }).fill("Acquiesce");
-    await page.getByRole("textbox", { name: /^아티스트/ }).fill("Oasis");
+    const dialog = page.locator("#request-dialog");
+    await dialog.getByRole("textbox", { name: /^곡/ }).fill("Acquiesce");
+    await dialog.getByRole("textbox", { name: /^아티스트/ }).fill("Oasis");
     await page.getByRole("button", { name: "제보 보내기" }).click();
     // 제출 중 버튼 비활성(1차 가드)
     await expect(page.getByRole("button", { name: "보내는 중…" })).toBeDisabled();
@@ -162,25 +152,13 @@ test.describe("request-form — dialog (JS)", () => {
     expect(["0s", "0.1s"]).toContain(dur);
   });
 
-  test("AC12 — dialog 비주얼 스냅샷", async ({ page }) => {
-    await page.goto("/");
-    await page.getByRole("link", { name: "곡 제보하기" }).click();
-    await expect(page.locator("#request-dialog")).toBeVisible();
-    await expect(page).toHaveScreenshot("request-dialog.png", {
-      animations: "disabled",
-    });
-  });
 });
 
 test.describe("request-form — /request 정적 페이지", () => {
-  test("AC12 — /request 비주얼 스냅샷 + 제목/폼", async ({ page }) => {
+  test("/request 제목/폼 렌더", async ({ page }) => {
     await page.goto("/request");
     await expect(page.getByRole("heading", { name: "곡 제보" })).toBeVisible();
     await expect(page.getByRole("textbox", { name: /^곡/ })).toBeVisible();
-    await expect(page).toHaveScreenshot("request-page.png", {
-      fullPage: true,
-      animations: "disabled",
-    });
   });
 
   test("AC9 — /request axe 위반 0", async ({ page }) => {

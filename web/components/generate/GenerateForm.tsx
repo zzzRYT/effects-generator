@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { GEN_MAX, type GenerateErrors } from "@/lib/generate/validate";
 import { GenProgress } from "./GenProgress";
@@ -15,6 +15,7 @@ export function GenerateForm() {
   const [formError, setFormError] = useState<string | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const honeypotRef = useRef<HTMLInputElement>(null); // 봇 트랩 — 숨김, 정상 사용자는 비움
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -26,7 +27,11 @@ export function GenerateForm() {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ artist, song }),
+        body: JSON.stringify({
+          artist,
+          song,
+          botcheck: honeypotRef.current?.value ?? "",
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -110,6 +115,17 @@ export function GenerateForm() {
           </p>
         )}
       </div>
+
+      {/* 허니팟 — 화면 밖 숨김. 봇이 채우면 서버가 거부. aria-hidden + tabIndex -1 로 보조기술/키보드 제외. */}
+      <input
+        ref={honeypotRef}
+        type="text"
+        name="botcheck"
+        className={styles.honeypot}
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+      />
 
       {formError && (
         <p className={styles.formErr} role="alert">

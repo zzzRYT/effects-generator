@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run gen:patches && next build",
+    "build": "next build",
     "start": "next start",
     "gen:patches": "tsx scripts/gen-patches.ts",
     "lint": "eslint --fix",

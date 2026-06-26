@@ -83,6 +83,16 @@
   font-size: 0.8rem;
 }
 
+/* 허니팟 — 화면 밖(display:none 대신 off-screen, 일부 봇이 display:none 을 건너뛰므로). */
+.honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .formErr {
   color: var(--color-rvb);
   font-size: 0.9rem;

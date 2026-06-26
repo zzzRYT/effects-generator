@@ -100,3 +100,16 @@ DB에 저장되는 shape는 **n8n LLM 출력 그대로**(렌더러 타입과 다
 - 정규화 규칙(artist_norm/title_norm)을 n8n과 **동일하게** 맞춰야 캐시 정확(현재 DB는 소문자+원문, 예: "don't look back in anger"). adapt/generate에서 동일 규칙 구현.
 - Vercel 함수 타임아웃: 비동기라 회피. n8n ack 전환 전까지 동기 호출 금지.
 - 무가드 공개 생성(레이트리밋/허니팟 = Phase 6).
+
+## 9. 배포 (Vercel) — 동적 전환 후
+
+정적 시절 루트 `vercel.json`(`output:web/out` 정적 서빙)은 동적과 비호환이라 **제거**했고, `web` 빌드에서 `gen:patches`도 분리(앱 런타임은 PATCHES 미사용). 동적 Next.js 배포 절차:
+
+1. **Vercel 프로젝트 Root Directory = `web`** (대시보드 Settings → General). → Vercel 이 web/ 의 Next.js 를 자동 감지해 **동적(서버리스 함수 + ISR)** 으로 빌드. (루트 배포는 Next 를 못 찾으므로 필수.)
+2. **환경변수**(대시보드 Settings → Environment Variables, Production):
+   - `NEXT_PUBLIC_SUPABASE_URL` · `NEXT_PUBLIC_SUPABASE_ANON_KEY` (브라우저 읽기)
+   - `SUPABASE_SERVICE_ROLE_KEY` (서버 전용 — job insert/RPC)
+   - `N8N_GENERATE_WEBHOOK_URL` (생성 트리거)
+   - `NEXT_PUBLIC_WEB3FORMS_KEY` (문의 폼) · (선택) `NEXT_PUBLIC_SITE_URL`
+3. n8n 워크플로우(`kaVKFCLqHcTgPU4E`)는 **활성** 상태여야 생성 동작. 무가드 공개라 레이트리밋(아래) 권장.
+4. 시드/재생성: 로컬에서 `npm run gen:patches` → `npx tsx scripts/seed-supabase.ts`(service 키 소싱). 빌드와 무관.

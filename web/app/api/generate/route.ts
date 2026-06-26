@@ -3,6 +3,7 @@
 // 권위: docs/plans/2026-06-26-web-dynamic-catalog-design.md §5.
 
 import { validateGenerate } from "@/lib/generate/validate";
+import { rateLimit } from "@/lib/generate/rateLimit";
 import { findCachedSlug } from "@/lib/data/catalog";
 import { sbFetch } from "@/lib/supabase/rest";
 
@@ -16,11 +17,15 @@ interface JobRow {
 }
 
 export async function POST(req: Request): Promise<Response> {
-  let body: { artist?: unknown; song?: unknown };
+  let body: { artist?: unknown; song?: unknown; botcheck?: unknown };
   try {
     body = await req.json();
   } catch {
     return Response.json({ error: "잘못된 요청" }, { status: 400 });
+  }
+  // 허니팟 — 숨김 필드가 채워졌으면 봇으로 보고 거부(정상 사용자는 비움).
+  if (typeof body.botcheck === "string" && body.botcheck.trim()) {
+    return Response.json({ error: "요청이 거부되었어요" }, { status: 400 });
   }
   const artist = String(body.artist ?? "");
   const song = String(body.song ?? "");
@@ -36,6 +41,16 @@ export async function POST(req: Request): Promise<Response> {
     if (cached) return Response.json({ status: "ready", slug: cached });
   } catch {
     // 캐시 조회 실패는 치명적 아님 — 생성으로 진행.
+  }
+
+  // 레이트리밋 — 캐시 미스(실제 생성)만 제한. 캐시 히트는 위에서 이미 반환(무제한).
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const rl = rateLimit(ip);
+  if (!rl.ok) {
+    return Response.json(
+      { error: `요청이 너무 잦아요 — ${rl.retryAfter ?? 60}초 후 다시 시도하세요` },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfter ?? 60) } },
+    );
   }
 
   if (!N8N_URL) {
