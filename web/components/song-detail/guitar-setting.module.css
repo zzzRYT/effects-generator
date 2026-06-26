@@ -1,0 +1,71 @@
+/* 기타 세팅 박스 — 스위칭 플랜과 같은 패널 어휘, 단 출발점(기타)을 뜻하는 초록 악센트.
+ * GP-150 스킨 토큰(lib/tokens.css) 재사용. */
+
+.guitar {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--bezel);
+  border-left: 3px solid var(--led-on);
+  border-radius: var(--radius-module, 4px);
+  background: var(--panel-2);
+}
+
+.heading {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.list {
+  margin-top: 0.6rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: 0.6rem;
+  align-items: baseline;
+}
+
+.key {
+  font-family: var(--font-geist-mono, monospace);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.val {
+  font-size: 0.9rem;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.valNote {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* 셀렉터 위치 칩 — LCD 인광 느낌의 원형 배지(위치 숫자). */
+.pos {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--lcd);
+  color: var(--lcd-text);
+  border: 1px solid var(--bezel);
+  font-family: var(--font-geist-mono, monospace);
+  font-size: 0.8rem;
+  font-weight: 700;
+}

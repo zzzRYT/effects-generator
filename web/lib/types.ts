@@ -61,10 +61,29 @@ export interface SwitchingPlan {
   B?: SwitchingEntry;
 }
 
+// 기타 본체 세팅(변주별). signal_chain(GP-150 이펙터) 과 별개로, 톤의 출발점인
+// 기타 컨트롤을 담는다. md 엔 위치 숫자(selector)만, selectorLabel 은 빌드 타임에
+// rig→기타모델 5-way 맵에서 파생해 구워 넣는다(기타 비종속·드리프트 없음).
+// docs/parser-contract.md "guitar:" 스펙과 1:1.
+export interface GuitarSetting {
+  /** 5-way 셀렉터 위치 1–5 (md 원시 값). */
+  selector?: number;
+  /** 빌드 타임 파생 — 기타 모델의 5-way 맵에서 selector 위치의 이름(예: "브릿지 험버커"). */
+  selectorLabel?: string;
+  /** 기타 볼륨 노브 0–10. */
+  volume?: number;
+  /** 기타 톤 노브 0–10. */
+  tone?: number;
+  /** 푸시-풀 코일 스플릿 걸림 여부. */
+  coilSplit?: boolean;
+  /** 섹션별 변화 등 자유 메모(예: "벌스 볼륨 6~7 롤백, 후렴 풀"). */
+  note?: string;
+}
+
 export interface Variation {
   label: string;
   signalChain: Block[];
-  pickup?: string;
+  guitar?: GuitarSetting;
   switching?: SwitchingPlan;
 }
 

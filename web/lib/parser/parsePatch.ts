@@ -1,6 +1,7 @@
 import type {
   Block,
   Footswitch,
+  GuitarSetting,
   Knob,
   Song,
   SwitchingPlan,
@@ -8,6 +9,7 @@ import type {
 } from "@/lib/types";
 import type { ParseError, ParseWarning } from "./errors";
 import { extractVariations, type RawVariation } from "./extractVariations";
+import type { GuitarRegistry } from "./guitarRegistry";
 import {
   missingFrontmatterKeys,
   validateBlockShape,
@@ -27,13 +29,22 @@ export interface ParseResult {
 }
 
 /**
- * 패치 md 1개 → Song. docs/parser-contract.md 5규칙을 검증하며, 위반은 errors 에 모은다.
+ * 패치 md 1개 → Song. docs/parser-contract.md 규칙을 검증하며, 위반은 errors 에 모은다.
  * 에러가 하나라도 있으면 song=null (빌드 실패 신호). 순수 함수 — 같은 입력 → 같은 출력.
+ * registry 가 주어지면 guitar.selector → selectorLabel 을 rig→기타모델 맵에서 파생한다
+ * (빌드 컨텍스트). 없으면 라벨 파생을 건너뛴다(단위 테스트 등).
  */
-export function parsePatch(raw: string, file: string): ParseResult {
+export function parsePatch(
+  raw: string,
+  file: string,
+  registry?: GuitarRegistry,
+): ParseResult {
   const errors: ParseError[] = [];
   const warnings: ParseWarning[] = [];
   const ext = extractVariations(raw);
+  const rig = present(ext.frontmatter.rig)
+    ? String(ext.frontmatter.rig)
+    : undefined;
 
   // 규칙 1: frontmatter
   if (!ext.hasFrontmatter) {
@@ -67,7 +78,7 @@ export function parsePatch(raw: string, file: string): ParseResult {
 
   const variations: Variation[] = [];
   for (const rv of ext.variations) {
-    const parsed = parseVariation(rv, file, errors, warnings);
+    const parsed = parseVariation(rv, file, rig, registry, errors, warnings);
     if (parsed) variations.push(parsed);
   }
 
@@ -89,6 +100,8 @@ export function parsePatch(raw: string, file: string): ParseResult {
 function parseVariation(
   rv: RawVariation,
   file: string,
+  rig: string | undefined,
+  registry: GuitarRegistry | undefined,
   errors: ParseError[],
   warnings: ParseWarning[],
 ): Variation | null {
@@ -181,15 +194,116 @@ function parseVariation(
 
   if (!ok) return null;
 
+  const guitar = parseGuitar(rv, rig, registry, file, errors, warnings);
+  if (guitar === false) return null;
+
   const switching = parseSwitching(rv, blocks, file, errors, warnings);
   if (switching === false) return null;
 
   return {
     label: rv.label,
     signalChain: blocks,
-    ...(rv.pickup !== undefined ? { pickup: rv.pickup } : {}),
+    ...(guitar !== undefined ? { guitar } : {}),
     ...(switching !== undefined ? { switching } : {}),
   };
+}
+
+/**
+ * guitar: 라인 파싱 — 기타 본체 세팅(셀렉터/볼륨/톤/코일스플릿/메모).
+ * JSON 깨짐·범위 위반은 false(=빌드 실패), 라인 없으면 undefined.
+ * registry 가 있으면 selector → selectorLabel 을 rig→기타모델 맵에서 파생(없는 위치=실패).
+ */
+function parseGuitar(
+  rv: RawVariation,
+  rig: string | undefined,
+  registry: GuitarRegistry | undefined,
+  file: string,
+  errors: ParseError[],
+  warnings: ParseWarning[],
+): GuitarSetting | undefined | false {
+  if (!rv.guitarRaw) return undefined;
+
+  let obj: unknown;
+  try {
+    obj = JSON.parse(rv.guitarRaw);
+  } catch (e) {
+    errors.push({
+      file,
+      line: rv.guitarLine,
+      ruleId: "guitar-json",
+      message: `변주 "${rv.label}": guitar JSON 파싱 실패 — ${errMsg(e)}`,
+    });
+    return false;
+  }
+  if (typeof obj !== "object" || obj === null || Array.isArray(obj)) {
+    errors.push({
+      file,
+      line: rv.guitarLine,
+      ruleId: "guitar-json",
+      message: `변주 "${rv.label}": guitar 가 객체가 아닙니다`,
+    });
+    return false;
+  }
+
+  const g = obj as Record<string, unknown>;
+  const fail = (message: string): false => {
+    errors.push({ file, line: rv.guitarLine, ruleId: "guitar-field", message });
+    return false;
+  };
+  const out: GuitarSetting = {};
+
+  // 빌드 컨텍스트(registry 제공 + rig 정의)면 rig→기타모델 정보를 1회 해석한다.
+  // rig 가 registry 에 없으면 selector 유무와 무관하게 빌드 실패(잘못된 rig 가 조용히 통과 방지).
+  // registry 없거나(단위 테스트) rig 미정(frontmatter 규칙이 따로 잡음)이면 라벨 파생을 건너뛴다.
+  const info = registry && rig ? registry.get(rig) : undefined;
+  if (registry && rig && !info) {
+    return fail(`변주 "${rv.label}": rig "${rig}" 의 기타 모델을 registry 에서 찾을 수 없습니다`);
+  }
+
+  // selector 1–5 (+ 라벨 파생)
+  if (present(g.selector)) {
+    const s = g.selector;
+    if (typeof s !== "number" || !Number.isInteger(s) || s < 1 || s > 5) {
+      return fail(`변주 "${rv.label}": guitar.selector 는 1–5 정수여야 합니다 (현재 ${String(s)})`);
+    }
+    out.selector = s;
+    if (info) {
+      const label = info.selectorMap.get(s);
+      if (label === undefined) {
+        return fail(`변주 "${rv.label}": selector ${s} 가 기타 모델 5-way 맵에 없습니다`);
+      }
+      out.selectorLabel = label;
+    }
+  }
+
+  // volume / tone 0–10
+  for (const key of ["volume", "tone"] as const) {
+    if (!present(g[key])) continue;
+    const v = g[key];
+    if (typeof v !== "number" || Number.isNaN(v) || v < 0 || v > 10) {
+      return fail(`변주 "${rv.label}": guitar.${key} 는 0–10 숫자여야 합니다 (현재 ${String(v)})`);
+    }
+    out[key] = v;
+  }
+
+  // coilSplit boolean (+ 미지원/미확인 기타면 경고)
+  if (present(g.coilSplit)) {
+    if (typeof g.coilSplit !== "boolean") {
+      return fail(`변주 "${rv.label}": guitar.coilSplit 는 boolean 이어야 합니다`);
+    }
+    out.coilSplit = g.coilSplit;
+    if (g.coilSplit && info && !info.coilSplitSupported) {
+      warnings.push({
+        file,
+        line: rv.guitarLine,
+        message: `변주 "${rv.label}": coilSplit:true 이지만 기타 모델(${info.guitar})에 코일 스플릿 지원이 명시되지 않았습니다`,
+      });
+    }
+  }
+
+  if (present(g.note)) out.note = String(g.note);
+
+  return out;
 }
 
 /** switching: 라인 파싱 + blockModels 자동 추출. JSON 깨지면 false(=실패), 없으면 undefined. */

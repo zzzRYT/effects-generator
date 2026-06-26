@@ -19,7 +19,7 @@ export function SongRow({ song }: SongRowProps) {
     >
       <Link
         className={styles.rowLink}
-        href={`/songs/${song.rig}/${song.slug}`}
+        href={`/songs/${song.slug}`}
       >
         <span className={styles.rowArtist}>{song.artist}</span>
         <span className={styles.rowTitle}>{song.title}</span>
