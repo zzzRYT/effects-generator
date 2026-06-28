@@ -2,6 +2,7 @@ import type { Song } from "@/lib/types";
 import type { ParseError, ParseWarning } from "./errors";
 import { parsePatch } from "./parsePatch";
 import type { GuitarRegistry } from "./guitarRegistry";
+import type { ParseOptions } from "./catalog";
 
 export interface PatchFile {
   path: string;
@@ -17,17 +18,19 @@ export interface ParseAllResult {
 /**
  * 여러 패치 파일 → 집계. 에러는 모아서 반환(래퍼가 빌드 실패 판정). slug 정렬로 결정적.
  * registry 는 guitar.selector → selectorLabel 파생용(빌드 래퍼가 rig/기타 md 로 만들어 주입).
+ * options(카탈로그) 를 주면 각 패치 block.model 을 프로세서 카탈로그와 대조 검증(규칙 7).
  */
 export function parseAll(
   files: readonly PatchFile[],
   registry?: GuitarRegistry,
+  options?: ParseOptions,
 ): ParseAllResult {
   const songs: Song[] = [];
   const errors: ParseError[] = [];
   const warnings: ParseWarning[] = [];
 
   for (const f of files) {
-    const r = parsePatch(f.raw, f.path, registry);
+    const r = parsePatch(f.raw, f.path, registry, options);
     if (r.song) songs.push(r.song);
     errors.push(...r.errors);
     warnings.push(...r.warnings);
@@ -42,3 +45,12 @@ export { buildGuitarRegistry } from "./guitarRegistry";
 export type { GuitarRegistry } from "./guitarRegistry";
 export { formatError, formatWarning } from "./errors";
 export type { ParseError, ParseWarning } from "./errors";
+export {
+  extractCatalog,
+  isKnownModel,
+  resolveCatalog,
+  type ModelCatalog,
+  type CatalogByProcessor,
+  type ProcessorByRig,
+  type ParseOptions,
+} from "./catalog";

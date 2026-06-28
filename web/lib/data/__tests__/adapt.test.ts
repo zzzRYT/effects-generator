@@ -27,7 +27,7 @@ const patch: DbPatch = {
         {
           type: "DST",
           category: "OD",
-          model: "TS-808",
+          model: "Green OD",
           base_gear: "Ibanez TS-808",
           enabled: false,
           footswitch: "A",
@@ -42,7 +42,7 @@ const patch: DbPatch = {
         },
       ],
       guitar: { selector: 1, volume: 10, tone: 7, coilSplit: false, note: "벌스 롤백" },
-      switching: { A: "솔로 — TS-808 ON" },
+      switching: { A: "솔로 — Green OD ON" },
     },
   ],
 };
@@ -61,7 +61,7 @@ describe("adaptPatch", () => {
   test("signal_chain(snake) → signalChain(camel)", () => {
     const v = result.variations[0];
     expect(v.signalChain).toHaveLength(2);
-    expect(v.signalChain[0].model).toBe("TS-808");
+    expect(v.signalChain[0].model).toBe("Green OD");
     expect(v.signalChain[1].type).toBe("AMP");
   });
 
@@ -72,8 +72,8 @@ describe("adaptPatch", () => {
 
   test("switching 문자열 → {description, blockModels(footswitch 매칭)}", () => {
     const sw = result.variations[0].switching;
-    expect(sw?.A?.description).toBe("솔로 — TS-808 ON");
-    expect(sw?.A?.blockModels).toEqual(["TS-808"]); // footswitch:A 인 블록의 model
+    expect(sw?.A?.description).toBe("솔로 — Green OD ON");
+    expect(sw?.A?.blockModels).toEqual(["Green OD"]); // footswitch:A 인 블록의 model
     expect(sw?.B).toBeUndefined();
   });
 

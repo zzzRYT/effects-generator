@@ -111,6 +111,7 @@ switching: {"A":"<풋스위치 A 동작>","B":"<풋스위치 B 동작>"}
 ````
 
 - block `type`은 `docs/parser-contract.md`의 허용 목록(대문자)에서. 시간·비율·주파수 노브는 `unit` 포함.
+- **`model` = 프로세서 카탈로그(`models/processors/<proc>/{amps,cabs,effects}.md`)의 모델명 그대로** (= 매뉴얼 Effect List FX Title). 실기/페달 이름은 `base_gear`에만. 예: `model:"Green OD"` + `base_gear:"Ibanez TS-808"` (❌`model:"TS-808"`), `Red Haze`(❌`Fuzz Face`), `Boost`(❌`EP Booster`), CAB `Twin 2x12`(❌`Fender '65 Twin Reverb`). 카탈로그에 없는 `model`은 빌드 파서(검증 규칙 7 `model-unknown`)가 막는다.
 - 줄글에 적은 노브 값과 `signal_chain` 펜스 값은 **반드시 일치**.
 - **`guitar:` 줄을 변주마다 항상 출력** (기타 본체 세팅). 키는 전부 선택이나 최소 `selector`는 채운다:
   - `selector` = 기타 모델의 **픽업 선택 가이드** 표에서 곡 톤에 맞는 5-way 위치(1–5 숫자만 — 이름표는 빌드가 파생).

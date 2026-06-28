@@ -36,9 +36,9 @@ describe("실제 데이터 — 오아시스 3변주 (AC1)", () => {
     expect(amp.knobs.find((k) => k.name === "Mid")!.value).toBe(7);
   });
 
-  it("TS-808 솔로 부스트는 DST 모듈 + category OD (모듈 택소노미 회귀 가드)", () => {
+  it("Green OD 솔로 부스트는 DST 모듈 + category OD (모듈 택소노미 회귀 가드)", () => {
     const blocks = song!.variations.flatMap((v) => v.signalChain);
-    const ts = blocks.filter((b) => b.model === "TS-808");
+    const ts = blocks.filter((b) => b.model === "Green OD");
     expect(ts.length).toBeGreaterThan(0);
     for (const b of ts) {
       expect(b.type).toBe("DST"); // OD 모듈이 아니라 DST 모듈의 모델
@@ -61,9 +61,9 @@ describe("실제 데이터 — 오아시스 3변주 (AC1)", () => {
     expect(time.unit).toBe("ms");
   });
 
-  it("정석: switching A blockModels = [TS-808, Slapback]", () => {
+  it("정석: switching A blockModels = [Green OD, Slapback]", () => {
     expect(song!.variations[0].switching!.A!.blockModels).toEqual([
-      "TS-808",
+      "Green OD",
       "Slapback",
     ]);
   });

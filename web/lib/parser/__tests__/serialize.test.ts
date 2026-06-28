@@ -11,7 +11,7 @@ describe("serialize", () => {
     const out = serialize([song!]);
     expect(out).toContain("export const PATCHES");
     expect(out).toContain("import type { Song }");
-    expect(out).toContain("TS-808");
+    expect(out).toContain("Green OD");
   });
 
   it("결정적: 같은 입력 → 동일 출력", () => {

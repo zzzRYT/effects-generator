@@ -12,14 +12,14 @@
 > `base_gear`가 캐논↔기기 다리(2026-06-27 main의 모델명/카탈로그 교정이 투영 룩업). + **계정**(비로그인 생성, 로그인 저장) + **공유 캐시 재사용**(비용 신곡당 1회) + **곡 정규화 깔때기**(교차언어 포함).
 >
 > **새 단계(피봇 Phase 6 이후):**
-> - **P7 main 정합** — 2026-06-27 모델명 교정 + 카탈로그 게이트를 main→피봇 포팅(그라운딩/투영 정확성). 선행, 작음.
+> - ✅ **P7 main 정합** (커밋 `20dbda5`) — 모델명 매뉴얼 FX Title 교정(TS-808→Green OD 등) + 카탈로그 게이트(규칙 7, base-gear 이름 빌드 차단)를 피봇으로 포팅. 카탈로그(effects/cabs)·씨앗 패치 8파일·그라운딩(system-prompt/parser-contract)·tone-builder SKILL 정렬. `catalog.ts`를 기타 registry 와 병행 스레딩. gen:patches 8곡/24변주(게이트 활성)·vitest 293·tsgo/tsc/eslint green.
 > - **P8 device-spec + 레지스트리** — `profile.md` device-spec 펜스 + `gen:processors`, 렌더러 데이터구동(멀티 토대).
 > - **P9 캐논/투영 분리** — 캐논 스키마 + system-prompt 개정 + 투영 스크립트. 오아시스 동치 확인.
 > - **P10 계정 + 저장** — Supabase Auth + `saved_patches` + RLS.
 > - **P11 정규화 깔때기** — 퍼지 + LLM 해소 + `aliases` 학습.
 > - **P12 둘째 기기 end-to-end** — `processor-builder` 스킬로 실제 멀티이펙터 1종 학습 → 투영 → 스킨 → 선택 UX(비전 증명).
 >
-> ⚠️ **브랜치:** 이 작업은 `feat/tone-generator-pivot` 라인. main(옛 정적 라인)과 `c3f48be`에서 분기됨. 2026-06-27 모델명/게이트 작업이 main에 올라가 있어 P7로 포팅 필요.
+> ⚠️ **브랜치:** 이 작업은 `feat/tone-generator-pivot` 라인. main(옛 정적 라인)과 `c3f48be`에서 분기됨. ✅ 2026-06-27 main의 모델명/게이트 작업은 P7(`20dbda5`)로 포팅 완료 — 이제 피봇이 정확한 그라운딩을 가짐.
 
 ## 🔀 방향 전환 (2026-06-25) — 톤 생성기 피벗
 
