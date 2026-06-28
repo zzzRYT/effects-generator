@@ -17,12 +17,13 @@ artist: Oasis
 title: Don't Look Back in Anger
 rig: g250-gp150
 genre: 브릿팝
-confidence: 보통~높음        # 높음 | 보통 | 낮음 (+ 자유 텍스트 허용)
+confidence: 보통~높음 # 높음 | 보통 | 낮음 (+ 자유 텍스트 허용)
 ---
 
-# Oasis – Don't Look Back in Anger   <!-- 사람용 제목, 파서 무시 -->
+# Oasis – Don't Look Back in Anger <!-- 사람용 제목, 파서 무시 -->
 
 ## Variation: 정석 JCM800
+
 정석 마샬 크런치. 미드 푸시가 핵심. (사람이 읽는 줄글 — 파서 무시)
 
 ```signal_chain
@@ -41,25 +42,29 @@ confidence: 보통~높음        # 높음 | 보통 | 낮음 (+ 자유 텍스트 
             {"name":"Decay","value":0.8,"unit":"s"}]}
 ]
 ```
+
 guitar: {"selector":1,"volume":10,"tone":7,"coilSplit":false,"note":"벌스 볼륨 6~7 롤백, 후렴 풀"}
 switching: {"A":"솔로 — Green OD + Slapback ON","B":"EQ 미드 부스트 토글"}
 
 ## Variation: 빈티지 Plexi
+
 … (같은 형태: 줄글 → signal_chain 펜스 → guitar → switching)
 ````
 
 ## 필드 정의
 
 ### frontmatter (필수)
-| 키 | 필수 | 설명 |
-|----|------|------|
-| `artist` | ✓ | 아티스트 |
-| `title` | ✓ | 곡 제목 |
-| `rig` | ✓ | `rigs/<rig>.md`의 slug |
-| `genre` | – | 장르/톤 한 줄 |
-| `confidence` | – | 확신도 |
+
+| 키           | 필수 | 설명                   |
+| ------------ | ---- | ---------------------- |
+| `artist`     | ✓    | 아티스트               |
+| `title`      | ✓    | 곡 제목                |
+| `rig`        | ✓    | `rigs/<rig>.md`의 slug |
+| `genre`      | –    | 장르/톤 한 줄          |
+| `confidence` | –    | 확신도                 |
 
 ### 변주 블록
+
 - `## Variation: <label>` — label이 변주 이름. 파일에 변주 1개여도 헤더 필수.
 - `signal_chain` 펜스 1개 (필수, JSON 배열).
 - `guitar:` 한 줄 (선택, JSON 객체 — 기타 본체 세팅). ↓ "guitar 필드" 참조.
@@ -69,28 +74,29 @@ switching: {"A":"솔로 — Green OD + Slapback ON","B":"EQ 미드 부스트 토
 
 signal_chain(GP-150 이펙터)과 별개로, 톤의 출발점인 **기타 컨트롤**을 담는다. 모든 키 선택.
 
-| 키 | 타입 | 설명 |
-|----|------|------|
-| `selector` | number | 5-way 셀렉터 위치 **1–5** (원시 숫자만). 이름표는 빌드 타임 파생(아래). |
-| `volume` | number | 기타 볼륨 노브 **0–10**. 곡 메인(가장 큰) 상태 기준. 섹션 롤백은 `note`로. |
-| `tone` | number | 기타 톤 노브 **0–10**. 근거 있을 때만(추측 금지). |
-| `coilSplit` | bool | 푸시-풀 코일 스플릿 걸림 여부. 메인에서 걸 때만 `true`(옵션은 `note`). |
-| `note` | string | 섹션별 변화·대안 자유 메모(예: `"벌스 볼륨 6~7 롤백, 후렴 풀"`). |
+| 키          | 타입   | 설명                                                                       |
+| ----------- | ------ | -------------------------------------------------------------------------- |
+| `selector`  | number | 5-way 셀렉터 위치 **1–5** (원시 숫자만). 이름표는 빌드 타임 파생(아래).    |
+| `volume`    | number | 기타 볼륨 노브 **0–10**. 곡 메인(가장 큰) 상태 기준. 섹션 롤백은 `note`로. |
+| `tone`      | number | 기타 톤 노브 **0–10**. 근거 있을 때만(추측 금지).                          |
+| `coilSplit` | bool   | 푸시-풀 코일 스플릿 걸림 여부. 메인에서 걸 때만 `true`(옵션은 `note`).     |
+| `note`      | string | 섹션별 변화·대안 자유 메모(예: `"벌스 볼륨 6~7 롤백, 후렴 풀"`).           |
 
 **셀렉터 이름표 파생(빌드 타임).** 패치엔 `selector` 숫자만 적는다. `①=브릿지 험버커` 같은 이름은
 `rig` → `rigs/<rig>.md`(frontmatter `guitar:`) → `models/guitars/<guitar>.md`의 `## 5-way 셀렉터` 목록에서
 파생해 생성 상수의 `selectorLabel`로 구워 넣는다(기타 비종속 — 기타 모델이 SoT, 재빌드하면 수렴).
 
 ### block (signal_chain 배열 요소)
-| 키 | 필수 | 타입 | 설명 |
-|----|------|------|------|
-| `type` | ✓ | string | **GP-150 실제 모듈 슬롯.** `NR·PRE·WAH·DST·NS·AMP·CAB·EQ·MOD·DLY·RVB·VOL` 중 하나 (대문자). ↓ "모듈 ↔ 효과" 표 참조. |
-| `category` | – | string | 모듈 안의 **효과 종류**. PRE: `COMP·BOOST·FILTER·PITCH` / DST: `OD·DST·FUZZ`. 단일 의미 모듈(AMP·CAB·EQ·MOD·DLY·RVB·VOL·WAH·NR·NS)은 생략. |
-| `model` | ✓ | string | GP-150 모델명 = 매뉴얼 Effect List의 **FX Title** (예: `UK 800`, `Green OD`). 실기 이름 금지(그건 `base_gear`). CAB도 `model`로 통일. |
-| `base_gear` | – | string | 원본 실기 (예: `Marshall JCM800`, `Ibanez TS-808`). |
-| `enabled` | ✓ | bool | 기본 ON/OFF. 솔로 전용 등은 false. |
-| `footswitch` | – | string | 풋스위치 할당 (`A`/`B`). 없으면 생략. |
-| `knobs` | ✓ | array | 노브 배열 (빈 배열 허용, 예: IR-only CAB). |
+
+| 키           | 필수 | 타입   | 설명                                                                                                                                       |
+| ------------ | ---- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `type`       | ✓    | string | **GP-150 실제 모듈 슬롯.** `NR·PRE·WAH·DST·NS·AMP·CAB·EQ·MOD·DLY·RVB·VOL` 중 하나 (대문자). ↓ "모듈 ↔ 효과" 표 참조.                       |
+| `category`   | –    | string | 모듈 안의 **효과 종류**. PRE: `COMP·BOOST·FILTER·PITCH` / DST: `OD·DST·FUZZ`. 단일 의미 모듈(AMP·CAB·EQ·MOD·DLY·RVB·VOL·WAH·NR·NS)은 생략. |
+| `model`      | ✓    | string | GP-150 모델명 = 매뉴얼 Effect List의 **FX Title** (예: `UK 800`, `Green OD`). 실기 이름 금지(그건 `base_gear`). CAB도 `model`로 통일.      |
+| `base_gear`  | –    | string | 원본 실기 (예: `Marshall JCM800`, `Ibanez TS-808`).                                                                                        |
+| `enabled`    | ✓    | bool   | 기본 ON/OFF. 솔로 전용 등은 false.                                                                                                         |
+| `footswitch` | –    | string | 풋스위치 할당 (`A`/`B`). 없으면 생략.                                                                                                      |
+| `knobs`      | ✓    | array  | 노브 배열 (빈 배열 허용, 예: IR-only CAB).                                                                                                 |
 
 #### 모듈 ↔ 효과 (왜 type이 효과명이 아니라 모듈인가)
 
@@ -100,29 +106,30 @@ GP-150은 **12개 모듈 슬롯**만 있다(`models/processors/valeton-gp150/har
 NR → PRE → WAH → DST → N→S(NS) → AMP → CAB → EQ → MOD → DLY → RVB → VOL
 ```
 
-| type | 모듈 | 안에 담기는 효과(category) | 비고 |
-|------|------|--------------------------|------|
-| `NR` | Noise Gate | – | 게이트 |
-| `PRE` | Pre-Effects | `COMP` 컴프 · `BOOST` 부스트 · `FILTER` 필터 · `PITCH` 피치 | 앰프 앞단 |
-| `WAH` | Wah | – | 와우 |
-| `DST` | Distortion/OD | `OD` 오버드라이브 · `DST` 디스토션 · `FUZZ` 퍼즈 | 드라이브 |
-| `NS` | SnapTone | – | N→S, 앰프 캐릭터 보조 |
-| `AMP` | Amp Sim | – | 앰프 |
-| `CAB` | Cab Sim | – | 캐비넷/IR |
-| `EQ` | Equalizer | – | EQ |
-| `MOD` | Modulation | – | 코러스/플랜저/페이저/트레몰로 |
-| `DLY` | Delay | – | 딜레이 |
-| `RVB` | Reverb | – | 리버브 |
-| `VOL` | Volume | – | 볼륨 페달 |
+| type  | 모듈          | 안에 담기는 효과(category)                                  | 비고                          |
+| ----- | ------------- | ----------------------------------------------------------- | ----------------------------- |
+| `NR`  | Noise Gate    | –                                                           | 게이트                        |
+| `PRE` | Pre-Effects   | `COMP` 컴프 · `BOOST` 부스트 · `FILTER` 필터 · `PITCH` 피치 | 앰프 앞단                     |
+| `WAH` | Wah           | –                                                           | 와우                          |
+| `DST` | Distortion/OD | `OD` 오버드라이브 · `DST` 디스토션 · `FUZZ` 퍼즈            | 드라이브                      |
+| `NS`  | SnapTone      | –                                                           | N→S, 앰프 캐릭터 보조         |
+| `AMP` | Amp Sim       | –                                                           | 앰프                          |
+| `CAB` | Cab Sim       | –                                                           | 캐비넷/IR                     |
+| `EQ`  | Equalizer     | –                                                           | EQ                            |
+| `MOD` | Modulation    | –                                                           | 코러스/플랜저/페이저/트레몰로 |
+| `DLY` | Delay         | –                                                           | 딜레이                        |
+| `RVB` | Reverb        | –                                                           | 리버브                        |
+| `VOL` | Volume        | –                                                           | 볼륨 페달                     |
 
 > 부스트(클린 게인)는 **PRE**, 드라이브/디스토션/퍼즈는 **DST**다. 이 둘을 헷갈리지 말 것.
 
 ### knob (knobs 배열 요소) — 생성 상수의 knobs 배열과 동일 모양
-| 키 | 필수 | 타입 | 설명 |
-|----|------|------|------|
-| `name` | ✓ | string | 노브 이름 (예: `Gain`, `Pre Delay`). |
-| `value` | ✓ | number | 값. 단위 없으면 0–10 게인성 노브로 간주. |
-| `unit` | – | string | `ms` `s` `%` `Hz` `kHz`. 없으면 스케일 노브(0–10/0–100). |
+
+| 키      | 필수 | 타입   | 설명                                                     |
+| ------- | ---- | ------ | -------------------------------------------------------- |
+| `name`  | ✓    | string | 노브 이름 (예: `Gain`, `Pre Delay`).                     |
+| `value` | ✓    | number | 값. 단위 없으면 0–10 게인성 노브로 간주.                 |
+| `unit`  | –    | string | `ms` `s` `%` `Hz` `kHz`. 없으면 스케일 노브(0–10/0–100). |
 
 > 스케일: 0–10 감각으로 적되, 기기 화면이 0–100이면 ×10. 렌더러가 `processors.value_scale`로 표기 단위 토글.
 

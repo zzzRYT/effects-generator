@@ -13,10 +13,10 @@ export interface ModelCatalog {
 }
 
 export interface CatalogEntry {
-  model: string;        // FX Title (예: "Green OD", "Mess2C+ 1")
-  kind: "amp" | "cab" | "effect";
-  base_gear?: string;   // "(기반: …)" 괄호 내용(기반: 뒤의 텍스트). 없으면 undefined.
-  knobs?: string[];     // "노브: A, B, C" 나열(정보용). 없으면 undefined.
+  model: string; // FX Title (예: "Green OD", "Mess2C+ 1")
+  kind: 'amp' | 'cab' | 'effect';
+  base_gear?: string; // "(기반: …)" 괄호 내용(기반: 뒤의 텍스트). 없으면 undefined.
+  knobs?: string[]; // "노브: A, B, C" 나열(정보용). 없으면 undefined.
 }
 
 export type CatalogByProcessor = Readonly<Record<string, ModelCatalog>>;
@@ -51,9 +51,9 @@ export function extractCatalog(mdTexts: readonly string[]): ModelCatalog {
       }
 
       // "Mess2C+ 1 / 2 / 3" → "Mess2C+ 1" · "Mess2C+ 2" · "Mess2C+ 3"
-      if (raw.includes(" / ")) {
-        const parts = raw.split("/").map((s) => s.trim());
-        const base = parts[0].replace(/\s+\S+$/, "").trim();
+      if (raw.includes(' / ')) {
+        const parts = raw.split('/').map((s) => s.trim());
+        const base = parts[0].replace(/\s+\S+$/, '').trim();
         for (const p of parts) exact.add(/^\d/.test(p) ? `${base} ${p}` : p);
         continue;
       }
@@ -74,11 +74,14 @@ export function extractCatalog(mdTexts: readonly string[]): ModelCatalog {
  *   실제 md에서는 범위형(예: "User IR 1–20")이 기반 기어가 아니라 사용자 입력 슬롯이므로, ToneProjector의 역인덱스 룩업이 불필요.
  * - "노브: A, B, C" 뒤 쉼표 구분 목록 추출
  */
-export function extractCatalogEntries(text: string, kind: "amp" | "cab" | "effect"): CatalogEntry[] {
+export function extractCatalogEntries(
+  text: string,
+  kind: 'amp' | 'cab' | 'effect',
+): CatalogEntry[] {
   const entries: CatalogEntry[] = [];
 
   // 줄 단위 처리 — 각 모델명 라인과 그 뒤 설명(기반/노브)을 함께 읽어야 함.
-  const lines = text.split("\n");
+  const lines = text.split('\n');
   for (const line of lines) {
     // MODEL_ITEM 은 전역 플래그 있음 — 각 line마다 lastIndex 리셋 필요.
     MODEL_ITEM.lastIndex = 0;
@@ -103,13 +106,16 @@ export function extractCatalogEntries(text: string, kind: "amp" | "cab" | "effec
     if (knotsMatch) {
       // "Bass/Middle/Treble" 같은 슬래시 묶음은 그대로 두고, 쉼표로 구분.
       const rawKnobs = knotsMatch[1].trim();
-      knobs = rawKnobs.split(",").map((k) => k.trim()).filter((k) => k.length > 0);
+      knobs = rawKnobs
+        .split(',')
+        .map((k) => k.trim())
+        .filter((k) => k.length > 0);
     }
 
     // 슬래시 병렬: "Mess2C+ 1 / 2 / 3"
-    if (raw.includes(" / ")) {
-      const parts = raw.split("/").map((s) => s.trim());
-      const base = parts[0].replace(/\s+\S+$/, "").trim();
+    if (raw.includes(' / ')) {
+      const parts = raw.split('/').map((s) => s.trim());
+      const base = parts[0].replace(/\s+\S+$/, '').trim();
       for (const p of parts) {
         const model = /^\d/.test(p) ? `${base} ${p}` : p;
         entries.push({ model, kind, base_gear, knobs });

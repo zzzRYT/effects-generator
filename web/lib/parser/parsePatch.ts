@@ -6,27 +6,28 @@ import type {
   Song,
   SwitchingPlan,
   Variation,
-} from "@/lib/types";
-import type { ParseError, ParseWarning } from "./errors";
-import { extractVariations, type RawVariation } from "./extractVariations";
-import type { GuitarRegistry } from "./guitarRegistry";
+} from '@/lib/types';
+import type { ParseError, ParseWarning } from './errors';
+import { extractVariations, type RawVariation } from './extractVariations';
+import type { GuitarRegistry } from './guitarRegistry';
 import {
   missingFrontmatterKeys,
   validateBlockShape,
   validateKnobShape,
-} from "./validate";
+} from './validate';
 import {
   isKnownModel,
   resolveCatalog,
   type ModelCatalog,
   type ParseOptions,
-} from "./catalog";
-import { slugFromPath } from "./slug";
+} from './catalog';
+import { slugFromPath } from './slug';
 
 // optional 필드: undefined·null 둘 다 "없음"으로 본다 (null → String(null)="null" 방지).
 const present = (v: unknown): boolean => v !== undefined && v !== null;
 // 던져진 값이 Error 가 아닐 수도 있으니 안전하게 메시지 추출.
-const errMsg = (e: unknown): string => (e instanceof Error ? e.message : String(e));
+const errMsg = (e: unknown): string =>
+  e instanceof Error ? e.message : String(e);
 
 export interface ParseResult {
   song: Song | null;
@@ -54,15 +55,19 @@ export function parsePatch(
     ? String(ext.frontmatter.rig)
     : undefined;
   // 모델 카탈로그: model 이 그 rig 프로세서에 실제 존재하는 모델명인지 검증(P7). 옵션 없으면 null=스킵.
-  const allowedModels = resolveCatalog(rig ?? "", options);
+  const allowedModels = resolveCatalog(rig ?? '', options);
+
+  // rig(frontmatter) → 프로세서 → 모델 카탈로그. 옵션 없으면 null → model 검증 스킵.
+  const rig = ext.hasFrontmatter ? String(ext.frontmatter.rig ?? '') : '';
+  const allowedModels = resolveCatalog(rig, options);
 
   // 규칙 1: frontmatter
   if (!ext.hasFrontmatter) {
     errors.push({
       file,
       line: 1,
-      ruleId: "frontmatter-missing",
-      message: "frontmatter(---) 가 없습니다",
+      ruleId: 'frontmatter-missing',
+      message: 'frontmatter(---) 가 없습니다',
     });
   } else {
     const missing = missingFrontmatterKeys(ext.frontmatter);
@@ -70,8 +75,8 @@ export function parsePatch(
       errors.push({
         file,
         line: 1,
-        ruleId: "frontmatter-missing",
-        message: `frontmatter 필수 키 누락: ${missing.join(", ")}`,
+        ruleId: 'frontmatter-missing',
+        message: `frontmatter 필수 키 누락: ${missing.join(', ')}`,
       });
     }
   }
@@ -81,8 +86,8 @@ export function parsePatch(
     errors.push({
       file,
       line: 1,
-      ruleId: "signal-chain-count",
-      message: "## Variation: 가 최소 1개 필요합니다",
+      ruleId: 'signal-chain-count',
+      message: '## Variation: 가 최소 1개 필요합니다',
     });
   }
 
@@ -128,12 +133,12 @@ function parseVariation(
   if (rv.fenceCount !== 1 || rv.signalChainRaw === null) {
     const reason =
       rv.fenceCount === 1 && rv.signalChainRaw === null
-        ? "signal_chain 펜스가 닫히지 않았습니다 (``` 누락)"
+        ? 'signal_chain 펜스가 닫히지 않았습니다 (``` 누락)'
         : `signal_chain 펜스가 정확히 1개여야 합니다 (현재 ${rv.fenceCount}개)`;
     errors.push({
       file,
       line: rv.signalChainLine,
-      ruleId: "signal-chain-count",
+      ruleId: 'signal-chain-count',
       message: `변주 "${rv.label}": ${reason}`,
     });
     return null;
@@ -147,7 +152,7 @@ function parseVariation(
     errors.push({
       file,
       line: rv.signalChainLine,
-      ruleId: "signal-chain-json",
+      ruleId: 'signal-chain-json',
       message: `변주 "${rv.label}": signal_chain JSON 파싱 실패 — ${errMsg(e)}`,
     });
     return null;
@@ -156,7 +161,7 @@ function parseVariation(
     errors.push({
       file,
       line: rv.signalChainLine,
-      ruleId: "signal-chain-json",
+      ruleId: 'signal-chain-json',
       message: `변주 "${rv.label}": signal_chain 이 배열이 아닙니다`,
     });
     return null;
@@ -171,7 +176,7 @@ function parseVariation(
       errors.push({
         file,
         line: rv.signalChainLine,
-        ruleId: "block-field",
+        ruleId: 'block-field',
         message: `변주 "${rv.label}" block#${bi}: ${blockErr}`,
       });
       ok = false;
@@ -183,7 +188,7 @@ function parseVariation(
       errors.push({
         file,
         line: rv.signalChainLine,
-        ruleId: "model-unknown",
+        ruleId: 'model-unknown',
         message: `변주 "${rv.label}" block#${bi}: model "${String(b.model)}" 가 프로세서 카탈로그에 없습니다 (models/processors/<proc> 의 매뉴얼 FX Title 사용; 실기 이름은 base_gear 로)`,
       });
       ok = false;
@@ -196,7 +201,7 @@ function parseVariation(
         errors.push({
           file,
           line: rv.signalChainLine,
-          ruleId: "knob-field",
+          ruleId: 'knob-field',
           message: `변주 "${rv.label}" block#${bi}: ${knobErr}`,
         });
         ok = false;
@@ -208,16 +213,20 @@ function parseVariation(
         value: k.value as number,
         ...(present(k.unit) ? { unit: String(k.unit) } : {}),
         // scale 은 렌더 측 표기용 — 패치 md 엔 보통 없음. 있으면 보존만(검증 안 함).
-        ...(present(k.scale) ? { scale: k.scale as Knob["scale"] } : {}),
+        ...(present(k.scale) ? { scale: k.scale as Knob['scale'] } : {}),
       });
     }
     blocks.push({
-      type: b.type as Block["type"],
-      ...(present(b.category) ? { category: b.category as Block["category"] } : {}),
+      type: b.type as Block['type'],
+      ...(present(b.category)
+        ? { category: b.category as Block['category'] }
+        : {}),
       model: String(b.model),
       ...(present(b.base_gear) ? { base_gear: String(b.base_gear) } : {}),
       enabled: b.enabled as boolean,
-      ...(present(b.footswitch) ? { footswitch: b.footswitch as Footswitch } : {}),
+      ...(present(b.footswitch)
+        ? { footswitch: b.footswitch as Footswitch }
+        : {}),
       knobs,
     });
   });
@@ -260,16 +269,16 @@ function parseGuitar(
     errors.push({
       file,
       line: rv.guitarLine,
-      ruleId: "guitar-json",
+      ruleId: 'guitar-json',
       message: `변주 "${rv.label}": guitar JSON 파싱 실패 — ${errMsg(e)}`,
     });
     return false;
   }
-  if (typeof obj !== "object" || obj === null || Array.isArray(obj)) {
+  if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
     errors.push({
       file,
       line: rv.guitarLine,
-      ruleId: "guitar-json",
+      ruleId: 'guitar-json',
       message: `변주 "${rv.label}": guitar 가 객체가 아닙니다`,
     });
     return false;
@@ -277,7 +286,7 @@ function parseGuitar(
 
   const g = obj as Record<string, unknown>;
   const fail = (message: string): false => {
-    errors.push({ file, line: rv.guitarLine, ruleId: "guitar-field", message });
+    errors.push({ file, line: rv.guitarLine, ruleId: 'guitar-field', message });
     return false;
   };
   const out: GuitarSetting = {};
@@ -287,39 +296,49 @@ function parseGuitar(
   // registry 없거나(단위 테스트) rig 미정(frontmatter 규칙이 따로 잡음)이면 라벨 파생을 건너뛴다.
   const info = registry && rig ? registry.get(rig) : undefined;
   if (registry && rig && !info) {
-    return fail(`변주 "${rv.label}": rig "${rig}" 의 기타 모델을 registry 에서 찾을 수 없습니다`);
+    return fail(
+      `변주 "${rv.label}": rig "${rig}" 의 기타 모델을 registry 에서 찾을 수 없습니다`,
+    );
   }
 
   // selector 1–5 (+ 라벨 파생)
   if (present(g.selector)) {
     const s = g.selector;
-    if (typeof s !== "number" || !Number.isInteger(s) || s < 1 || s > 5) {
-      return fail(`변주 "${rv.label}": guitar.selector 는 1–5 정수여야 합니다 (현재 ${String(s)})`);
+    if (typeof s !== 'number' || !Number.isInteger(s) || s < 1 || s > 5) {
+      return fail(
+        `변주 "${rv.label}": guitar.selector 는 1–5 정수여야 합니다 (현재 ${String(s)})`,
+      );
     }
     out.selector = s;
     if (info) {
       const label = info.selectorMap.get(s);
       if (label === undefined) {
-        return fail(`변주 "${rv.label}": selector ${s} 가 기타 모델 5-way 맵에 없습니다`);
+        return fail(
+          `변주 "${rv.label}": selector ${s} 가 기타 모델 5-way 맵에 없습니다`,
+        );
       }
       out.selectorLabel = label;
     }
   }
 
   // volume / tone 0–10
-  for (const key of ["volume", "tone"] as const) {
+  for (const key of ['volume', 'tone'] as const) {
     if (!present(g[key])) continue;
     const v = g[key];
-    if (typeof v !== "number" || Number.isNaN(v) || v < 0 || v > 10) {
-      return fail(`변주 "${rv.label}": guitar.${key} 는 0–10 숫자여야 합니다 (현재 ${String(v)})`);
+    if (typeof v !== 'number' || Number.isNaN(v) || v < 0 || v > 10) {
+      return fail(
+        `변주 "${rv.label}": guitar.${key} 는 0–10 숫자여야 합니다 (현재 ${String(v)})`,
+      );
     }
     out[key] = v;
   }
 
   // coilSplit boolean (+ 미지원/미확인 기타면 경고)
   if (present(g.coilSplit)) {
-    if (typeof g.coilSplit !== "boolean") {
-      return fail(`변주 "${rv.label}": guitar.coilSplit 는 boolean 이어야 합니다`);
+    if (typeof g.coilSplit !== 'boolean') {
+      return fail(
+        `변주 "${rv.label}": guitar.coilSplit 는 boolean 이어야 합니다`,
+      );
     }
     out.coilSplit = g.coilSplit;
     if (g.coilSplit && info && !info.coilSplitSupported) {
@@ -352,14 +371,14 @@ function parseSwitching(
     errors.push({
       file,
       line: rv.switchingLine,
-      ruleId: "switching-json",
+      ruleId: 'switching-json',
       message: `변주 "${rv.label}": switching JSON 파싱 실패 — ${errMsg(e)}`,
     });
     return false;
   }
 
   const plan: SwitchingPlan = {};
-  for (const key of ["A", "B"] as const) {
+  for (const key of ['A', 'B'] as const) {
     if (obj[key] === undefined) continue;
     const blockModels = blocks
       .filter((b) => b.footswitch === key)
