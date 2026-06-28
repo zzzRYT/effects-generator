@@ -9,15 +9,17 @@
 > 설계 문서: **`docs/plans/2026-06-28-canonical-projection-architecture-design.md`** (피봇 설계를 확장).
 >
 > 요지: 생성을 **캐논(AI, 곡당 1회, 실기 기준 기기무관)** + **투영(스크립트, AI 없이 기기·기타별 변환)** 으로 분리.
-> `base_gear`가 캐논↔기기 다리(2026-06-27 main의 모델명/카탈로그 교정이 투영 룩업). + **계정**(비로그인 생성, 로그인 저장) + **공유 캐시 재사용**(비용 신곡당 1회) + **곡 정규화 깔때기**(교차언어 포함).
+> `base_gear`가 캐논↔기기 다리(2026-06-27 main의 모델명/카탈로그 교정이 투영 룩업). 캐논은 **리서치로 base 기어를 확정**하고, 그 근거는 **real-gear KB**(씨앗=카탈로그 역인덱싱 + 크론 적재 + 곡별, §15)에 누적. + **계정**(비로그인 생성, 로그인 저장) + **공유 캐시 재사용**(비용 신곡당 1회) + **곡 정규화 깔때기**(교차언어 포함).
 >
 > **새 단계(피봇 Phase 6 이후):**
 > - ✅ **P7 main 정합** (커밋 `20dbda5`) — 모델명 매뉴얼 FX Title 교정(TS-808→Green OD 등) + 카탈로그 게이트(규칙 7, base-gear 이름 빌드 차단)를 피봇으로 포팅. 카탈로그(effects/cabs)·씨앗 패치 8파일·그라운딩(system-prompt/parser-contract)·tone-builder SKILL 정렬. `catalog.ts`를 기타 registry 와 병행 스레딩. gen:patches 8곡/24변주(게이트 활성)·vitest 293·tsgo/tsc/eslint green.
 > - **P8 device-spec + 레지스트리** — `profile.md` device-spec 펜스 + `gen:processors`, 렌더러 데이터구동(멀티 토대).
-> - **P9 캐논/투영 분리** — 캐논 스키마 + system-prompt 개정 + 투영 스크립트. 오아시스 동치 확인.
+> - **P9 캐논/투영 분리 + gear KB** — 캐논=리서치로 base 기어 확정(`base_gear`=구조화 레코드) + gear KB 스키마/씨앗(GP-150 카탈로그 역인덱싱+Flash 보강) + `catalog.ts` base_gear 추출 확장 + 투영 스크립트(속성 대조) + 라운드트립 게이트(기존 8곡). 노브 스케일은 P12 경계. 설계 §4·§9·§15.
+> - **P9.5 gear 적재 크론 (신규)** — 블로그·게시글 문서 소스 크론 크롤 → Gemini 2.5 Flash 정제 → `gear` 누적(출처·confidence·머지). `data-scraper-agent` 패턴. P9 후. 설계 §15.
 > - **P10 계정 + 저장** — Supabase Auth + `saved_patches` + RLS.
 > - **P11 정규화 깔때기** — 퍼지 + LLM 해소 + `aliases` 학습.
-> - **P12 둘째 기기 end-to-end** — `processor-builder` 스킬로 실제 멀티이펙터 1종 학습 → 투영 → 스킨 → 선택 UX(비전 증명).
+> - **P12 둘째 기기 end-to-end** — `processor-builder` 스킬로 실제 멀티이펙터 1종 학습 → 투영 → 스킨 → 선택 UX(비전 증명). 노브 스케일/노브명 리매핑 실물화.
+> - **(미래 — 과금 트랙)** — 오디오 분석 + 고성능 LLM 프리미엄 피더. 지금 짓지 않음, P10 이후 라우팅. seam만 확보(설계 §16).
 >
 > ⚠️ **브랜치:** 이 작업은 `feat/tone-generator-pivot` 라인. main(옛 정적 라인)과 `c3f48be`에서 분기됨. ✅ 2026-06-27 main의 모델명/게이트 작업은 P7(`20dbda5`)로 포팅 완료 — 이제 피봇이 정확한 그라운딩을 가짐.
 
