@@ -4,7 +4,7 @@ import type { SwitchingPlan as SwitchingPlanData } from "@/lib/types";
 import { SwitchingPlan } from "@/components/signal-chain/SwitchingPlan";
 
 const plan: SwitchingPlanData = {
-  A: { description: "솔로 — TS-808 + Slapback ON", blockModels: ["TS-808", "Slapback"] },
+  A: { description: "솔로 — Green OD + Slapback ON", blockModels: ["Green OD", "Slapback"] },
 };
 
 describe("SwitchingPlan", () => {
@@ -14,8 +14,8 @@ describe("SwitchingPlan", () => {
       screen.getByRole("region", { name: "스위칭 플랜" }),
     ).toBeInTheDocument();
     expect(screen.getByText("CTRL A")).toBeInTheDocument();
-    expect(screen.getByText(/솔로 — TS-808/)).toBeInTheDocument();
-    expect(screen.getByText(/\(2개: TS-808, Slapback\)/)).toBeInTheDocument();
+    expect(screen.getByText(/솔로 — Green OD/)).toBeInTheDocument();
+    expect(screen.getByText(/\(2개: Green OD, Slapback\)/)).toBeInTheDocument();
   });
 
   it("pickup 은 별도 줄로 표시 (fs-4.8)", () => {

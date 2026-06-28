@@ -56,7 +56,7 @@ describe("parsePatch — 정상", () => {
   it("switching.blockModels 를 footswitch 로 자동 추출한다", () => {
     const { song } = parsePatch(F.VALID, FILE);
     expect(song!.variations[0].switching!.A!.blockModels).toEqual([
-      "TS-808",
+      "Green OD",
       "Slapback",
     ]);
     expect(song!.variations[0].switching!.A!.description).toContain("솔로");
