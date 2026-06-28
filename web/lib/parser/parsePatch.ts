@@ -13,6 +13,12 @@ import {
   validateBlockShape,
   validateKnobShape,
 } from "./validate";
+import {
+  isKnownModel,
+  resolveCatalog,
+  type ModelCatalog,
+  type ParseOptions,
+} from "./catalog";
 import { slugFromPath } from "./slug";
 
 // optional 필드: undefined·null 둘 다 "없음"으로 본다 (null → String(null)="null" 방지).
@@ -30,10 +36,18 @@ export interface ParseResult {
  * 패치 md 1개 → Song. docs/parser-contract.md 5규칙을 검증하며, 위반은 errors 에 모은다.
  * 에러가 하나라도 있으면 song=null (빌드 실패 신호). 순수 함수 — 같은 입력 → 같은 출력.
  */
-export function parsePatch(raw: string, file: string): ParseResult {
+export function parsePatch(
+  raw: string,
+  file: string,
+  options?: ParseOptions,
+): ParseResult {
   const errors: ParseError[] = [];
   const warnings: ParseWarning[] = [];
   const ext = extractVariations(raw);
+
+  // rig(frontmatter) → 프로세서 → 모델 카탈로그. 옵션 없으면 null → model 검증 스킵.
+  const rig = ext.hasFrontmatter ? String(ext.frontmatter.rig ?? "") : "";
+  const allowedModels = resolveCatalog(rig, options);
 
   // 규칙 1: frontmatter
   if (!ext.hasFrontmatter) {
@@ -67,7 +81,7 @@ export function parsePatch(raw: string, file: string): ParseResult {
 
   const variations: Variation[] = [];
   for (const rv of ext.variations) {
-    const parsed = parseVariation(rv, file, errors, warnings);
+    const parsed = parseVariation(rv, file, allowedModels, errors, warnings);
     if (parsed) variations.push(parsed);
   }
 
@@ -89,6 +103,7 @@ export function parsePatch(raw: string, file: string): ParseResult {
 function parseVariation(
   rv: RawVariation,
   file: string,
+  allowedModels: ModelCatalog | null,
   errors: ParseError[],
   warnings: ParseWarning[],
 ): Variation | null {
@@ -146,6 +161,17 @@ function parseVariation(
       return;
     }
     const b = rawBlock as Record<string, unknown>;
+    // 모델 카탈로그 검증: model 이 그 프로세서에 실제 존재하는 모델명인가 (base-gear 이름 금지).
+    if (allowedModels && !isKnownModel(String(b.model), allowedModels)) {
+      errors.push({
+        file,
+        line: rv.signalChainLine,
+        ruleId: "model-unknown",
+        message: `변주 "${rv.label}" block#${bi}: model "${String(b.model)}" 가 프로세서 카탈로그에 없습니다 (models/processors/<proc> 의 매뉴얼 FX Title 사용; 실기 이름은 base_gear 로)`,
+      });
+      ok = false;
+      return;
+    }
     const knobs: Knob[] = [];
     for (const rawKnob of b.knobs as unknown[]) {
       const knobErr = validateKnobShape(rawKnob);
