@@ -1,8 +1,14 @@
 # 구조 리셋 설계 — 독립 엔티티 + 중간 레이어 + 어드민 기어 온보딩 (2026-07-04)
 
-> **이 문서가 새 권위다.** 기존 `2026-06-25-tone-generator-pivot-design.md`(피봇)과
-> `2026-06-28-canonical-projection-architecture-design.md`(캐논·투영)는 **폐기(superseded)** —
-> 참고자료로만 보존한다. CLAUDE.md·backlog는 이 문서 기준으로 개정한다.
+> ⚠️ **2026-07-06 부분 번복.** 이 문서의 **생성 구조 결정**(§0 "1단 직접 생성", 캐논/투영 폐기)은
+> `2026-07-06-canon-projection-revival-design.md`가 뒤집었다 — 캐논+투영 구조가 부활했다.
+> 이 문서의 나머지 결정(독립 엔티티 4·n8n 제거·LLM=Gemini seam·검증 게이트 개념)은 **유효**하며
+> 새 문서가 그대로 이어받는다. **최신 권위: `2026-07-06-canon-projection-revival-design.md`.**
+>
+> 기존 `2026-06-25-tone-generator-pivot-design.md`(피봇)과
+> `2026-06-28-canonical-projection-architecture-design.md`(캐논·투영)는 이 문서 작성 시점엔
+> **폐기(superseded)** 였으나, 06-28의 캐논·투영 핵심은 07-06에서 조건부로 되살아났다 —
+> 06-28 문서 상단 노트 참조. CLAUDE.md·backlog는 07-06 문서 기준으로 개정한다.
 
 ## 0. 결정 요약
 
