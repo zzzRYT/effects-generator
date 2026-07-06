@@ -27,7 +27,8 @@
 >   + Resolver(`resolver.ts`, 순수 코어+DB래퍼, 미등록기어→문의유도) + Grounding(`grounding.ts`,
 >   gear KB→프롬프트 컨텍스트+KnownGear) + 검증 게이트(`gate.ts`, 캐논=스키마+gear대조 / 투영=스키마+FX실존+노브범위).
 >   타입 계약 `types.ts`. 목 테스트 22건(전체 315 그린). 기존 자산 재사용: normalize·slugify·parser/catalog(isKnownModel)·parser/validate.
-> - **R2** — 캐논 생성 end-to-end — Gemini 실연결, 5-role 확정(real-amp/phone 의미 확정 포함). **← 다음 작업.**
+> - **R2** — 캐논 생성 end-to-end — Gemini 실연결, **곡 파트 3-role(lead/backing/solo) 캐논 생성**. real-amp/phone은
+>   R3 투영에서 출력 프로파일로 파생(2026-07-06 확정, 설계 §5). **← 다음 작업.**
 > - **R3** — 투영 스크립트(`ToneProjector`) — gear↔processor 카탈로그 대조, 라운드트립 게이트.
 > - **R4** — 웹 개편 — 생성 폼 + role 5탭 결과 뷰 + 카탈로그.
 > - **R5** — 어드민 — gear/processors/guitars 수동 입력 UI + 레퍼런스 업로드(Storage).

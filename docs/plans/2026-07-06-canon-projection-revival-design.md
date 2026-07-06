@@ -49,8 +49,11 @@
      HIT → ④
      MISS → ③
   ③ 캐논 생성 — Gemini 검색 그라운딩으로 곡 리서치(곡당 1회) → gear KB 대조로 실기 확정
-     → canonical_tones 5-role 적재 (해당 role 없으면 null + 사유)
-  ④ 투영 — ToneProjector: canonical_tones + processor 카탈로그 → 결정적 변환 → tones 행
+     → canonical_tones 적재. **캐논은 곡 파트 3-role(lead/backing/solo)만**(2026-07-06 결정, §5).
+     (해당 파트 없으면 null + 사유)
+  ④ 투영 — ToneProjector: canonical_tones + processor 카탈로그 → 결정적 변환 → tones 행.
+     **여기서 출력 대상 2종(real-amp/phone)이 파생**: 각 파트 톤을 출력 프로파일(캐비/IR on-off,
+     EQ 보정)로 변환해 tones.role 5종을 채운다.
   ⑤ 검증 게이트 — 스키마 + FX 실존(처리기 카탈로그 대조) + 노브 범위.
      실패 시 07-04식 "1회 자동 수리"는 적용 안 됨 — 매핑 실패는 gear/processors 데이터를
      사람(어드민)이 교정해야 함
@@ -90,9 +93,15 @@
 
 ## 5. 미해결
 
-- **`real-amp`/`phone` role의 정확한 산출 형태** — `lead`/`backing`/`solo`와 같은 "곡 파트" 축인지,
-  실제로는 "출력 대상"(리얼 앰프로 연주 vs 헤드폰/모바일로 청취) 축인지 완전히 정리되지 않았다.
-  구현(R2~R3) 착수 시 다시 확정 필요.
+- ~~**`real-amp`/`phone` role의 정확한 산출 형태**~~ **확정됨(2026-07-06):** 두 축을 분리한다.
+  - **캐논 = 곡 파트 축**: `lead`/`backing`/`solo`만 AI 생성(기기무관, 실기 기준). `real-amp`/`phone`은
+    캐논에 없다.
+  - **투영 = 출력 대상 파생**: `real-amp`(실제 기타 앰프/파워앰프 출력 — 캐비·IR off 가정, EQ 보정)와
+    `phone`(헤드폰/모바일 청취 — 캐비·IR on, 청취 EQ 보정)은 투영 단계에서 대표 파트 톤을 출력 프로파일로
+    변환해 파생한다. `tones.role` enum 5종은 유지(투영이 채움), `canonical_tones`는 3-role만 사용.
+  - 근거: 캐논=순수 톤(기기·출력무관), 투영=기기·출력 환경 반영이라는 캐논·투영 분리 철학과 일치. real-amp/phone은
+    "어느 파트냐"가 아니라 "어디로 출력하냐"라 캐논(기기무관)에 넣으면 어색하다. 대표 파트(투영 프로파일이
+    참조할 소스 파트)의 정확한 선택 규칙은 R3에서 확정.
 - **캐논↔기기 디스앰비규에이션(1:N)**: Guv'nor→Chief/La Charger 같은 사례. 06-28 §4·§9의 해소
   전략(구조화 `base_gear` 레코드 + 속성 대조)을 그대로 채택한다.
 - **계정/저장/공유캐시(06-28 P10)·정규화 깔때기(P11)**: 이 문서 범위 밖. 개인용에서 필요 없으면
@@ -106,10 +115,10 @@
 
 | 단계 | 내용 |
 |---|---|
-| **R0** | 새 Supabase 스키마(`guitars`·`processors`·`songs`·`gear`·`canonical_tones`·`tones`) + 씨앗 마이그레이션 |
-| **R1** | `web/lib/pipeline/` — LLM seam + Resolver + Grounding(캐논용) + 검증 게이트(목 테스트) |
-| **R2** | 캐논 생성 end-to-end — Gemini 실연결, 5-role 확정(real-amp/phone 의미 확정 포함) |
-| **R3** | 투영 스크립트(`ToneProjector`) — gear↔processor 카탈로그 대조, 라운드트립 게이트 |
+| **R0** | ✅ 새 Supabase 스키마(6엔티티+song_research+tone_jobs) + 씨앗. 리모트 적용 완료 |
+| **R1** | ✅ `web/lib/pipeline/` — LLM seam + Resolver + Grounding(캐논용) + 검증 게이트(목 테스트) |
+| **R2** | 캐논 생성 end-to-end — Gemini 실연결, **곡 파트 3-role(lead/backing/solo) 캐논**(real-amp/phone은 R3 투영 파생 — §5 확정) |
+| **R3** | 투영 스크립트(`ToneProjector`) — gear↔processor 카탈로그 대조 + **출력 대상(real-amp/phone) 프로파일 파생**, 라운드트립 게이트 |
 | **R4** | 웹 개편 — 생성 폼 + role 5탭 결과 뷰 + 카탈로그 |
 | **R5** | 어드민 — gear/processors/guitars 수동 입력 UI + 레퍼런스 업로드(Storage) |
 | **R6** | 요청 폼 확장(별도 브레인스톰 사이클, 백로그 참조) |

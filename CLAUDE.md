@@ -9,10 +9,10 @@
 
 ## 아키텍처 골격 (설계 §1, 2026-07-06)
 
-- **독립 엔티티** (서로를 모름): `guitars`(기타 KB) · `processors`(이펙터 KB: FX 카탈로그·노브 정의) · `songs`(곡 정규화) · `gear`(실기 KB: 실제 앰프·페달, 캐논↔기기 어휘) · `canonical_tones`(캐논: 곡당 1회, 기기무관, role 5종) · `tones`(투영 산출물).
+- **독립 엔티티** (서로를 모름): `guitars`(기타 KB) · `processors`(이펙터 KB: FX 카탈로그·노브 정의) · `songs`(곡 정규화) · `gear`(실기 KB: 실제 앰프·페달, 캐논↔기기 어휘) · `canonical_tones`(캐논: 곡당 1회, 기기무관, **곡 파트 3-role**) · `tones`(투영 산출물, **role 5종**).
 - **중간 레이어**: `ToneRequestResolver`(입력→정규화 튜플, 미등록 기어→문의 폼 유도) · `ToneGrounding`(캐논 생성 시 gear KB 대조 컨텍스트 조립) · `ToneProjector`(캐논→기기 결정적 변환, **AI 없음**).
 - **캐논+투영 분리**: 캐논(AI, 곡당 1회, 실기 기준) → 투영(스크립트, 기기·기타별 결정적 매핑, $0). 기기 간 일관성·사람 검증 가능성 확보.
-- **role 5종**: `lead / backing / solo / real-amp / phone`. `real-amp`/`phone`의 정확한 축(곡 파트 vs 출력 대상)은 미확정 — 설계 §5.
+- **role 2축(2026-07-06 확정)**: **캐논 = 곡 파트 3-role**(`lead/backing/solo`, AI 생성). **투영 = 출력 대상 파생** — `real-amp`(실앰프 출력, 캐비·IR off 가정)·`phone`(헤드폰/모바일, 캐비·IR on)은 투영이 대표 파트 톤을 출력 프로파일로 변환해 `tones.role` 5종을 채운다. 캐논에는 real-amp/phone이 없다. 근거·대표 파트 선택 규칙 = 설계 §5.
 - **기타는 바디 아키타입 6종**(`strat/tele/lespaul/sg/superstrat/hollow`)으로 정규화 — 사용자는 실제 기타명 입력, 내부 매핑. 조합 폭발 억제.
 - **어드민 온보딩은 전부 수동.** 자동 크롤링·크론 없음. 미등록 기어는 문의 폼(기타·이펙터 추가 요청) → 어드민이 직접 `/admin`에서 gear/processors/guitars 입력 + 레퍼런스 업로드 → 즉시 approved.
 
@@ -86,4 +86,4 @@ web/                                   # Next.js 앱 (public + /admin + api)
 - ✅ 2026-07-04 구조 리셋 설계(독립 엔티티·n8n 제거) — 생성 구조만 아래로 대체됨.
 - 🔁 **2026-07-06 캐논·투영 부활 확정** — 생성 구조를 캐논+투영으로 되돌림, role 5종, 어드민 수동 온보딩, 문의 폼 확장 결정. 이 헌법 개정 완료.
 - ✅ **R0 완료·적용됨** — 새 스키마 8테이블(6엔티티 + `song_research`·`tone_jobs`) 리모트 적용 완료(마이그레이션 `20260706114215_r0_canon_projection_schema` + `20260706114303_harden_function_search_path`, 피벗 스키마 drop 포함). 씨앗: processors 1(GP-150)·guitars 2·songs 7(`web/scripts/seed-reset.ts`). canonical_tones/tones는 미적재(patches→캐논 역추출은 R2~R3 이후 유보). 피벗 데이터 백업 = `supabase/backups/20260706-pivot-schema-export.json`.
-- ✅ **R1 완료** — `web/lib/pipeline/` 골격: LLM seam(`lib/llm/client.ts`) + Resolver + Grounding + 검증 게이트(캐논·투영) + 타입 계약. 목 테스트 22건(전체 315 그린). 다음 = **R2**(캐논 생성 end-to-end, Gemini 실연결, real-amp/phone 의미 확정). 단계 전체 = 설계 §6, 진입점 = `docs/backlog.md` 상단.
+- ✅ **R1 완료** — `web/lib/pipeline/` 골격: LLM seam(`lib/llm/client.ts`) + Resolver + Grounding + 검증 게이트(캐논·투영) + 타입 계약. 목 테스트 22건(전체 315 그린). 다음 = **R2**(캐논 생성 end-to-end, Gemini 실연결, 곡 파트 3-role 캐논 — real-amp/phone은 R3 투영 파생으로 확정됨). 단계 전체 = 설계 §6, 진입점 = `docs/backlog.md` 상단.
