@@ -3,25 +3,53 @@
 각 항목 = `docs/web-harness.md`의 루프 한 사이클. 위에서부터 의존 순서.
 사이클 시작 = `/superpowers:brainstorm <항목>`.
 
-## 🔄 구조 리셋 (2026-07-04) — 현행 로드맵
+## 🔁 캐논·투영 부활 (2026-07-06) — 현행 로드맵
 
-> **읽기 순서: 이 블록이 유일한 현행.** 아래 캐논·투영(2026-06-28)·피벗(2026-06-25) 블록은 **폐기(superseded)** — 기록용 보존.
-> 권위 설계: **`docs/plans/2026-07-04-structure-reset-design.md`**.
+> **읽기 순서: 이 블록이 유일한 현행.** 아래 구조 리셋(2026-07-04)·캐논·투영(2026-06-28)·피벗(2026-06-25) 블록은 **폐기 또는 부분 부활** — 기록용 보존, 각 블록 상단 노트 참조.
+> 권위 설계: **`docs/plans/2026-07-06-canon-projection-revival-design.md`**.
+>
+> 요지: 07-04의 독립 엔티티 4 + n8n 제거 + LLM seam은 유지하되, **생성 구조를 캐논+투영으로 되돌림**
+> (캐논=AI 곡당 1회 실기 기준 기기무관, 투영=스크립트 결정적 변환, AI 없음). `gear`(실기 KB)·
+> `canonical_tones` 엔티티 재도입. role **5종**(`lead/backing/solo/real-amp/phone`)으로 확장.
+> gear KB는 **크론 제거, 어드민 수동 입력**(레퍼런스 업로드 포함) — 온보딩 트리거도 자동 큐 대신
+> **요청 폼**(기타·이펙터 추가 요청)으로 대체. 곡별 AI 리서치는 그대로 유지. **개인용 우선**
+> (계정/공유캐시/정규화 깔때기는 이번 범위 밖).
+>
+> **단계:**
+> - **R0** — ✅ **완료·적용됨.** 새 Supabase 스키마 8테이블(`guitars`·`processors`·`songs`·`gear`·
+>   `canonical_tones`·`tones` + `song_research`·`tone_jobs`) 마이그레이션 2건 리모트 적용:
+>   `20260706114215_r0_canon_projection_schema`(피벗 스키마 drop 포함) + `20260706114303_harden_function_search_path`.
+>   씨앗(`web/scripts/seed-reset.ts`): processors 1(GP-150, 93 FX)·guitars 2·songs 7. canonical_tones/tones는
+>   미적재(patches→캐논 역추출은 R2~R3 라운드트립 게이트 이후로 유보 — 스크립트 헤더 주석). 리셋 전 피벗
+>   데이터 백업: `supabase/backups/20260706-pivot-schema-export.json`(songs 15·patches 16·gen_jobs 9). 보안
+>   어드바이저 잔여 = INFO 3건(gear/canonical_tones/song_research RLS 정책 없음 — 서버·어드민 전용 의도).
+> - **R1** — ✅ **완료.** `web/lib/pipeline/` 골격 — LLM seam(`lib/llm/client.ts`, OpenAI 호환·주입가능)
+>   + Resolver(`resolver.ts`, 순수 코어+DB래퍼, 미등록기어→문의유도) + Grounding(`grounding.ts`,
+>   gear KB→프롬프트 컨텍스트+KnownGear) + 검증 게이트(`gate.ts`, 캐논=스키마+gear대조 / 투영=스키마+FX실존+노브범위).
+>   타입 계약 `types.ts`. 목 테스트 22건(전체 315 그린). 기존 자산 재사용: normalize·slugify·parser/catalog(isKnownModel)·parser/validate.
+> - **R2** — 캐논 생성 end-to-end — Gemini 실연결, 5-role 확정(real-amp/phone 의미 확정 포함). **← 다음 작업.**
+> - **R3** — 투영 스크립트(`ToneProjector`) — gear↔processor 카탈로그 대조, 라운드트립 게이트.
+> - **R4** — 웹 개편 — 생성 폼 + role 5탭 결과 뷰 + 카탈로그.
+> - **R5** — 어드민 — gear/processors/guitars 수동 입력 UI + 레퍼런스 업로드(Storage).
+> - **R6** — 요청 폼 확장(별도 `/superpowers:brainstorm` 사이클, 아래 표 `request-form-v2` 참조).
+> - **R7** — 둘째 기기 검증 — 실제 멀티이펙터 1종 수동 온보딩→투영→렌더(비전 증명).
+
+## ~~🔄 구조 리셋 (2026-07-04)~~ (생성 구조만 폐기 — 2026-07-06 캐논·투영 부활로 대체, 나머지 결정은 유효)
+
+> 권위 설계: **`docs/plans/2026-07-04-structure-reset-design.md`**(상단에 07-06 번복 노트 있음).
 >
 > 요지: 독립 엔티티 4(`guitars`·`processors`·`songs`·`tones`) + 중간 레이어 2(Resolver·Grounding). 고정 **3-role(lead/backing/solo)** 생성, 기타는 **바디 아키타입 6종** 정규화, 1단 직접 생성(캐논/투영 폐기). 어드민 기어 온보딩(자동 리서치→draft→`/admin` 승인). **n8n 제거** — 파이프라인 = `web/lib/pipeline/` TS 모듈. LLM = Gemini(OpenAI 호환 seam으로 Ollama 교체 가능). 캐시 히트 = 연출된 진행(20~40초).
 >
-> **단계:**
-> - **R0** — 새 Supabase 스키마 6테이블 + 씨앗 마이그레이션(GP-150 카탈로그→processors, Cort G250→guitars, 8곡→songs/tones). **← 다음 작업.**
-> - **R1** — `web/lib/pipeline/` — LLM seam + Resolver + Grounding + 검증 게이트(전부 목 테스트).
-> - **R2** — 톤 생성 end-to-end — Gemini 실연결, tone_jobs + Realtime, 연출 대기.
-> - **R3** — 웹 개편 — 새 생성 폼(기타·이펙터 입력) + role 3탭 결과 뷰 + 카탈로그.
-> - **R4** — 어드민 — 온보딩 파이프라인 + `/admin` 승인 UI(Supabase Auth).
-> - **R5** — 둘째 기기 검증 — M-Vave 블랙박스 온보딩→생성→렌더(비전 증명).
+> ⚠️ 이 블록의 "생성 구조"(1단 직접 생성, 3-role)만 07-06에서 번복됨. 독립 엔티티·n8n 제거·LLM seam·검증 게이트 개념은 07-06이 그대로 이어받음.
 
-## ~~🧭 확장 설계 (2026-06-28) — 캐논·투영 + 멀티이펙터 + 계정~~ (폐기 — 2026-07-04 구조 리셋으로 대체)
+## ~~🧭 확장 설계 (2026-06-28) — 캐논·투영 + 멀티이펙터 + 계정~~ (2026-07-04에 폐기 → 2026-07-06 캐논/투영 핵심만 조건부 부활)
 
 > ~~**읽기 순서: 이 블록부터.**~~ 피봇(아래 2026-06-25)의 다음 진화. brainstorm 수렴, 구현 대기.
 > 설계 문서: **`docs/plans/2026-06-28-canonical-projection-architecture-design.md`** (피봇 설계를 확장).
+>
+> ⚠️ **2026-07-06 노트:** 이 블록의 캐논·투영 핵심(`gear` KB·캐논/투영 분리)은 되살아났다 —
+> 단 gear 크론 적재(P9.5)·자동 온보딩 큐는 제거(어드민 수동으로 대체), 계정/저장(P10)·정규화
+> 깔때기(P11)는 미결정·유보. 현행 로드맵은 위 "캐논·투영 부활(2026-07-06)" 블록.
 >
 > 요지: 생성을 **캐논(AI, 곡당 1회, 실기 기준 기기무관)** + **투영(스크립트, AI 없이 기기·기타별 변환)** 으로 분리.
 > `base_gear`가 캐논↔기기 다리(2026-06-27 main의 모델명/카탈로그 교정이 투영 룩업). 캐논은 **리서치로 base 기어를 확정**하고, 그 근거는 **real-gear KB**(씨앗=카탈로그 역인덱싱 + 크론 적재 + 곡별, §15)에 누적. + **계정**(비로그인 생성, 로그인 저장) + **공유 캐시 재사용**(비용 신곡당 1회) + **곡 정규화 깔때기**(교차언어 포함).
@@ -75,6 +103,7 @@
 | 5 | **모듈 택소노미 교정** | `block-module-taxonomy` | (계획 외/반응형) `block.type` = GP-150 실제 12모듈, 효과종류는 `category` 필드. 데이터 계약 척추 교정. |
 | 6 | **기타 본체 세팅 박스** | `guitar-controls` | ✅ 완료. 변주별 `pickup` → 구조화 `guitar`(셀렉터/볼륨/톤/코일스플릿+메모), 셀렉터 라벨 rig→기타모델 파생, 전체 백필. 복기 `docs/reviews/guitar-controls.md`. |
 | 7 | **New 배지** | `new-badge` | frontmatter `added:` → 목록+상세 "New" 배지. 클라이언트 판정(7일). **다음(별도 brainstorm).** |
+| 8 | **요청 폼 확장** | `request-form-v2` | 📌 대기(별도 brainstorm, 2026-07-06 결정). 기존 곡 제보 폼에 "요청 유형" 선택 추가(곡 제보/기타·이펙터 추가 요청/일반 문의). 설계: `docs/plans/2026-07-06-canon-projection-revival-design.md` §4. 기어 추가 요청이 자동 온보딩 큐를 대체하는 트리거. |
 
 ## 선행: 앱 부트스트랩 + UI 렌더 계약
 위 사이클 전에 일회성으로:
