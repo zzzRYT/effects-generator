@@ -27,10 +27,21 @@
 >   + Resolver(`resolver.ts`, 순수 코어+DB래퍼, 미등록기어→문의유도) + Grounding(`grounding.ts`,
 >   gear KB→프롬프트 컨텍스트+KnownGear) + 검증 게이트(`gate.ts`, 캐논=스키마+gear대조 / 투영=스키마+FX실존+노브범위).
 >   타입 계약 `types.ts`. 목 테스트 22건(전체 315 그린). 기존 자산 재사용: normalize·slugify·parser/catalog(isKnownModel)·parser/validate.
-> - **R2** — 캐논 생성 end-to-end — Gemini 실연결, **곡 파트 3-role(lead/backing/solo) 캐논 생성**. real-amp/phone은
->   R3 투영에서 출력 프로파일로 파생(2026-07-06 확정, 설계 §5). **← 다음 작업.**
-> - **R3** — 투영 스크립트(`ToneProjector`) — gear↔processor 카탈로그 대조, 라운드트립 게이트.
-> - **R4** — 웹 개편 — 생성 폼 + role 5탭 결과 뷰 + 카탈로그.
+> - **R2** — ✅ **코드 완료(라이브 스모크 대기).** 캐논 생성 end-to-end — `prompts.ts`(캐논/리서치 프롬프트,
+>   tone-builder 계약의 코드 구현) + `research.ts`(song_research 캐시 + LLM 리서치) + `generate.ts`(곡 확보→
+>   리서치→그라운딩→3-role 캐논 LLM→게이트→`canonical_tones` 적재) + `json.ts`(LLM JSON 파서) + `rest.sbInsert`.
+>   **캐논 게이트를 스키마+base_gear 모양으로 축소, gear KB 실존은 R3 투영으로 이관**(부트스트랩 닭-달걀 해소,
+>   설계 §5). 목 테스트 전체 328 그린. **미완 = Gemini 실연결 스모크**(`web/.env.local`에 `LLM_PROVIDER`/
+>   `GEMINI_API_KEY` 넣고 신곡 1건 생성 확인 — env엔 아직 Supabase 키만).
+> - **R3** — ✅ **코드 완료(시드 재실행 대기).** `web/lib/pipeline/projector.ts` — base_gear 역인덱스
+>   (`processors.effects_catalog.entries` — `extractCatalogEntries`가 md "(기반: 실기명)" 추출, 시드 확장) +
+>   **2단 룩업**(정확 slug → 경계 포함 매칭: 실측에서 정확 일치만으로는 91블록 중 39 미매핑이라 도입, 설계 §2 ④) +
+>   kind 교차검증(AMP↔amp, CAB↔cab, 그 외↔effect) + 1:N 문서순서 첫항목 + 대표 파트(lead→backing→solo 폴백)
+>   real-amp(CAB off)/phone(CAB on) 파생 + 투영 게이트 + `tones` 적재(onConflict 5키). **라운드트립 골든 게이트**
+>   (`projector-golden.test.ts`): PATCHES 전수 91블록 역투영 — 84 매핑·mismatch 0·미매핑 6종은 명시 예외
+>   (md 에 "(기반:)" 없는 오리지널 모델 등). 테스트 전체 377 그린. **미완 = 리모트 processors 시드 재실행**
+>   (`entries` 반영 — 없으면 projectSong 이 "시드 갱신 필요"로 fail-fast).
+> - **R4** — 웹 개편 — 생성 폼 + role 5탭 결과 뷰 + 카탈로그. **← 다음 작업.**
 > - **R5** — 어드민 — gear/processors/guitars 수동 입력 UI + 레퍼런스 업로드(Storage).
 > - **R6** — 요청 폼 확장(별도 `/superpowers:brainstorm` 사이클, 아래 표 `request-form-v2` 참조).
 > - **R7** — 둘째 기기 검증 — 실제 멀티이펙터 1종 수동 온보딩→투영→렌더(비전 증명).

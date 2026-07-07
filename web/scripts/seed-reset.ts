@@ -13,7 +13,7 @@
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { extractCatalog } from "../lib/parser/catalog";
+import { extractCatalog, extractCatalogEntries } from "../lib/parser/catalog";
 import { PATCHES } from "../lib/patches.generated";
 import type { Song } from "../lib/types";
 
@@ -27,27 +27,40 @@ if (!URL || !KEY) {
 const ROOT = join(__dirname, "..", "..");
 const read = (p: string) => readFileSync(join(ROOT, p), "utf8");
 
-async function insert<T>(table: string, rows: unknown, single = false): Promise<T> {
-  const res = await fetch(`${URL}/rest/v1/${table}`, {
+// onConflict 를 주면 upsert(merge-duplicates) — 시드 재실행이 멱등이 되도록 전 테이블 공통 사용.
+async function insert<T>(table: string, rows: unknown, onConflict?: string): Promise<T> {
+  const path = onConflict ? `${table}?on_conflict=${encodeURIComponent(onConflict)}` : table;
+  const prefer = onConflict ? "return=representation,resolution=merge-duplicates" : "return=representation";
+  const res = await fetch(`${URL}/rest/v1/${path}`, {
     method: "POST",
     headers: {
       apikey: KEY!,
       Authorization: `Bearer ${KEY}`,
       "Content-Type": "application/json",
-      Prefer: "return=representation",
+      Prefer: prefer,
     },
     body: JSON.stringify(rows),
   });
-  if (!res.ok) throw new Error(`${table} insert 실패 ${res.status}: ${await res.text()}`);
+  if (!res.ok) throw new Error(`${table} ${onConflict ? "upsert" : "insert"} 실패 ${res.status}: ${await res.text()}`);
   const data = (await res.json()) as T[];
-  return single ? (data as T[])[0] as T : (data as unknown as T);
+  return data as unknown as T;
 }
 
 // ── processors: GP-150 ──────────────────────────────
 const GP150_DIR = "models/processors/valeton-gp150";
-const effects = extractCatalog([read(`${GP150_DIR}/effects.md`)]);
-const amps = extractCatalog([read(`${GP150_DIR}/amps.md`)]);
-const cabs = extractCatalog([read(`${GP150_DIR}/cabs.md`)]);
+const effectsText = read(`${GP150_DIR}/effects.md`);
+const ampsText = read(`${GP150_DIR}/amps.md`);
+const cabsText = read(`${GP150_DIR}/cabs.md`);
+
+const effects = extractCatalog([effectsText]);
+const amps = extractCatalog([ampsText]);
+const cabs = extractCatalog([cabsText]);
+
+// base_gear 역인덱스 엔트리 추출 — R3 ToneProjector가 사용.
+const effectsEntries = extractCatalogEntries(effectsText, "effect");
+const ampsEntries = extractCatalogEntries(ampsText, "amp");
+const cabsEntries = extractCatalogEntries(cabsText, "cab");
+const catalogEntries = [...ampsEntries, ...cabsEntries, ...effectsEntries];
 
 const GP150_MODULES = [
   { type: "NR", name: "Noise Gate" },
@@ -109,23 +122,31 @@ const GUITARS = [
 const norm = (s: string) => s.toLowerCase().normalize("NFC").replace(/\s+/g, " ").trim();
 
 async function main() {
-  await insert("processors", [
-    {
-      slug: "valeton-gp150",
-      brand: "Valeton",
-      model: "GP-150",
-      modules: GP150_MODULES,
-      effects_catalog: { exact: [...effects.exact], prefixes: effects.prefixes },
-      amps: [...amps.exact],
-      cabs: { exact: [...cabs.exact], prefixes: cabs.prefixes },
-      sources: [{ storage_path: GP150_DIR, kind: "seed_md" }],
-      confidence: 0.95,
-      status: "approved",
-    },
-  ]);
-  console.log(`processors: valeton-gp150 (${effects.exact.size} FX, ${amps.exact.size} amps)`);
+  await insert(
+    "processors",
+    [
+      {
+        slug: "valeton-gp150",
+        brand: "Valeton",
+        model: "GP-150",
+        modules: GP150_MODULES,
+        effects_catalog: {
+          exact: [...effects.exact],
+          prefixes: effects.prefixes,
+          entries: catalogEntries,
+        },
+        amps: [...amps.exact],
+        cabs: { exact: [...cabs.exact], prefixes: cabs.prefixes },
+        sources: [{ storage_path: GP150_DIR, kind: "seed_md" }],
+        confidence: 0.95,
+        status: "approved",
+      },
+    ],
+    "slug",
+  );
+  console.log(`processors: valeton-gp150 (${effects.exact.size} FX, ${amps.exact.size} amps, ${catalogEntries.length} entries)`);
 
-  await insert("guitars", GUITARS);
+  await insert("guitars", GUITARS, "slug");
   console.log(`guitars: ${GUITARS.map((g) => g.slug).join(", ")}`);
 
   // PATCHES는 동일 곡을 rig별로 여러 번 담을 수 있다(예: YB-흰수염고래 2벌). songs는 곡 정규화
@@ -140,7 +161,7 @@ async function main() {
     }
   }
   const songs = [...songMap.values()];
-  await insert("songs", songs);
+  await insert("songs", songs, "artist_norm,title_norm");
   console.log(`songs: ${songs.length} (PATCHES ${PATCHES.length}건 → 곡 dedupe. canonical_tones/tones는 미적재 — 헤더 주석 참조)`);
 }
 

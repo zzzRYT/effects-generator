@@ -48,12 +48,23 @@
   ② 캐논 캐시 조회 (song_id, role 기준 — 기기무관)
      HIT → ④
      MISS → ③
-  ③ 캐논 생성 — Gemini 검색 그라운딩으로 곡 리서치(곡당 1회) → gear KB 대조로 실기 확정
-     → canonical_tones 적재. **캐논은 곡 파트 3-role(lead/backing/solo)만**(2026-07-06 결정, §5).
-     (해당 파트 없으면 null + 사유)
-  ④ 투영 — ToneProjector: canonical_tones + processor 카탈로그 → 결정적 변환 → tones 행.
-     **여기서 출력 대상 2종(real-amp/phone)이 파생**: 각 파트 톤을 출력 프로파일(캐비/IR on-off,
-     EQ 보정)로 변환해 tones.role 5종을 채운다.
+  ③ 캐논 생성 — Gemini 검색 그라운딩으로 곡 리서치(곡당 1회, song_research 캐시) → gear KB를
+     **소프트 어휘 힌트**로 준 뒤 실기 base_gear 서술 → canonical_tones 적재.
+     **캐논은 곡 파트 3-role(lead/backing/solo)만**(2026-07-06 결정, §5). (해당 파트 없으면 chain=null + null_reason)
+     **캐논 게이트 = 스키마 + base_gear 모양(name/category)만.** gear KB 실존 대조는 여기서 안 함 —
+     투영(④)으로 이관(2026-07-06 결정, §5): gear KB가 실제 쓰이는 곳이 투영 룩업이라 캐논 시점 강제는
+     부트스트랩 닭-달걀만 만든다. chain 있는데 게이트 실패한 role 은 적재 보류 + 사유 리포트(자동 수리 없음).
+  ④ 투영 — ToneProjector: canonical_tones + processor 카탈로그의 **base_gear 역인덱스**
+     (`effects_catalog.entries` — md 의 "(기반: 실기명)" 매핑, R3에서 추출기 확장) → 결정적 변환 → tones 행.
+     매핑 = **2단 룩업**(2026-07-07 확정): ① slugify(캐논 base_gear.name) ↔ slugify(entry.base_gear) 정확 일치
+     → ② 실패 시 경계 포함 매칭(한쪽 slug가 다른 쪽의 `-` 경계 접두/접미 — "ibanez-ts-808" ⊂
+     "ibanez-ts-808-tube-screamer"). 근거: 라운드트립 실측에서 정확 일치만으로는 91블록 중 39개가 짧은형↔긴형
+     표기 차로 미매핑(mismatch 는 0) — 캐논 AI 도 통용 짧은형을 쓰므로 정확 일치는 구조적으로 취약. 2단도
+     결정적(문서 순서)이고 근사 매칭은 notes 에 기록. + kind 교차검증(AMP↔amp, CAB↔cab, 그 외↔effect).
+     1:N(예: Mess2C+ 1/2/3)은 문서 순서 첫 항목 채택(결정적) + 리포트. **미매핑 = 해당 role 투영 실패 +
+     리포트(적재 안 함, 대체 없음)** — 미매핑 실기 목록이 곧 어드민 온보딩 TODO.
+     **여기서 출력 대상 2종(real-amp/phone)이 파생**: 대표 파트(lead→backing→solo 폴백, §5) 톤을 출력
+     프로파일(캐비/IR on-off)로 변환해 tones.role 5종을 채운다.
   ⑤ 검증 게이트 — 스키마 + FX 실존(처리기 카탈로그 대조) + 노브 범위.
      실패 시 07-04식 "1회 자동 수리"는 적용 안 됨 — 매핑 실패는 gear/processors 데이터를
      사람(어드민)이 교정해야 함
@@ -100,8 +111,19 @@
     `phone`(헤드폰/모바일 청취 — 캐비·IR on, 청취 EQ 보정)은 투영 단계에서 대표 파트 톤을 출력 프로파일로
     변환해 파생한다. `tones.role` enum 5종은 유지(투영이 채움), `canonical_tones`는 3-role만 사용.
   - 근거: 캐논=순수 톤(기기·출력무관), 투영=기기·출력 환경 반영이라는 캐논·투영 분리 철학과 일치. real-amp/phone은
-    "어느 파트냐"가 아니라 "어디로 출력하냐"라 캐논(기기무관)에 넣으면 어색하다. 대표 파트(투영 프로파일이
-    참조할 소스 파트)의 정확한 선택 규칙은 R3에서 확정.
+    "어느 파트냐"가 아니라 "어디로 출력하냐"라 캐논(기기무관)에 넣으면 어색하다.
+  - **대표 파트 선택 규칙(2026-07-07 확정, R3):** `lead → backing → solo` 우선순위에서 **투영에 성공한 첫 role**.
+    셋 다 실패/부재면 real-amp/phone 은 적재 없이 skipped. 파생 소스 role 은 `tones.label` 에 기록(예: "real_amp 파생(lead)").
+    근거: 출력 대상 톤은 "곡을 대표하는 톤"을 다른 청취 환경으로 옮기는 것 — 그 대표는 리드/훅 톤.
+  - **출력 프로파일(2026-07-07 확정, R3):** `real-amp` = 모든 CAB 블록 `enabled:false`(실앰프 FX Return, 캐비 중복
+    방지 — GP-150 hardware.md CAB on/off 지침), `phone` = 모든 CAB 블록 `enabled:true`. CAB 블록이 없으면 발명하지
+    않고 그대로(결정적, 조작 없음). EQ 보정 등 정교화는 후속 seam.
+- **캐논 게이트에서 gear KB 대조를 뺀다(2026-07-06 확정, R2)**: `validateCanon` = 스키마 + base_gear
+  모양(name/category)만. gear KB 실존 검증은 **투영(R3) 룩업**이 담당한다. 이유: gear KB의 본래 용도가
+  캐논↔기기 다리(`gear.name_norm` ↔ 처리기 카탈로그 base_gear)이고 그게 실제로 쓰이는 시점이 투영이다.
+  캐논 시점에 KB 멤버십을 강제하면, gear 온보딩(어드민 수동, R5)이 되기 전엔 어떤 캐논도 통과 못 하는
+  부트스트랩 데드락이 생긴다. 대안(씨앗 gear KB + 하드 게이트)은 시드 콘텐츠 수작업 + 미시드 곡 누락을
+  부르므로 기각. 헌법 "캐논=스키마+gear대조" 문구는 이 결정으로 개정됨.
 - **캐논↔기기 디스앰비규에이션(1:N)**: Guv'nor→Chief/La Charger 같은 사례. 06-28 §4·§9의 해소
   전략(구조화 `base_gear` 레코드 + 속성 대조)을 그대로 채택한다.
 - **계정/저장/공유캐시(06-28 P10)·정규화 깔때기(P11)**: 이 문서 범위 밖. 개인용에서 필요 없으면
@@ -117,8 +139,8 @@
 |---|---|
 | **R0** | ✅ 새 Supabase 스키마(6엔티티+song_research+tone_jobs) + 씨앗. 리모트 적용 완료 |
 | **R1** | ✅ `web/lib/pipeline/` — LLM seam + Resolver + Grounding(캐논용) + 검증 게이트(목 테스트) |
-| **R2** | 캐논 생성 end-to-end — Gemini 실연결, **곡 파트 3-role(lead/backing/solo) 캐논**(real-amp/phone은 R3 투영 파생 — §5 확정) |
-| **R3** | 투영 스크립트(`ToneProjector`) — gear↔processor 카탈로그 대조 + **출력 대상(real-amp/phone) 프로파일 파생**, 라운드트립 게이트 |
+| **R2** | ✅ 코드 완료(라이브 스모크 대기). 캐논 생성 end-to-end — `prompts`·`research`(song_research 캐시)·`generate`(3-role 캐논→게이트→`canonical_tones`)·`json`·`sbInsert`. **캐논 게이트=스키마+base_gear 모양**, gear KB 대조는 R3 투영으로 이관. 목 테스트 328 그린. 미완=Gemini 실연결(`GEMINI_API_KEY` 넣고 신곡 1건) |
+| **R3** | ✅ 코드 완료(시드 재실행 대기). `web/lib/pipeline/projector.ts` — base_gear 역인덱스(`effects_catalog.entries`, `extractCatalogEntries`로 md "(기반:)" 추출) + **2단 룩업**(정확→경계 포함, §2 ④) + kind 교차검증 + 대표 파트(lead→backing→solo) real-amp/phone 파생 + 게이트 + `tones` 적재. **라운드트립 골든 게이트**: PATCHES 전수 91블록 역투영 — 84 매핑·mismatch 0·예외 6종 명시(`projector-golden.test.ts`). 테스트 전체 377 그린. 미완 = 리모트 processors 시드 재실행(entries 반영) |
 | **R4** | 웹 개편 — 생성 폼 + role 5탭 결과 뷰 + 카탈로그 |
 | **R5** | 어드민 — gear/processors/guitars 수동 입력 UI + 레퍼런스 업로드(Storage) |
 | **R6** | 요청 폼 확장(별도 브레인스톰 사이클, 백로그 참조) |
