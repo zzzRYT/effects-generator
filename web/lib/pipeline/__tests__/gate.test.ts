@@ -1,8 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { validateCanon, validateProjection, type KnownGear } from "../gate";
+import { validateCanon, validateProjection } from "../gate";
 import type { ModelCatalog } from "../../parser/catalog";
-
-const KNOWN: KnownGear = { names: new Set(["ibanez-ts-808", "fender-twin-reverb"]) };
 
 const CANON_OK = [
   { type: "DST", category: "OD", base_gear: { name: "Ibanez TS-808", category: "OD" }, enabled: true, knobs: [{ name: "Drive", value: 6, scale: "0-10" }] },
@@ -10,36 +8,40 @@ const CANON_OK = [
 ];
 
 describe("validateCanon", () => {
-  test("passes when schema valid and every base_gear known", () => {
-    const r = validateCanon(CANON_OK, KNOWN);
+  test("passes when schema valid and base_gear well-shaped", () => {
+    const r = validateCanon(CANON_OK);
     expect(r).toEqual({ ok: true, issues: [] });
   });
 
-  test("flags base_gear absent from gear KB", () => {
-    const chain = [{ type: "DST", category: "OD", base_gear: { name: "Rando Fuzz", category: "FUZZ" }, enabled: true, knobs: [] }];
-    const r = validateCanon(chain, KNOWN);
-    expect(r.ok).toBe(false);
-    expect(r.issues[0].path).toBe("chain[0].base_gear.name");
-    expect(r.issues[0].message).toMatch(/gear KB 에 없음/);
+  test("passes for base_gear not in any gear KB (KB 실존은 투영이 검증)", () => {
+    const chain = [{ type: "DST", category: "FUZZ", base_gear: { name: "Rando Fuzz", category: "FUZZ" }, enabled: true, knobs: [] }];
+    expect(validateCanon(chain).ok).toBe(true);
   });
 
-  test("rejects canon block carrying a device model / bad type / missing base_gear", () => {
+  test("rejects bad type / missing base_gear", () => {
     const chain = [{ type: "NOPE", enabled: true, knobs: [] }];
-    const r = validateCanon(chain, KNOWN);
+    const r = validateCanon(chain);
     expect(r.ok).toBe(false);
     expect(r.issues.map((i) => i.path)).toContain("chain[0].type");
     expect(r.issues.map((i) => i.path)).toContain("chain[0].base_gear");
   });
 
+  test("rejects base_gear missing name/category", () => {
+    const chain = [{ type: "AMP", base_gear: { name: "Fender Twin Reverb" }, enabled: true, knobs: [] }];
+    const r = validateCanon(chain);
+    expect(r.ok).toBe(false);
+    expect(r.issues.map((i) => i.path)).toContain("chain[0].base_gear");
+  });
+
   test("rejects invalid category for type", () => {
     const chain = [{ type: "AMP", category: "OD", base_gear: { name: "Fender Twin Reverb", category: "AMP" }, enabled: true, knobs: [] }];
-    const r = validateCanon(chain, KNOWN);
+    const r = validateCanon(chain);
     expect(r.ok).toBe(false);
     expect(r.issues.map((i) => i.path)).toContain("chain[0].category");
   });
 
   test("non-array chain fails fast", () => {
-    expect(validateCanon(null, KNOWN).ok).toBe(false);
+    expect(validateCanon(null).ok).toBe(false);
   });
 });
 

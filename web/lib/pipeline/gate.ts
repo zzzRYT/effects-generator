@@ -1,10 +1,12 @@
 // 검증 게이트 — 캐논/투영 산출물이 적재되기 전 통과해야 하는 순수 술어(설계 §2 ⑤, 헌법 "생성 품질 게이트").
-// 캐논 게이트: 스키마 + gear KB 대조. 투영 게이트: 스키마 + FX 실존(processor 카탈로그) + 노브 범위.
-// 조회 결과(knownGear/catalog)를 주입받는 순수 함수 — DB 없이 테스트 가능. 투영은 자동 수리 없음(§5).
+// 캐논 게이트: 스키마 + base_gear 모양(name/category)만. gear KB 실존 대조는 투영(R3)으로 이관(2026-07-06 결정)
+//   — gear KB 의 본래 용도(캐논↔기기 다리)가 실제로 쓰이는 곳이 투영이라, 캐논 시점 KB 강제는 부트스트랩
+//   닭-달걀을 만들 뿐이다. 캐논은 "곡이 쓴 실기"를 자유롭게 서술하고, "이 기기로 낼 수 있나"는 투영이 판정.
+// 투영 게이트: 스키마 + gear KB 룩업 + FX 실존(processor 카탈로그) + 노브 범위.
+// 주입받는 순수 함수 — DB 없이 테스트 가능. 투영은 자동 수리 없음(§5).
 
 import { isKnownModel, type ModelCatalog } from "../parser/catalog";
 import { ALLOWED_TYPES, TYPE_CATEGORIES, validateKnobShape } from "../parser/validate";
-import { slugify } from "../data/slugify";
 
 export interface GateIssue {
   path: string; // 예: "chain[2].base_gear.name"
@@ -58,13 +60,14 @@ function knobIssues(knobs: unknown, path: string): GateIssue[] {
 }
 
 // ── 캐논 게이트 ────────────────────────────────────────
-// knownGear: gear KB(approved)의 name_norm 집합(slugify 규칙). base_gear 실존 대조.
+// KnownGear: gear KB(approved)의 name_norm 집합(slugify 규칙). 캐논 게이트는 더 이상 쓰지 않고,
+// 투영(R3) 룩업이 사용한다 — Grounding 이 프롬프트 컨텍스트와 함께 만들어 둔다.
 export interface KnownGear {
   names: ReadonlySet<string>;
 }
 
-/** 캐논 chain(null 이면 게이트 대상 아님) — 스키마 + gear KB 대조. */
-export function validateCanon(chain: unknown, knownGear: KnownGear): GateResult {
+/** 캐논 chain(null 이면 게이트 대상 아님) — 스키마 + base_gear 모양만. gear KB 실존은 투영에서 판정(§2 결정). */
+export function validateCanon(chain: unknown): GateResult {
   const issues: GateIssue[] = [];
   if (!Array.isArray(chain)) {
     return { ok: false, issues: [{ path: "chain", message: "chain 이 배열 아님" }] };
@@ -80,12 +83,10 @@ export function validateCanon(chain: unknown, knownGear: KnownGear): GateResult 
     if (typeof block.enabled !== "boolean") {
       issues.push({ path: `${path}.enabled`, message: "enabled 가 boolean 아님" });
     }
-    // 캐논은 model 없음, base_gear required.
+    // 캐논은 기기 model 없음, base_gear 는 {name, category} 모양이어야 함(gear KB 실존은 투영이 검증).
     const bg = block.base_gear;
     if (!isObject(bg) || typeof bg.name !== "string" || typeof bg.category !== "string") {
       issues.push({ path: `${path}.base_gear`, message: "base_gear 는 {name, category} 객체여야 함" });
-    } else if (!knownGear.names.has(slugify(bg.name))) {
-      issues.push({ path: `${path}.base_gear.name`, message: `실기 "${bg.name}" 가 gear KB 에 없음(어드민 등록 필요)` });
     }
     issues.push(...knobIssues(block.knobs, path));
   });
