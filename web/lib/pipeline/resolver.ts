@@ -7,6 +7,23 @@ import { slugify } from "../data/slugify";
 import { sbSelect } from "../supabase/rest";
 import type { BodyArchetype, ResolveResult, ToneRequest, UnresolvedGear } from "./types";
 
+// 정적 시절 규약과의 호환성: slugify("GP-150")="gp-150"이지만 DB slug="gp150"
+// 변형 집합 생성(문자↔숫자 경계 하이픈 제거/삽입)
+export function slugVariants(input: string): string[] {
+  const base = slugify(input);
+  const variants = new Set([base]);
+
+  // v2: 문자↔숫자 경계에서 하이픈 제거 ("gp-150" → "gp150")
+  const v2 = base.replace(/-(?=[0-9])|(?<=[0-9])-/g, "");
+  variants.add(v2);
+
+  // v3: 문자↔숫자 경계에 하이픈 삽입 ("gp150" → "gp-150")
+  const v3 = base.replace(/([a-z])(\d)/g, "$1-$2").replace(/(\d)([a-z])/g, "$1-$2");
+  variants.add(v3);
+
+  return Array.from(variants);
+}
+
 // 조회 결과 묶음. 신곡이면 songId=null(미등록 아님 — 캐논 생성으로 만든다). 기어 null 이면 미등록.
 export interface ResolverLookups {
   songId: string | null;
@@ -38,13 +55,14 @@ export interface ResolverDeps {
 
 const enc = encodeURIComponent;
 
-/** DB 조회 → resolveCore. songs/guitars/processors 를 병렬 조회(waterfall 회피). approved 기어만. */
+/** DB 조회 → resolveCore. songs/guitars/processors 를 병렬 조회(waterfall 회피). approved 기어만.
+ * 기어는 slug 변형 집합으로 조회(정적/동적 규약 호환, 예: "gp-150" 또는 "gp150"). */
 export async function resolveRequest(req: ToneRequest, deps: ResolverDeps = {}): Promise<ResolveResult> {
   const select = deps.select ?? sbSelect;
   const artist_norm = normArtist(req.artist);
   const title_norm = normTitle(req.title);
-  const guitarSlug = slugify(req.guitar);
-  const procSlug = slugify(req.processor);
+  const guitarVariants = slugVariants(req.guitar);
+  const procVariants = slugVariants(req.processor);
 
   const [songs, guitars, processors] = await Promise.all([
     select<{ id: string }>(
@@ -53,11 +71,11 @@ export async function resolveRequest(req: ToneRequest, deps: ResolverDeps = {}):
     ),
     select<{ id: string; slug: string; body_archetype: BodyArchetype }>(
       "guitars",
-      `slug=eq.${enc(guitarSlug)}&status=eq.approved&select=id,slug,body_archetype`,
+      `slug=in.(${guitarVariants.map(enc).join(",")})&status=eq.approved&select=id,slug,body_archetype`,
     ),
     select<{ id: string; slug: string }>(
       "processors",
-      `slug=eq.${enc(procSlug)}&status=eq.approved&select=id,slug`,
+      `slug=in.(${procVariants.map(enc).join(",")})&status=eq.approved&select=id,slug`,
     ),
   ]);
 

@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import { resolveCore, resolveRequest, type ResolverLookups } from "../resolver";
+import { resolveCore, resolveRequest, slugVariants, type ResolverLookups } from "../resolver";
 import type { ToneRequest } from "../types";
 
 const REQ: ToneRequest = {
@@ -66,10 +66,10 @@ describe("resolveRequest", () => {
     expect(songsQ).toContain("artist_norm=eq.oasis");
     expect(songsQ).toContain("title_norm=eq.wonderwall");
     const [, guitarsQ] = select.mock.calls.find((c) => c[0] === "guitars")!;
-    expect(guitarsQ).toContain("slug=eq.cort-g250");
+    expect(guitarsQ).toContain("slug=in.(cort-g250");
     expect(guitarsQ).toContain("status=eq.approved");
     const [, procQ] = select.mock.calls.find((c) => c[0] === "processors")!;
-    expect(procQ).toContain("slug=eq.valeton-gp-150");
+    expect(procQ).toContain("slug=in.(valeton-gp-150");
   });
 
   test("missing processor row → unresolved processor", async () => {
@@ -83,5 +83,28 @@ describe("resolveRequest", () => {
     expect(r.ok).toBe(false);
     if (r.ok) return;
     expect(r.unresolved).toEqual([{ kind: "processor", query: "Valeton GP-150" }]);
+  });
+});
+
+describe("slugVariants — 문자↔숫자 경계 하이픈 변형(정적/동적 슬러그 규약 호환)", () => {
+  test('"Valeton GP-150" → 변형 집합에 "valeton-gp150"(DB slug) 포함', () => {
+    const v = slugVariants("Valeton GP-150");
+    expect(v).toContain("valeton-gp-150");
+    expect(v).toContain("valeton-gp150");
+  });
+
+  test('"Valeton GP150" → 변형 집합에 "valeton-gp-150" 포함', () => {
+    const v = slugVariants("Valeton GP150");
+    expect(v).toContain("valeton-gp150");
+    expect(v).toContain("valeton-gp-150");
+  });
+
+  test('"Cort G250" 동작 불변 — 기존 slug 그대로 포함', () => {
+    expect(slugVariants("Cort G250")).toContain("cort-g250");
+  });
+
+  test("변형은 중복 없는 집합", () => {
+    const v = slugVariants("Boss DS-1");
+    expect(new Set(v).size).toBe(v.length);
   });
 });

@@ -134,6 +134,13 @@ async function main() {
           exact: [...effects.exact],
           prefixes: effects.prefixes,
           entries: catalogEntries,
+          defaults: {
+            NR: "Gate 1",
+            EQ: "Guitar EQ 1",
+            DLY: "Digital Delay S",
+            RVB: "Room",
+            VOL: "Volume",
+          },
         },
         amps: [...amps.exact],
         cabs: { exact: [...cabs.exact], prefixes: cabs.prefixes },

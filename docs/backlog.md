@@ -39,8 +39,15 @@
 >   kind 교차검증(AMP↔amp, CAB↔cab, 그 외↔effect) + 1:N 문서순서 첫항목 + 대표 파트(lead→backing→solo 폴백)
 >   real-amp(CAB off)/phone(CAB on) 파생 + 투영 게이트 + `tones` 적재(onConflict 5키). **라운드트립 골든 게이트**
 >   (`projector-golden.test.ts`): PATCHES 전수 91블록 역투영 — 84 매핑·mismatch 0·미매핑 6종은 명시 예외
->   (md 에 "(기반:)" 없는 오리지널 모델 등). 테스트 전체 377 그린. **미완 = 리모트 processors 시드 재실행**
->   (`entries` 반영 — 없으면 projectSong 이 "시드 갱신 필요"로 fail-fast).
+>   (md 에 "(기반:)" 없는 오리지널 모델 등). 리모트 시드 재실행 완료(2026-07-08, `effects_catalog.entries`
+>   187건 + `defaults`).
+>   **라이브 검증(2026-07-08, Gemini 실호출 — `web/scripts/smoke-pipeline.ts`):** ① Radiohead Creep — 캐논
+>   3-role 생성·적재(리그 리서치 정확: ShredMaster+Twin), 투영은 정당한 미매핑(GP-150 에 없는 실기 → 어드민
+>   온보딩 TODO 리포트). ② Oasis DLBIA — **5-role 전부 적재**(lead/backing/solo 투영 + real_amp/phone 파생,
+>   한 체인에서 3단 토큰 매칭·기능 폴백 모두 검증). 스모크가 찾은 실결함 3건 수정: **3단 룩업**(토큰 부분수열,
+>   'Fender Twin Reverb'↔"'65 Twin Reverb" 흡수) + **기능 모듈 디폴트 폴백**(사용자 승인 — DLY/RVB 등 제네릭
+>   모델엔 "(기반:)"이 없어 구조적 전곡 미매핑이었음, `effects_catalog.defaults` 로 해소) + **Resolver 슬러그
+>   변형 조회**("GP-150"/"GP150" 호환) + 캐논 null_reason 한국어화. 테스트 391 그린, 골든 3분류(84 정밀·5 폴백·2 예외).
 > - **R4** — 웹 개편 — 생성 폼 + role 5탭 결과 뷰 + 카탈로그. **← 다음 작업.**
 > - **R5** — 어드민 — gear/processors/guitars 수동 입력 UI + 레퍼런스 업로드(Storage).
 > - **R6** — 요청 폼 확장(별도 `/superpowers:brainstorm` 사이클, 아래 표 `request-form-v2` 참조).

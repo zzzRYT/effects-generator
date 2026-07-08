@@ -61,8 +61,14 @@
      "ibanez-ts-808-tube-screamer"). 근거: 라운드트립 실측에서 정확 일치만으로는 91블록 중 39개가 짧은형↔긴형
      표기 차로 미매핑(mismatch 는 0) — 캐논 AI 도 통용 짧은형을 쓰므로 정확 일치는 구조적으로 취약. 2단도
      결정적(문서 순서)이고 근사 매칭은 notes 에 기록. + kind 교차검증(AMP↔amp, CAB↔cab, 그 외↔effect).
-     1:N(예: Mess2C+ 1/2/3)은 문서 순서 첫 항목 채택(결정적) + 리포트. **미매핑 = 해당 role 투영 실패 +
-     리포트(적재 안 함, 대체 없음)** — 미매핑 실기 목록이 곧 어드민 온보딩 TODO.
+     1:N(예: Mess2C+ 1/2/3)은 문서 순서 첫 항목 채택(결정적) + 리포트.
+     **기능 모듈 디폴트 폴백(2026-07-08 확정, 사용자 승인):** `NR/EQ/DLY/RVB/VOL`(기능 모듈)은 base_gear
+     미매핑 시 `effects_catalog.defaults`(시드에 사람이 지정한 실존 모델: Gate 1/Guitar EQ 1/Digital Delay S/
+     Room/Volume)로 폴백 — 노브는 캐논 값 유지, notes 기록. 근거: GP-150 md의 DLY/RVB 는 제네릭 모델이라
+     "(기반:)"이 없어, 캐논이 실기(Boss DD-3 등)로 서술하면 구조적으로 전 곡 미매핑(라이브 스모크 실측).
+     기능 모듈은 파라미터가 톤을 규정하고 모델 선택은 부차적이라 디폴트가 정당하다.
+     **톤 정체성 모듈(AMP/DST/CAB/PRE/WAH/MOD)은 폴백 없음** — 미매핑 = 해당 role 투영 실패 +
+     리포트(적재 안 함, 대체 없음). 미매핑 실기 목록이 곧 어드민 온보딩 TODO.
      **여기서 출력 대상 2종(real-amp/phone)이 파생**: 대표 파트(lead→backing→solo 폴백, §5) 톤을 출력
      프로파일(캐비/IR on-off)로 변환해 tones.role 5종을 채운다.
   ⑤ 검증 게이트 — 스키마 + FX 실존(처리기 카탈로그 대조) + 노브 범위.
@@ -139,8 +145,8 @@
 |---|---|
 | **R0** | ✅ 새 Supabase 스키마(6엔티티+song_research+tone_jobs) + 씨앗. 리모트 적용 완료 |
 | **R1** | ✅ `web/lib/pipeline/` — LLM seam + Resolver + Grounding(캐논용) + 검증 게이트(목 테스트) |
-| **R2** | ✅ 코드 완료(라이브 스모크 대기). 캐논 생성 end-to-end — `prompts`·`research`(song_research 캐시)·`generate`(3-role 캐논→게이트→`canonical_tones`)·`json`·`sbInsert`. **캐논 게이트=스키마+base_gear 모양**, gear KB 대조는 R3 투영으로 이관. 목 테스트 328 그린. 미완=Gemini 실연결(`GEMINI_API_KEY` 넣고 신곡 1건) |
-| **R3** | ✅ 코드 완료(시드 재실행 대기). `web/lib/pipeline/projector.ts` — base_gear 역인덱스(`effects_catalog.entries`, `extractCatalogEntries`로 md "(기반:)" 추출) + **2단 룩업**(정확→경계 포함, §2 ④) + kind 교차검증 + 대표 파트(lead→backing→solo) real-amp/phone 파생 + 게이트 + `tones` 적재. **라운드트립 골든 게이트**: PATCHES 전수 91블록 역투영 — 84 매핑·mismatch 0·예외 6종 명시(`projector-golden.test.ts`). 테스트 전체 377 그린. 미완 = 리모트 processors 시드 재실행(entries 반영) |
+| **R2** | ✅ 완료(라이브 검증 포함). 캐논 생성 end-to-end — `prompts`·`research`(song_research 캐시)·`generate`(3-role 캐논→게이트→`canonical_tones`)·`json`·`sbInsert`. **캐논 게이트=스키마+base_gear 모양**, gear KB 대조는 R3 투영으로 이관. Gemini 실호출 스모크 2곡 통과(2026-07-08) |
+| **R3** | ✅ 완료(라이브 검증 포함). `web/lib/pipeline/projector.ts` — base_gear 역인덱스(`effects_catalog.entries` 187건) + **3단 룩업**(정확→경계 포함→토큰 부분수열, §2 ④) + **기능 모듈 디폴트 폴백**(`effects_catalog.defaults`, §2 ④) + kind 교차검증 + 대표 파트(lead→backing→solo) real-amp/phone 파생 + 게이트 + `tones` 적재. Resolver 슬러그 변형 조회. **라운드트립 골든**(91블록: 84 정밀·5 폴백·2 예외·mismatch 0). **라이브 스모크**: Oasis DLBIA 5-role 전부 적재, Creep 은 정당한 미매핑 리포트. 테스트 391 그린 |
 | **R4** | 웹 개편 — 생성 폼 + role 5탭 결과 뷰 + 카탈로그 |
 | **R5** | 어드민 — gear/processors/guitars 수동 입력 UI + 레퍼런스 업로드(Storage) |
 | **R6** | 요청 폼 확장(별도 브레인스톰 사이클, 백로그 참조) |

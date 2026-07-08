@@ -83,3 +83,47 @@ describe("matchEntries — 2단 룩업: 정확 매칭 → 경계 포함 매칭",
     expect(result.entries[0]!.model).toBe("OD 9");
   });
 });
+
+describe("matchEntries — 3단 룩업: 토큰 부분수열(중간 토큰 삽입 흡수)", () => {
+  // 라이브 스모크 실측 케이스: 캐논 "Fender Twin Reverb" vs md "Fender '65 Twin Reverb".
+  const entries: CatalogEntry[] = [
+    { model: "Dark Twin", kind: "amp", base_gear: "Fender '65 Twin Reverb" },
+    { model: "Silver Twin", kind: "amp", base_gear: "Fender Silverface Twin Reverb" },
+    { model: "UK SLP", kind: "amp", base_gear: "Marshall 1959HW Super Lead Plexi" },
+    { model: "Gold OD", kind: "effect", base_gear: "Klon Centaur" },
+  ];
+  const index = buildReverseIndex(entries);
+
+  test("중간 토큰 삽입('65) — 쿼리 토큰열이 엔트리 토큰열의 순서 보존 부분수열이면 매칭", () => {
+    const result = matchEntries("fender-twin-reverb", index, "amp");
+    expect(result.approximateMatch).toBe(true);
+    expect(result.entries.length).toBe(2); // Dark Twin('65), Silver Twin(Silverface) 둘 다 부분수열 성립
+    expect(result.entries[0]!.model).toBe("Dark Twin"); // 문서 순서 첫 항목
+  });
+
+  test("토큰 자체가 다르면 불일치 — 1959 vs 1959hw", () => {
+    const result = matchEntries("marshall-1959-super-lead-plexi", index, "amp");
+    expect(result.entries).toEqual([]);
+  });
+
+  test("단일 토큰 쿼리의 접미 매칭 금지 — 'reverb' 오탐 방지", () => {
+    const result = matchEntries("reverb", index, "amp");
+    expect(result.entries).toEqual([]);
+  });
+
+  test("단일 토큰 쿼리도 접두 매칭은 허용 — 'klon' → 'Klon Centaur'", () => {
+    const result = matchEntries("klon", index, "effect");
+    expect(result.approximateMatch).toBe(true);
+    expect(result.entries[0]!.model).toBe("Gold OD");
+  });
+
+  test("토큰 순서가 뒤집히면 불일치 — 부분수열은 순서 보존", () => {
+    const result = matchEntries("reverb-twin-fender", index, "amp");
+    expect(result.entries).toEqual([]);
+  });
+
+  test("kind 불일치면 3단도 제외", () => {
+    const result = matchEntries("fender-twin-reverb", index, "cab");
+    expect(result.entries).toEqual([]);
+  });
+});

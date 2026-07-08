@@ -13,6 +13,9 @@ import type { Block } from "../types";
 
 export const PROJECTOR_VERSION = "1";
 
+// 기능 모듈 타입(미매핑 시 디폴트 폴백 대상). 톤 정체성 모듈은 제외.
+const FUNCTIONAL_TYPES = new Set(["NR", "EQ", "DLY", "RVB", "VOL"]);
+
 export interface ProjectOutcome {
   ok: boolean;
   unmapped?: Array<{ name: string; category?: string; blockIndex: number }>;
@@ -46,6 +49,8 @@ export interface ReverseIndex {
   readonly entries: Readonly<Record<string, CatalogEntry[]>>;
   /** entries 키들의 삽입 순서(문서 순서). Record 순회가 삽입순 보존을 못할 수 있으므로 명시. */
   readonly keys: readonly string[];
+  /** 기능 모듈 디폴트 폴백(예: DLY/"Digital Delay S", RVB/"Room"). */
+  readonly defaults?: Readonly<Partial<Record<string, string>>>;
 }
 
 export function buildReverseIndex(entries: CatalogEntry[]): ReverseIndex {
@@ -81,26 +86,23 @@ export function matchEntries(
   }
 
   // 2단: 경계 포함 매칭 (정확 후보 0일 때만)
+  // 접미 방향은 다토큰 쿼리에만 허용 — 단일 제네릭 토큰("reverb"/"delay"/"chorus")이
+  // "…-reverb"로 끝나는 온갖 실기에 붙는 오탐 방지. 접두 방향("klon"→"klon-centaur")은 단일 토큰도 유의미.
+  const multiToken = querySlug.includes("-");
   const boundaryMatches: CatalogEntry[] = [];
   for (const key of index.keys) {
     const candidates = index.entries[key]!;
     for (const entry of candidates) {
       if (entry.kind !== expectedKind) continue;
-      // 경계 포함 조건: q === e || e.startsWith(q+"-") || e.endsWith("-"+q) || q.startsWith(e+"-") || q.endsWith("-"+e)
-      if (
-        querySlug === key ||
-        key.startsWith(querySlug + "-") ||
-        key.endsWith("-" + querySlug) ||
-        querySlug.startsWith(key + "-") ||
-        querySlug.endsWith("-" + key)
-      ) {
+      const prefixHit = key.startsWith(querySlug + "-") || querySlug.startsWith(key + "-");
+      const suffixHit = multiToken && (key.endsWith("-" + querySlug) || querySlug.endsWith("-" + key));
+      if (querySlug === key || prefixHit || suffixHit) {
         boundaryMatches.push(entry);
       }
     }
   }
 
   if (boundaryMatches.length > 0) {
-    // 중복 제거(한 entry가 여러 경계 조건에 매칭될 수 있음) + 문서 순서 보존
     const seen = new Set<CatalogEntry>();
     const unique: CatalogEntry[] = [];
     for (const entry of boundaryMatches) {
@@ -112,6 +114,50 @@ export function matchEntries(
     return { entries: unique, approximateMatch: true };
   }
 
+  // 3단: 토큰 부분수열 매칭 (2단 후보 0일 때만)
+  const queryTokens = querySlug.split("-");
+  if (queryTokens.length >= 2) {
+    const tokenMatches: CatalogEntry[] = [];
+    for (const key of index.keys) {
+      const candidates = index.entries[key]!;
+      const keyTokens = key.split("-");
+      if (keyTokens.length < 2) continue;
+
+      // 부분수열 검사: q가 e의 부분수열 또는 e가 q의 부분수열
+      const isSubsequence = (short: string[], long: string[]): boolean => {
+        let j = 0;
+        for (let i = 0; i < long.length && j < short.length; i++) {
+          if (long[i] === short[j]) j++;
+        }
+        return j === short.length;
+      };
+
+      const matches =
+        isSubsequence(queryTokens, keyTokens) ||
+        isSubsequence(keyTokens, queryTokens);
+
+      if (matches) {
+        for (const entry of candidates) {
+          if (entry.kind === expectedKind) {
+            tokenMatches.push(entry);
+          }
+        }
+      }
+    }
+
+    if (tokenMatches.length > 0) {
+      const seen = new Set<CatalogEntry>();
+      const unique: CatalogEntry[] = [];
+      for (const entry of tokenMatches) {
+        if (!seen.has(entry)) {
+          seen.add(entry);
+          unique.push(entry);
+        }
+      }
+      return { entries: unique, approximateMatch: true };
+    }
+  }
+
   // 미매핑
   return { entries: [], approximateMatch: false };
 }
@@ -121,6 +167,7 @@ export function matchEntries(
 export function projectChain(
   chain: CanonBlock[],
   index: ReverseIndex,
+  defaults?: Partial<Record<string, string>>,
 ): ProjectOutcome & { chain?: Block[] } {
   const projected: Block[] = [];
   const unmapped: Array<{ name: string; category?: string; blockIndex: number }> = [];
@@ -140,6 +187,22 @@ export function projectChain(
     const result = matchEntries(key, index, expectedKind);
 
     if (result.entries.length === 0) {
+      // 기능 모듈 폴백: DLY/RVB/EQ/NR/VOL이 미매핑이면 디폴트 사용
+      if (FUNCTIONAL_TYPES.has(block.type) && defaults?.[block.type]) {
+        const defaultModel = defaults[block.type]!;
+        notes.push(`기능 폴백 @ chain[${i}] — "${block.base_gear.name}" → "${defaultModel}"`);
+        const fallbackBlock: Block = {
+          type: block.type,
+          category: block.category,
+          model: defaultModel,
+          base_gear: block.base_gear.name,
+          enabled: block.enabled,
+          footswitch: block.footswitch,
+          knobs: block.knobs,
+        };
+        projected.push(fallbackBlock);
+        continue;
+      }
       unmapped.push({ name: block.base_gear.name, category: block.base_gear.category, blockIndex: i });
       continue;
     }
@@ -239,6 +302,7 @@ export async function projectSong(
   }
 
   const entries = (catalog.entries as CatalogEntry[]) ?? [];
+  const defaults = (catalog.defaults as Record<string, string> | undefined) ?? undefined;
   const index = buildReverseIndex(entries);
   const modelCatalog = extractModelCatalog(entries); // role별 루프 밖에서 1회 계산.
 
@@ -262,7 +326,7 @@ export async function projectSong(
     const canonChain = toneSrc.chain as CanonBlock[];
 
     // 투영 시도.
-    const projOutcome = projectChain(canonChain, index);
+    const projOutcome = projectChain(canonChain, index, defaults);
     if (!projOutcome.ok) {
       outcomes.push({
         role,
