@@ -1,7 +1,5 @@
-// DB 행(songs + patches) → 렌더러 Song 어댑터. 렌더러·types.ts 무변경 재사용을 위한 다리.
-// DB variations JSONB = n8n 출력 shape(signal_chain snake, switching 문자열, guitar 에 selectorLabel 없음).
-// 이 어댑터가 렌더러 타입(signalChain camel, switching {description,blockModels}, selectorLabel)으로 enrich.
-// 권위: docs/plans/2026-06-26-web-dynamic-catalog-design.md §2~3.
+// DB 행(songs + patches, songs + tones) → 렌더러 타입 어댑터.
+// 권위: docs/plans/2026-07-06-canon-projection-revival-design.md §2·§3 + TRD Phase 3.
 
 import type {
   Block,
@@ -10,6 +8,7 @@ import type {
   SwitchingPlan,
   Variation,
 } from "@/lib/types";
+import type { CanonBlock, ToneRole } from "@/lib/pipeline/types";
 import { G250_SELECTOR_MAP, PROCESSOR_RIG } from "@/lib/guitars/g250";
 import { songSlug } from "./slugify";
 
@@ -106,4 +105,96 @@ export function adaptPatch(song: DbSong, patch: DbPatch): Song {
     slug: songSlug(song.artist, song.title),
     variations: (patch.variations ?? []).map(adaptVariation),
   };
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// tones 기반 어댑터 (R4+)
+// ────────────────────────────────────────────────────────────────────────────
+
+// canonical_tones DB 행.
+export interface DbCanonicalTone {
+  id: string;
+  song_id: string;
+  role: ToneRole;
+  chain: CanonBlock[] | null;
+  null_reason: string | null;
+  confidence: number | null;
+}
+
+// tones DB 행.
+export interface DbTone {
+  id: string;
+  canonical_tone_id: string;
+  song_id: string;
+  body_archetype: string;
+  processor_id: string;
+  role: ToneRole;
+  signal_chain: Block[] | null;
+  null_reason: string | null;
+  label: string | null;
+}
+
+// role 탭 뷰 모델 (렌더러 입력 형태).
+export interface ToneRoleView {
+  role: ToneRole;
+  /** rendered: signal_chain 있음 / null: signal_chain 없고 null_reason 있음 / missing: tones 행 없음 */
+  status: "rendered" | "null" | "missing";
+  signalChain: Block[] | null;
+  nullReason?: string; // status==="null" 일 때만
+  label?: string; // real_amp/phone 파생 표기
+  sourceRole?: ToneRole; // label에서 파싱한 파생 원본 역할
+  enabled: boolean;
+}
+
+/**
+ * tones 행 (또는 null) + canonical_tones 행 → ToneRoleView.
+ * - tone 있고 signal_chain 있음 → rendered
+ * - tone 있고 signal_chain null → null (canonical.null_reason 승계)
+ * - tone 없음 → missing
+ */
+export function adaptToneRole(tone: DbTone | null, canonical: DbCanonicalTone | null): ToneRoleView {
+  const role = (tone?.role ?? canonical?.role)!; // role은 둘 다 있어야 함
+
+  if (tone?.signal_chain) {
+    // rendered: signal_chain 있음
+    return {
+      role,
+      status: "rendered",
+      signalChain: tone.signal_chain,
+      enabled: true,
+      label: tone.label ?? undefined,
+      sourceRole: extractSourceRoleFromLabel(tone.label),
+    };
+  }
+
+  if (tone && tone.signal_chain === null) {
+    // null: signal_chain null이고 null_reason 있음
+    return {
+      role,
+      status: "null",
+      signalChain: null,
+      nullReason: tone.null_reason ?? canonical?.null_reason ?? undefined,
+      enabled: false,
+      label: tone.label ?? undefined,
+      sourceRole: extractSourceRoleFromLabel(tone.label),
+    };
+  }
+
+  // missing: tone 행 없음
+  return {
+    role,
+    status: "missing",
+    signalChain: null,
+    enabled: false,
+  };
+}
+
+/**
+ * label에서 파생 원본 역할 추출.
+ * 예: "lead 파생" → "lead"
+ */
+function extractSourceRoleFromLabel(label: string | null | undefined): ToneRole | undefined {
+  if (!label) return undefined;
+  const match = label.match(/^(lead|backing|solo)(?:\s|파생)/);
+  return match ? (match[1] as ToneRole) : undefined;
 }

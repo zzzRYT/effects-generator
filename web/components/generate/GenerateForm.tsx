@@ -3,17 +3,31 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { GEN_MAX, type GenerateErrors } from "@/lib/generate/validate";
+import { decideAction, type GenerateApiResponse } from "@/lib/generate/decide-action";
 import { GenProgress } from "./GenProgress";
 import styles from "./generate.module.css";
 
-// 생성 폼 — 아티스트+곡 입력 → /api/generate. 캐시 히트면 즉시 상세 이동, 미스면 진행 폴링(GenProgress).
-export function GenerateForm() {
+interface GenerateFormProps {
+  guitars?: Array<{ id: string; slug: string; brand: string; model: string }>;
+  processors?: Array<{ id: string; slug: string; brand: string; model: string }>;
+}
+
+// 생성 폼 — 아티스트+곡+기타+이펙터 입력 → /api/generate.
+// 캐시 히트면 연출 모드(GenProgress), 폴링이면 실시간 모드.
+// 미등록 기어면 요청 폼으로 유도(프리필).
+export function GenerateForm({ guitars = [], processors = [] }: GenerateFormProps) {
   const router = useRouter();
   const [artist, setArtist] = useState("");
   const [song, setSong] = useState("");
+  const [guitar, setGuitar] = useState(guitars[0]?.model || ""); // 기타명 (선택 또는 직접 입력)
+  const [guitarMode, setGuitarMode] = useState<"select" | "direct">("select"); // UI 모드
+  const [processor, setProcessor] = useState(processors[0]?.model || ""); // 이펙터명 (선택 또는 직접 입력)
+  const [processorMode, setProcessorMode] = useState<"select" | "direct">("select"); // UI 모드
   const [errors, setErrors] = useState<GenerateErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
+  const [stagedSlug, setStagedSlug] = useState<string | null>(null); // 캐시 히트 slug
+  const [unresolvedGear, setUnresolvedGear] = useState<Array<{ kind: string; query: string }> | null>(null); // 미등록 기어
   const [submitting, setSubmitting] = useState(false);
   const honeypotRef = useRef<HTMLInputElement>(null); // 봇 트랩 — 숨김, 정상 사용자는 비움
 
@@ -22,7 +36,11 @@ export function GenerateForm() {
     if (submitting) return;
     setErrors({});
     setFormError(null);
+    setJobId(null);
+    setStagedSlug(null);
+    setUnresolvedGear(null);
     setSubmitting(true);
+
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
@@ -30,24 +48,58 @@ export function GenerateForm() {
         body: JSON.stringify({
           artist,
           song,
+          guitar, // 현재 입력/선택값 그대로 사용
+          processor, // 현재 입력/선택값 그대로 사용
           botcheck: honeypotRef.current?.value ?? "",
         }),
       });
-      const data = await res.json();
+
+      const jsonData = await res.json();
+
       if (!res.ok) {
-        if (data.errors) setErrors(data.errors as GenerateErrors);
-        else setFormError(data.error ?? "요청에 실패했어요");
+        // 실패 응답 — errors 또는 error 필드 확인
+        if (jsonData.errors) setErrors(jsonData.errors as GenerateErrors);
+        else setFormError(jsonData.error ?? "요청에 실패했어요");
         setSubmitting(false);
         return;
       }
-      if (data.status === "ready" && data.slug) {
-        router.push(`/songs/${data.slug}`);
-        return; // submitting 유지 — 페이지 전환
-      }
-      if (data.status === "pending" && data.jobId) {
-        setJobId(data.jobId); // 진행 화면으로
+
+      const data: GenerateApiResponse = jsonData;
+
+      // decideAction으로 응답 분기
+      const action = decideAction(data);
+
+      if (action.type === "navigate" && action.slug) {
+        // 즉시 이동 (캐시 히트지만 연출 먼저)
+        router.push(`/songs/${action.slug}`);
         return;
       }
+
+      if (action.type === "stage" && action.slug) {
+        // 캐시 히트, 연출 모드로 진행
+        setStagedSlug(action.slug);
+        return;
+      }
+
+      if (action.type === "poll" && action.jobId) {
+        // 실시간 폴링 모드
+        setJobId(action.jobId);
+        return;
+      }
+
+      if (action.type === "unresolved") {
+        // 미등록 기어 → 요청 폼으로 유도
+        setUnresolvedGear(action.unresolved || []);
+        setSubmitting(false);
+        return;
+      }
+
+      if (action.type === "error") {
+        setFormError(action.message ?? "알 수 없는 오류가 발생했어요");
+        setSubmitting(false);
+        return;
+      }
+
       setFormError("알 수 없는 응답이에요");
       setSubmitting(false);
     } catch {
@@ -56,22 +108,55 @@ export function GenerateForm() {
     }
   }
 
-  if (jobId) {
+  // 진행 중 (폴링 또는 연출 모드)
+  if (jobId || stagedSlug) {
     return (
       <GenProgress
-        jobId={jobId}
+        jobId={jobId || ""}
         artist={artist}
         song={song}
+        stagedSlug={stagedSlug || undefined}
         onReset={() => {
           setJobId(null);
+          setStagedSlug(null);
           setSubmitting(false);
         }}
       />
     );
   }
 
+  // 미등록 기어 — 요청 폼 프리필 링크로 유도
+  if (unresolvedGear && unresolvedGear.length > 0) {
+    const gearList = unresolvedGear.map((g) => `${g.kind}: ${g.query}`).join(", ");
+    const requestUrl = `/request?song=${encodeURIComponent(gearList)}`;
+    return (
+      <div className={styles.unresolved} role="alert">
+        <p className={styles.unresolvedTitle}>지원 준비중이에요</p>
+        <p className={styles.unresolvedDesc}>
+          입력해주신 기어({gearList})는 아직 저희 라이브러리에 없어요.
+        </p>
+        <p className={styles.unresolvedCta}>
+          <a href={requestUrl} className={styles.requestLink}>
+            기어 추가 요청하기
+          </a>
+        </p>
+        <button
+          className={styles.backBtn}
+          type="button"
+          onClick={() => {
+            setUnresolvedGear(null);
+            setSubmitting(false);
+          }}
+        >
+          돌아가기
+        </button>
+      </div>
+    );
+  }
+
   return (
     <form className={styles.form} onSubmit={onSubmit} noValidate>
+      {/* 아티스트 */}
       <div className={styles.field}>
         <label className={styles.label} htmlFor="gen-artist">
           아티스트
@@ -94,6 +179,7 @@ export function GenerateForm() {
         )}
       </div>
 
+      {/* 곡 */}
       <div className={styles.field}>
         <label className={styles.label} htmlFor="gen-song">
           곡 이름
@@ -112,6 +198,128 @@ export function GenerateForm() {
         {errors.song && (
           <p id="gen-song-err" className={styles.fieldErr}>
             {errors.song}
+          </p>
+        )}
+      </div>
+
+      {/* 기타 선택 */}
+      <div className={styles.field}>
+        <label className={styles.label} htmlFor="gen-guitar">
+          기타
+        </label>
+        {guitarMode === "select" ? (
+          <select
+            id="gen-guitar"
+            className={styles.input}
+            value={guitar}
+            onChange={(e) => {
+              if (e.target.value === "__direct__") {
+                setGuitarMode("direct");
+                setGuitar("");
+              } else {
+                setGuitar(e.target.value);
+              }
+            }}
+            aria-invalid={errors.guitar ? "true" : undefined}
+            aria-describedby={errors.guitar ? "gen-guitar-err" : undefined}
+          >
+            <option value="">기타 선택...</option>
+            {guitars.map((g) => (
+              <option key={g.id} value={g.model}>
+                {g.brand} {g.model}
+              </option>
+            ))}
+            <option value="__direct__">직접 입력</option>
+          </select>
+        ) : (
+          <>
+            <input
+              id="gen-guitar"
+              className={styles.input}
+              value={guitar}
+              onChange={(e) => setGuitar(e.target.value)}
+              placeholder="예: Fender Stratocaster"
+              maxLength={GEN_MAX.guitar}
+              autoComplete="off"
+              aria-invalid={errors.guitar ? "true" : undefined}
+              aria-describedby={errors.guitar ? "gen-guitar-err" : undefined}
+            />
+            <button
+              type="button"
+              className={styles.modeToggle}
+              onClick={() => {
+                setGuitarMode("select");
+                setGuitar(guitars[0]?.model || "");
+              }}
+            >
+              목록으로
+            </button>
+          </>
+        )}
+        {errors.guitar && (
+          <p id="gen-guitar-err" className={styles.fieldErr}>
+            {errors.guitar}
+          </p>
+        )}
+      </div>
+
+      {/* 멀티이펙터 선택 */}
+      <div className={styles.field}>
+        <label className={styles.label} htmlFor="gen-processor">
+          멀티이펙터
+        </label>
+        {processorMode === "select" ? (
+          <select
+            id="gen-processor"
+            className={styles.input}
+            value={processor}
+            onChange={(e) => {
+              if (e.target.value === "__direct__") {
+                setProcessorMode("direct");
+                setProcessor("");
+              } else {
+                setProcessor(e.target.value);
+              }
+            }}
+            aria-invalid={errors.processor ? "true" : undefined}
+            aria-describedby={errors.processor ? "gen-processor-err" : undefined}
+          >
+            <option value="">멀티이펙터 선택...</option>
+            {processors.map((p) => (
+              <option key={p.id} value={p.model}>
+                {p.brand} {p.model}
+              </option>
+            ))}
+            <option value="__direct__">직접 입력</option>
+          </select>
+        ) : (
+          <>
+            <input
+              id="gen-processor"
+              className={styles.input}
+              value={processor}
+              onChange={(e) => setProcessor(e.target.value)}
+              placeholder="예: Boss GT-1"
+              maxLength={GEN_MAX.processor}
+              autoComplete="off"
+              aria-invalid={errors.processor ? "true" : undefined}
+              aria-describedby={errors.processor ? "gen-processor-err" : undefined}
+            />
+            <button
+              type="button"
+              className={styles.modeToggle}
+              onClick={() => {
+                setProcessorMode("select");
+                setProcessor(processors[0]?.model || "");
+              }}
+            >
+              목록으로
+            </button>
+          </>
+        )}
+        {errors.processor && (
+          <p id="gen-processor-err" className={styles.fieldErr}>
+            {errors.processor}
           </p>
         )}
       </div>

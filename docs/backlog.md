@@ -48,7 +48,14 @@
 >   'Fender Twin Reverb'↔"'65 Twin Reverb" 흡수) + **기능 모듈 디폴트 폴백**(사용자 승인 — DLY/RVB 등 제네릭
 >   모델엔 "(기반:)"이 없어 구조적 전곡 미매핑이었음, `effects_catalog.defaults` 로 해소) + **Resolver 슬러그
 >   변형 조회**("GP-150"/"GP150" 호환) + 캐논 null_reason 한국어화. 테스트 391 그린, 골든 3분류(84 정밀·5 폴백·2 예외).
-> - **R4** — 웹 개편 — 생성 폼 + role 5탭 결과 뷰 + 카탈로그. **← 다음 작업.**
+> - **R4** — ✅ **완료(라이브 QA 포함, 2026-07-08).** 웹 재배선 — 하네스 풀 사이클(brainstorm→PRD→TRD→TDD→
+>   CE 리뷰→라이브 QA, `docs/{brainstorm,prd,trd,reviews}/r4-web-rewire.md`). 생성 폼 4입력(기어 셀렉트+직접
+>   입력) → `POST /api/generate`(검증·rate limit·Resolver·`tone_jobs` INSERT·`after()` 파이프라인,
+>   maxDuration=60) → 폴링(`/api/jobs/[id]`, 좀비 잡 가드 lazy 3분) → **role 5탭 결과 뷰**(`RoleTabs`,
+>   rendered/null/missing 3상태, 파생 라벨, 기존 SignalChain 렌더러 무수정) → 카탈로그(tones 기반, 희소 CTA).
+>   n8n·generation_jobs·구 patches 참조 전수 제거. 라이브 QA: 신곡 36초 done·미등록 기어 unresolved·실제
+>   Gemini 503 실패 경로까지 검증. 테스트 391→450, build 그린. 이월: D6 비주얼 스냅샷·루브릭 전수(리뷰 문서 참조).
+>   **← 다음 = R5**(어드민 수동 입력 UI + 레퍼런스 업로드).
 > - **R5** — 어드민 — gear/processors/guitars 수동 입력 UI + 레퍼런스 업로드(Storage).
 > - **R6** — 요청 폼 확장(별도 `/superpowers:brainstorm` 사이클, 아래 표 `request-form-v2` 참조).
 > - **R7** — 둘째 기기 검증 — 실제 멀티이펙터 1종 수동 온보딩→투영→렌더(비전 증명).
