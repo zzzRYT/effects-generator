@@ -3,8 +3,9 @@
 // 순수 코어(projectChain, deriveOutputTarget)와 DB 래퍼(projectSong)를 분리 — 코어는 목 없이 테스트 가능.
 // 미매핑(base_gear ↔ base_gear 룩업 실패)은 자동 수리 없음(헌법 "생성 품질 게이트") — 어드민이 gear KB 보완.
 
-import { validateProjection, type GateIssue } from "./gate";
-import { CANON_ROLES, type CanonRole } from "./generate";
+import type { GateIssue } from "./gate";
+import type { CanonRole } from "./canon-draft";
+import { projectCanonDraft } from "./project-draft";
 import type { CanonBlock } from "./types";
 import type { CatalogEntry } from "../parser/catalog";
 import { slugify } from "../data/slugify";
@@ -301,103 +302,45 @@ export async function projectSong(
     throw new Error(`카탈로그에 entries 없음 — 시드 갱신 필요. 프로세서 ID: ${input.processorId}`);
   }
 
-  const entries = (catalog.entries as CatalogEntry[]) ?? [];
-  const defaults = (catalog.defaults as Record<string, string> | undefined) ?? undefined;
-  const index = buildReverseIndex(entries);
-  const modelCatalog = extractModelCatalog(entries); // role별 루프 밖에서 1회 계산.
-
+  const entries = catalog.entries as CatalogEntry[];
+  const defaults = catalog.defaults as Record<string, string> | undefined;
+  const draft = projectCanonDraft(
+    canonicalTones.map((tone) => ({
+      id: tone.id,
+      role: tone.role as CanonRole,
+      chain: Array.isArray(tone.chain) ? (tone.chain as CanonBlock[]) : null,
+      nullReason: tone.null_reason,
+    })),
+    { entries, defaults },
+  );
   const rows: Record<string, unknown>[] = [];
-  const outcomes: ProjectRoleOutcome[] = [];
-  const roleResults = new Map<CanonRole, { canonicalId: string; chain: Block[] }>();
+  const outcomes: ProjectRoleOutcome[] = draft.roles.map((role) => ({
+    role: role.role,
+    status:
+      role.status === "projected"
+        ? "persisted"
+        : role.status === "null"
+          ? "null"
+          : "skipped",
+    ...(role.issues ? { issues: role.issues } : {}),
+  }));
 
-  // 3-role 투영: DB 순서 무시, 나중에 CANON_ROLES 우선순위로 정렬.
-  for (const toneSrc of canonicalTones) {
-    const role = toneSrc.role as CanonRole;
-
-    // chain null → null_reason 승계.
-    if (!Array.isArray(toneSrc.chain)) {
-      const reason = typeof toneSrc.null_reason === "string" ? toneSrc.null_reason : "캐논에서 해당 파트 없음";
-      rows.push(tonalRow(input, toneSrc.id, role, null, reason));
-      outcomes.push({ role, status: "null" });
-      continue;
+  for (const role of draft.roles) {
+    if (
+      (role.status === "projected" || role.status === "null") &&
+      role.canonicalId
+    ) {
+      rows.push(
+        tonalRow(
+          input,
+          role.canonicalId,
+          role.role,
+          role.chain,
+          role.nullReason,
+          role.sourceRole ? `${role.role} 파생(${role.sourceRole})` : null,
+        ),
+      );
     }
-
-    // 캐논 블록 타입 어시션(CanonBlock[]).
-    const canonChain = toneSrc.chain as CanonBlock[];
-
-    // 투영 시도.
-    const projOutcome = projectChain(canonChain, index, defaults);
-    if (!projOutcome.ok) {
-      outcomes.push({
-        role,
-        status: "skipped",
-        issues: projOutcome.unmapped?.map((u) => ({
-          path: `chain[${u.blockIndex}].base_gear`,
-          message: `실기 "${u.name}"(${u.category || "unknown"})를 카탈로그에서 찾을 수 없음`,
-        })) ?? [],
-      });
-      continue;
-    }
-
-    // 투영 성공 → 게이트 검증(모델 실존 + 노브 범위).
-    const projectedChain = projOutcome.chain!;
-    const gateResult = validateProjection(projectedChain, modelCatalog);
-    if (!gateResult.ok) {
-      outcomes.push({ role, status: "skipped", issues: gateResult.issues });
-      continue;
-    }
-
-    // 게이트 통과 → 적재 + 대표 파트 후보 저장.
-    rows.push(tonalRow(input, toneSrc.id, role, projectedChain, null));
-    outcomes.push({ role, status: "persisted" });
-    roleResults.set(role, { canonicalId: toneSrc.id, chain: projectedChain });
-  }
-
-  // 대표 파트 선택: CANON_ROLES 우선순위(lead→backing→solo)로 첫 성공.
-  let representativeTone: { canonicalId: string; chain: Block[]; role: CanonRole } | null = null;
-  for (const role of CANON_ROLES) {
-    const result = roleResults.get(role);
-    if (result) {
-      representativeTone = { ...result, role };
-      break;
-    }
-  }
-
-  // 대표 파트 파생(real_amp/phone).
-  if (representativeTone) {
-    const realAmpChain = deriveOutputTarget(representativeTone.chain, "real_amp");
-    const phoneChain = deriveOutputTarget(representativeTone.chain, "phone");
-
-    const gateRealAmp = validateProjection(realAmpChain, modelCatalog);
-    const gatePhone = validateProjection(phoneChain, modelCatalog);
-
-    // real_amp: 게이트 통과 시만 적재, 실패 시 적재 보류(skipped 정책 일관성).
-    if (gateRealAmp.ok) {
-      rows.push(tonalRow(input, representativeTone.canonicalId, "real_amp", realAmpChain, null, `real_amp 파생(${representativeTone.role})`));
-      outcomes.push({ role: "real_amp", status: "persisted" });
-    } else {
-      outcomes.push({ role: "real_amp", status: "skipped", issues: gateRealAmp.issues });
-    }
-
-    // phone: 게이트 통과 시만 적재.
-    if (gatePhone.ok) {
-      rows.push(tonalRow(input, representativeTone.canonicalId, "phone", phoneChain, null, `phone 파생(${representativeTone.role})`));
-      outcomes.push({ role: "phone", status: "persisted" });
-    } else {
-      outcomes.push({ role: "phone", status: "skipped", issues: gatePhone.issues });
-    }
-  } else {
-    // 대표 파트 없음 → real_amp/phone 모두 skipped.
-    outcomes.push({
-      role: "real_amp",
-      status: "skipped",
-      issues: [{ path: "chain", message: "파생할 파트 톤 없음 — lead/backing/solo 모두 미매핑 또는 미생성" }],
-    });
-    outcomes.push({
-      role: "phone",
-      status: "skipped",
-      issues: [{ path: "chain", message: "파생할 파트 톤 없음 — lead/backing/solo 모두 미매핑 또는 미생성" }],
-    });
   }
 
   // 적재.
@@ -436,17 +379,4 @@ function tonalRow(
     version: 1,
     projector_version: PROJECTOR_VERSION,
   };
-}
-
-// 엔트리 배열로부터 모델 카탈로그(exact/prefixes) 구성.
-function extractModelCatalog(entries: CatalogEntry[]): { exact: Set<string>; prefixes: string[] } {
-  const exact = new Set<string>();
-  const prefixes: string[] = [];
-
-  for (const entry of entries) {
-    exact.add(entry.model);
-    // 범위형(예: "User IR 1-20" → "User IR ")은 여기서 처리하지 않음 — extractCatalogEntries에서 제외됨.
-  }
-
-  return { exact, prefixes };
 }

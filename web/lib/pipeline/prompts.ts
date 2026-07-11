@@ -3,6 +3,7 @@
 // LLM seam(lib/llm/client.ts)이 이 메시지를 그대로 전달 — 프롬프트 텍스트가 곧 생성 권위.
 
 import { ALLOWED_TYPES, TYPE_CATEGORIES } from "../parser/validate";
+import type { AudioObservation } from "./audio-observations";
 
 // 프롬프트에 박아넣을 허용 블록 타입/카테고리 목록(parser 상수 단일 출처 파생 — 드리프트 없음).
 function allowedTypesText(): string {
@@ -62,11 +63,13 @@ export interface CanonPromptInput {
   research: unknown;
   /** gear KB 그라운딩 컨텍스트(buildGroundingContext 산출 — 소프트 어휘 힌트). */
   grounding: string;
+  /** 멀티모달 실험에서만 추가되는 지각 관측. baseline 에서는 필드 자체를 생략한다. */
+  audioObservations?: AudioObservation[];
 }
 
 /** 3-role 캐논 생성 메시지. */
 export function buildCanonPrompt(input: CanonPromptInput): { system: string; user: string } {
-  const user = [
+  const baseline = [
     `곡: "${input.title}" — ${input.artist}`,
     "",
     "[리서치 노트]",
@@ -100,5 +103,8 @@ export function buildCanonPrompt(input: CanonPromptInput): { system: string; use
     "}",
     "체인은 시그널 순서(앞→뒤)대로. chain 이 null 이면 null_reason 을 반드시 채운다.",
   ].join("\n");
+  const user = input.audioObservations
+    ? `${baseline}\n\n[오디오 관측]\n${JSON.stringify(input.audioObservations)}`
+    : baseline;
   return { system: CANON_SYSTEM, user };
 }
