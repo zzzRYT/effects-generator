@@ -6,7 +6,17 @@ const INPUT = { songId: "song-1", artist: "Oasis", title: "Wonderwall" };
 
 function llmReturning(text: string): { llm: LlmClient; chat: ReturnType<typeof vi.fn> } {
   const chat = vi.fn(async () => text);
-  return { llm: { chat }, chat };
+  return {
+    llm: {
+      capabilities: {
+        audioInput: false,
+        videoInput: false,
+        structuredOutput: true,
+      },
+      chat,
+    },
+    chat,
+  };
 }
 
 describe("researchSong", () => {

@@ -27,7 +27,17 @@ const CANON_JSON = JSON.stringify({
 /** research 호출(1회차) → canon 호출(2회차) 순서로 응답을 흘려준다. */
 function twoCallLlm(canonJson: string): { llm: LlmClient; chat: ReturnType<typeof vi.fn> } {
   const chat = vi.fn().mockResolvedValueOnce(RESEARCH_JSON).mockResolvedValueOnce(canonJson);
-  return { llm: { chat: chat as never }, chat };
+  return {
+    llm: {
+      capabilities: {
+        audioInput: false,
+        videoInput: false,
+        structuredOutput: true,
+      },
+      chat: chat as never,
+    },
+    chat,
+  };
 }
 
 function insertSpy() {
@@ -106,7 +116,14 @@ describe("generateCanon", () => {
     );
     const insert = insertSpy();
     const chat = vi.fn().mockResolvedValueOnce(CANON_JSON); // 캐논 1회만
-    const llm: LlmClient = { chat: chat as never };
+    const llm: LlmClient = {
+      capabilities: {
+        audioInput: false,
+        videoInput: false,
+        structuredOutput: true,
+      },
+      chat: chat as never,
+    };
 
     const r = await generateCanon(REQ, resolved("song-1"), { select: select as never, insert: insert as never, llm });
 

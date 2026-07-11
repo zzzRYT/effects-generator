@@ -1,5 +1,9 @@
 import { describe, expect, test, vi } from "vitest";
-import { createOpenAICompatClient, type ChatMessage } from "../client";
+import {
+  createGeminiClient,
+  createOpenAICompatClient,
+  type ChatMessage,
+} from "../client";
 
 function mockFetch(body: unknown, ok = true, status = 200): typeof fetch {
   return vi.fn(async () =>
@@ -25,6 +29,11 @@ describe("createOpenAICompatClient", () => {
     const out = await client.chat(MSGS);
 
     expect(out).toBe("hello");
+    expect(client.capabilities).toEqual({
+      audioInput: false,
+      videoInput: false,
+      structuredOutput: true,
+    });
     expect(fetchImpl).toHaveBeenCalledOnce();
     const [url, init] = (fetchImpl as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
     expect(url).toBe("https://api.example/v1/chat/completions");
@@ -76,5 +85,88 @@ describe("createOpenAICompatClient", () => {
     });
 
     await expect(client.chat(MSGS)).rejects.toThrow(/content/);
+  });
+
+  test("rejects media before sending a request", async () => {
+    const fetchImpl = mockFetch({ choices: [] });
+    const client = createOpenAICompatClient({
+      baseUrl: "https://api.example/v1",
+      apiKey: "k",
+      defaultModel: "m",
+      fetchImpl,
+    });
+
+    await expect(
+      client.chat([
+        {
+          role: "user",
+          content: [
+            {
+              type: "media",
+              mediaType: "video",
+              source: { kind: "uri", uri: "https://youtu.be/abc" },
+            },
+          ],
+        },
+      ]),
+    ).rejects.toThrow("provider:media_unsupported");
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+});
+
+describe("createGeminiClient", () => {
+  test("serializes YouTube media through generateContent", async () => {
+    const fetchImpl = mockFetch({
+      candidates: [{ content: { parts: [{ text: "{}" }] } }],
+    });
+    const client = createGeminiClient({
+      apiKey: "k",
+      defaultModel: "gemini-2.5-flash",
+      fetchImpl,
+    });
+
+    expect(client.capabilities).toEqual({
+      audioInput: true,
+      videoInput: true,
+      structuredOutput: true,
+    });
+    await client.chat(
+      [
+        { role: "system", content: "trusted system instruction" },
+        {
+          role: "user",
+          content: [
+            {
+              type: "media",
+              mediaType: "video",
+              source: { kind: "uri", uri: "https://youtu.be/abc" },
+            },
+            { type: "text", text: "00:10-00:30만 분석" },
+          ],
+        },
+      ],
+      { json: true, temperature: 0 },
+    );
+
+    const [url, init] = (fetchImpl as unknown as ReturnType<typeof vi.fn>)
+      .mock.calls[0];
+    expect(url).toBe(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+    );
+    expect(init.headers["x-goog-api-key"]).toBe("k");
+    const payload = JSON.parse(init.body);
+    expect(payload.system_instruction.parts).toEqual([
+      { text: "trusted system instruction" },
+    ]);
+    expect(payload.contents[0].parts[0].file_data.file_uri).toBe(
+      "https://youtu.be/abc",
+    );
+    expect(payload.contents[0].parts[1]).toEqual({
+      text: "00:10-00:30만 분석",
+    });
+    expect(payload.generationConfig).toMatchObject({
+      temperature: 0,
+      responseMimeType: "application/json",
+    });
   });
 });
