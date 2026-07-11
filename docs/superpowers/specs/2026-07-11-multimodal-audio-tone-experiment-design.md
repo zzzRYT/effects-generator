@@ -16,6 +16,7 @@ Gemini 계열 멀티모달 모델은 YouTube 영상과 오디오를 입력으로
 
 | 항목 | 결정 |
 |---|---|
+| 곡·기어 문맥 | 아티스트·곡명·승인된 기타·승인된 프로세서 선택 |
 | 입력 | YouTube URL |
 | 구간 선택 | 사용자가 웹에서 직접 시작·종료 지정 |
 | 타임라인 | 플레이어 + 양손잡이 슬라이더 |
@@ -55,7 +56,8 @@ Gemini 계열 멀티모달 모델은 YouTube 영상과 오디오를 입력으로
 `/lab/audio-tone`은 한 페이지에서 다음 단계로 진행한다.
 
 ```text
-YouTube URL 입력
+아티스트·곡·기타·프로세서 입력
+  → YouTube URL 입력
   → 영상 로드
   → 역할별 구간 선택
   → 분석 실행
@@ -68,6 +70,7 @@ YouTube URL 입력
 ### 4.1 영상과 타임라인
 
 - `youtube.com`과 `youtu.be` URL만 허용한다.
+- 아티스트·곡명과 승인된 기타·프로세서는 기존 생성 폼과 같은 계약으로 입력한다.
 - URL을 video ID로 정규화하고 YouTube IFrame Player API로 영상을 로드한다.
 - 영상 길이를 받은 뒤 역할별 세 개 레인을 같은 전체 시간축에 표시한다.
 - `lead`, `backing`, `solo` 중 최소 한 역할을 활성화해야 한다.
@@ -162,7 +165,7 @@ analyzeSongMedia()   ─ YouTube 구간 기반 관측 ─┐    │
 - enriched에는 같은 문헌 관측과 `audio_observations`를 함께 주입한다.
 - 두 분기의 캐논은 기존 검증 게이트를 통과해야 한다.
 - 두 분기의 투영은 같은 processor 카탈로그와 projector 버전을 사용한다.
-- 결과는 운영 테이블이 아니라 실험 행에만 저장한다.
+- 캐논·투영 결과는 운영 테이블이 아니라 실험 행에만 저장한다. 신곡이면 기존 캐시 규칙에 따라 `songs`와 `song_research`만 생성할 수 있다.
 
 ### 5.3 오디오 관측 계약
 
@@ -200,6 +203,7 @@ interface AudioObservation {
 | 컬럼 | 의미 |
 |---|---|
 | `id` | UUID PK |
+| `request` | 아티스트·곡명·기타·프로세서 원본과 정규화 문맥 |
 | `youtube_url` | 사용자가 입력한 정규화 URL |
 | `video_id` | 추출한 YouTube video ID |
 | `segments` | 역할별 `{role,start_ms,end_ms}` 배열 |
