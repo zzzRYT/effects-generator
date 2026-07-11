@@ -2,6 +2,7 @@ import { describe, expect, test, vi } from "vitest";
 import {
   createGeminiClient,
   createOpenAICompatClient,
+  getLlmClient,
   type ChatMessage,
 } from "../client";
 
@@ -168,5 +169,25 @@ describe("createGeminiClient", () => {
       temperature: 0,
       responseMimeType: "application/json",
     });
+  });
+});
+
+describe("getLlmClient", () => {
+  test("selects Gemini and Ollama from environment", () => {
+    process.env.LLM_PROVIDER = "gemini";
+    process.env.GEMINI_API_KEY = "key";
+    expect(getLlmClient().capabilities.videoInput).toBe(true);
+
+    process.env.LLM_PROVIDER = "ollama";
+    expect(getLlmClient().capabilities.videoInput).toBe(false);
+  });
+
+  test("rejects missing Gemini credentials and unknown providers", () => {
+    process.env.LLM_PROVIDER = "gemini";
+    delete process.env.GEMINI_API_KEY;
+    expect(() => getLlmClient()).toThrow("GEMINI_API_KEY 미설정");
+    process.env.LLM_PROVIDER = "unknown";
+    expect(() => getLlmClient()).toThrow("알 수 없는 LLM_PROVIDER");
+    delete process.env.LLM_PROVIDER;
   });
 });
