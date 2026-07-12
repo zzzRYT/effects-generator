@@ -2,7 +2,7 @@ import { getLlmClient, type LlmClient } from "../llm/client";
 import { createHash } from "node:crypto";
 import { validateCanon, type GateIssue } from "./gate";
 import { parseLlmJson } from "./json";
-import { buildCanonPrompt } from "./prompts";
+import { buildCanonPrompt, buildSingleToneCanonPrompt } from "./prompts";
 import type { AudioObservation } from "./audio-observations";
 import type { CanonBlock } from "./types";
 
@@ -14,7 +14,6 @@ export interface CanonDraftInput {
   title: string;
   research: unknown;
   grounding: string;
-  audioObservations?: AudioObservation[];
 }
 
 export interface CanonDraftRole {
@@ -114,4 +113,90 @@ export async function generateCanonDraft(
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+// ── 오디오 랩 단일 톤 캐논 ─────────────────────────────
+export interface SingleCanonDraftInput {
+  artist: string;
+  title: string;
+  research: unknown;
+  grounding: string;
+  audioObservation?: AudioObservation;
+}
+
+export interface SingleCanonDraftResult {
+  status: "valid" | "null" | "skipped";
+  chain: CanonBlock[] | null;
+  nullReason: string | null;
+  confidence: number | null;
+  issues?: GateIssue[];
+  sources: unknown[];
+  modelUsed: string;
+  rawResponseHash: string;
+}
+
+interface SingleTonePayload {
+  chain: unknown;
+  null_reason?: unknown;
+  confidence?: unknown;
+  sources?: unknown;
+}
+
+export async function generateSingleCanonDraft(
+  input: SingleCanonDraftInput,
+  deps: CanonDraftDeps = {},
+): Promise<SingleCanonDraftResult> {
+  const llm = deps.llm ?? getLlmClient();
+  const modelUsed = deps.model ?? process.env.LLM_MODEL ?? "gemini";
+  const { system, user } = buildSingleToneCanonPrompt(input);
+  const raw = await llm.chat(
+    [
+      { role: "system", content: system },
+      { role: "user", content: user },
+    ],
+    { json: true, temperature: 0 },
+  );
+  const parsed = parseLlmJson(raw) as SingleTonePayload;
+  const sources = Array.isArray(parsed.sources) ? parsed.sources : [];
+  const confidence = typeof parsed.confidence === "number" ? parsed.confidence : null;
+  const rawResponseHash = createHash("sha256").update(raw).digest("hex");
+
+  if (Array.isArray(parsed.chain)) {
+    const gate = validateCanon(parsed.chain);
+    if (!gate.ok) {
+      return {
+        status: "skipped",
+        chain: null,
+        nullReason: null,
+        confidence,
+        issues: gate.issues,
+        sources,
+        modelUsed,
+        rawResponseHash,
+      };
+    }
+    return {
+      status: "valid",
+      chain: parsed.chain as CanonBlock[],
+      nullReason: null,
+      confidence,
+      sources,
+      modelUsed,
+      rawResponseHash,
+    };
+  }
+
+  const nullReason =
+    typeof parsed.null_reason === "string" && parsed.null_reason.trim()
+      ? parsed.null_reason
+      : "리서치에서 해당 구간을 확정하지 못함";
+  return {
+    status: "null",
+    chain: null,
+    nullReason,
+    confidence,
+    sources,
+    modelUsed,
+    rawResponseHash,
+  };
 }
