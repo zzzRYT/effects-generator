@@ -77,11 +77,7 @@ export async function POST(request: Request): Promise<Response> {
         request: normalized,
         youtube_url: normalized.youtubeUrl,
         video_id: normalized.videoId,
-        segments: normalized.segments.map((segment) => ({
-          role: segment.role,
-          start_ms: segment.startMs,
-          end_ms: segment.endMs,
-        })),
+        segment: { start_ms: normalized.segment.startMs, end_ms: normalized.segment.endMs },
         model_used: model,
         prompt_version: PROMPT_VERSION,
         projector_version: PROJECTOR_VERSION,

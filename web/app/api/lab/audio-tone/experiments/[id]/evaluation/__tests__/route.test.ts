@@ -29,11 +29,11 @@ const READY = {
   progress: {},
   baseline_result: {
     canonical: { modelUsed: "private baseline model", sources: ["private"] },
-    projection: { roles: [{ role: "lead", status: "projected", chain: [{ type: "AMP", model: "US Deluxe", enabled: true, knobs: [] }], nullReason: null }] },
+    projection: { status: "projected", chain: [{ type: "AMP", model: "US Deluxe", enabled: true, knobs: [] }], nullReason: null },
   },
   enriched_result: {
     canonical: { modelUsed: "private enriched model", sources: ["private"] },
-    projection: { roles: [{ role: "lead", status: "projected", chain: [{ type: "AMP", model: "UK 800", enabled: true, knobs: [] }], nullReason: null }] },
+    projection: { status: "projected", chain: [{ type: "AMP", model: "UK 800", enabled: true, knobs: [] }], nullReason: null },
   },
   blind_assignment: { A: "enriched", B: "baseline" },
   evaluation: null,

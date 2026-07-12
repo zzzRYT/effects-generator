@@ -28,7 +28,7 @@ const BODY = {
   title: "Wonderwall",
   guitar: "Cort G250",
   processor: "Valeton GP-150",
-  segments: [{ role: "lead", startMs: 10_000, endMs: 30_000 }],
+  segment: { startMs: 10_000, endMs: 30_000 },
 };
 
 const RESOLVED = {
@@ -67,7 +67,7 @@ describe("POST audio tone experiment", () => {
         await POST(
           request({
             ...BODY,
-            segments: [{ role: "lead", startMs: 0, endMs: 4_999 }],
+            segment: { startMs: 0, endMs: 4_999 },
           }),
         )
       ).status,
