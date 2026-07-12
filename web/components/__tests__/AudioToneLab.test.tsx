@@ -174,4 +174,96 @@ describe("AudioToneLab", () => {
     fireEvent.click(screen.getByRole("button", { name: "다시 시도" }));
     await waitFor(() => expect(screen.getByLabelText("아티스트")).toBeEnabled());
   });
+
+  test("clears formError when restarting with a new segment after evaluation", async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ experimentId: "exp-1" }), { status: 202 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            id: "exp-1",
+            status: "ready",
+            progress: {},
+            variants: {
+              A: { status: "projected", chain: [{ model: "UK 800" }], nullReason: null },
+              B: { status: "projected", chain: [{ model: "US Deluxe" }], nullReason: null },
+            },
+          }),
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            id: "exp-1",
+            status: "evaluated",
+            progress: {},
+            variants: {
+              A: { status: "projected", chain: [{ model: "UK 800" }], nullReason: null },
+              B: { status: "projected", chain: [{ model: "US Deluxe" }], nullReason: null },
+            },
+            reveal: { A: "enriched", B: "baseline" },
+            preferredVariant: "enriched",
+          }),
+        ),
+      );
+    render(<AudioToneLab {...props} />);
+
+    // Try to load invalid URL to set formError
+    fireEvent.change(screen.getByLabelText("YouTube URL"), {
+      target: { value: "invalid-url" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "영상 불러오기" }));
+    await screen.findByText("지원되는 YouTube URL을 입력하세요");
+
+    // Now fill in valid data
+    fillBase();
+    fireEvent.click(screen.getByRole("button", { name: "A/B 분석 시작" }));
+    await screen.findByRole("heading", { name: "익명 A/B 평가" });
+    for (const label of ["A", "B"]) {
+      for (const metric of ["논리적 정합성", "체인 타당성", "노브 실사용성"]) {
+        fireEvent.change(screen.getByLabelText(`${label} ${metric}`), {
+          target: { value: "4" },
+        });
+      }
+    }
+    fireEvent.click(screen.getByRole("radio", { name: "A 선호" }));
+    fireEvent.click(screen.getByRole("button", { name: "평가 제출" }));
+    await screen.findByRole("heading", { name: "평가 결과" });
+
+    // Verify error message is gone after restart
+    expect(screen.queryByText("지원되는 YouTube URL을 입력하세요")).not.toBeInTheDocument();
+
+    // Click "다른 구간 다시 보기" and verify error is still cleared
+    fireEvent.click(screen.getByRole("button", { name: "다른 구간 다시 보기" }));
+    await waitFor(() => {
+      expect(screen.getByLabelText("아티스트")).toBeEnabled();
+    });
+    expect(screen.queryByText("지원되는 YouTube URL을 입력하세요")).not.toBeInTheDocument();
+  });
+
+  test("blocks PointTimeline interaction while locked (polling/evaluating phases)", async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ experimentId: "exp-1" }), { status: 202 }),
+      );
+    render(<AudioToneLab {...props} />);
+    fillBase();
+
+    // Get the initial segment value
+    const slider = screen.getByRole("slider", { name: "구간 선택" });
+    const initialValue = slider.getAttribute("aria-valuetext");
+
+    // Start the experiment (transitions to submitting/polling)
+    fireEvent.click(screen.getByRole("button", { name: "A/B 분석 시작" }));
+    await screen.findByRole("status");
+
+    // The slider should now be disabled
+    expect(slider).toHaveAttribute("aria-disabled", "true");
+
+    // Attempt to interact with the disabled slider (should be a no-op)
+    fireEvent.keyDown(slider, { key: "ArrowRight" });
+    expect(slider).toHaveAttribute("aria-valuetext", initialValue);
+  });
 });

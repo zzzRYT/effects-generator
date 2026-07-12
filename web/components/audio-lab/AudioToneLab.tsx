@@ -158,7 +158,8 @@ export function AudioToneLab({ guitars, processors }: AudioToneLabProps) {
       const normalized = normalizeYouTubeUrl(youtubeUrl);
       setYoutubeUrl(normalized.youtubeUrl);
       setVideoId(normalized.videoId);
-    } catch {
+    } catch (error) {
+      console.error("YouTube URL parsing failed:", error);
       setVideoId(null);
       setFormError("지원되는 YouTube URL을 입력하세요");
     }
@@ -247,6 +248,7 @@ export function AudioToneLab({ guitars, processors }: AudioToneLabProps) {
     setScores(emptyScores());
     setPreference(null);
     setSegment(DEFAULT_SEGMENT);
+    setFormError(null);
     setPhase({ type: "editing" });
   }
 
@@ -299,6 +301,7 @@ export function AudioToneLab({ guitars, processors }: AudioToneLabProps) {
                 currentTimeMs={currentTimeMs}
                 onChange={setSegment}
                 onPreview={playRange}
+                disabled={locked}
               />
             </div>
           ) : null}

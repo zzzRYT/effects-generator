@@ -4,7 +4,7 @@ import { describe, expect, test, vi } from "vitest";
 import { PointTimeline } from "@/components/audio-lab/PointTimeline";
 import type { AudioSegment } from "@/lib/pipeline/audio-observations";
 
-function Harness({ onPreview = vi.fn() }: { onPreview?: (start: number, end: number) => void }) {
+function Harness({ onPreview = vi.fn(), disabled = false }: { onPreview?: (start: number, end: number) => void; disabled?: boolean }) {
   const [segment, setSegment] = useState<AudioSegment>({ startMs: 10_000, endMs: 30_000 });
   return (
     <PointTimeline
@@ -13,6 +13,7 @@ function Harness({ onPreview = vi.fn() }: { onPreview?: (start: number, end: num
       currentTimeMs={0}
       onChange={setSegment}
       onPreview={onPreview}
+      disabled={disabled}
     />
   );
 }
@@ -105,5 +106,42 @@ describe("PointTimeline", () => {
 
     // Verify segment stayed at the state set by pointerdown (not changed by the stale drag resumption)
     expect(slider).toHaveAttribute("aria-valuetext", stateAfterPointerDown);
+  });
+
+  test("blocks drag operations when disabled=true", () => {
+    mockTrackRect();
+    render(<Harness disabled={true} />);
+    const track = screen.getByTestId("point-timeline");
+    const slider = screen.getByRole("slider", { name: "구간 선택" });
+    const initialValue = slider.getAttribute("aria-valuetext");
+
+    // Attempt to drag while disabled
+    fireEvent.pointerDown(track, { clientX: 100, pointerId: 1 });
+    fireEvent.pointerMove(track, { clientX: 300, pointerId: 1 });
+    fireEvent.pointerUp(track, { clientX: 300, pointerId: 1 });
+
+    // Verify segment did not change
+    expect(slider).toHaveAttribute("aria-valuetext", initialValue);
+  });
+
+  test("blocks keyboard operations when disabled=true", () => {
+    render(<Harness disabled={true} />);
+    const slider = screen.getByRole("slider", { name: "구간 선택" });
+    const initialValue = slider.getAttribute("aria-valuenow");
+
+    slider.focus();
+    // Attempt keyboard move while disabled
+    fireEvent.keyDown(slider, { key: "ArrowRight" });
+
+    // Verify segment did not change
+    expect(slider).toHaveAttribute("aria-valuenow", initialValue);
+  });
+
+  test("removes slider from tab order and sets aria-disabled when disabled=true", () => {
+    render(<Harness disabled={true} />);
+    const slider = screen.getByRole("slider", { name: "구간 선택" });
+
+    expect(slider).toHaveAttribute("tabIndex", "-1");
+    expect(slider).toHaveAttribute("aria-disabled", "true");
   });
 });

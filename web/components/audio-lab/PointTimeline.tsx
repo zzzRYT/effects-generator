@@ -17,6 +17,7 @@ interface PointTimelineProps {
   currentTimeMs: number;
   onChange(segment: AudioSegment): void;
   onPreview(startMs: number, endMs: number): void;
+  disabled?: boolean;
 }
 
 export function PointTimeline({
@@ -25,6 +26,7 @@ export function PointTimeline({
   currentTimeMs,
   onChange,
   onPreview,
+  disabled = false,
 }: PointTimelineProps) {
   const trackRef = useRef<HTMLDivElement | null>(null);
   const anchorRef = useRef<number | null>(null);
@@ -35,6 +37,7 @@ export function PointTimeline({
   }, []);
 
   function onPointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    if (disabled) return;
     const anchorMs = msFromPointerX(event.clientX, rectOf(), durationMs);
     anchorRef.current = anchorMs;
     event.currentTarget.setPointerCapture?.(event.pointerId);
@@ -58,6 +61,7 @@ export function PointTimeline({
   }
 
   function onKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (disabled) return;
     const delta = event.shiftKey ? 5_000 : 1_000;
     if (event.key === "ArrowLeft") {
       event.preventDefault();
@@ -94,12 +98,13 @@ export function PointTimeline({
         <div
           className={styles.timelineSelection}
           role="slider"
-          tabIndex={0}
+          tabIndex={disabled ? -1 : 0}
           aria-label="구간 선택"
           aria-valuemin={0}
           aria-valuemax={durationMs}
           aria-valuenow={segment.startMs}
           aria-valuetext={`${formatTimestamp(segment.startMs)}–${formatTimestamp(segment.endMs)}`}
+          aria-disabled={disabled}
           style={{ left: `${startPct}%`, width: `${widthPct}%` }}
           onKeyDown={onKeyDown}
         />
