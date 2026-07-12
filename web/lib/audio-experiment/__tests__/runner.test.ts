@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from "vitest";
-import type { CanonDraftResult } from "../../pipeline/canon-draft";
-import type { ProjectDraftResult } from "../../pipeline/project-draft";
+import type { SingleCanonDraftResult } from "../../pipeline/canon-draft";
+import type { ProjectSingleToneResult } from "../../pipeline/project-draft";
 import type { ResolvedRequest } from "../../pipeline/types";
 import type { ExperimentRequest } from "../contracts";
 import { runToneExperiment, type RunnerDeps } from "../runner";
@@ -9,7 +9,7 @@ const REQUEST: ExperimentRequest = {
   youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
   videoId: "dQw4w9WgXcQ",
   durationMs: 180_000,
-  segments: [{ role: "lead", startMs: 10_000, endMs: 30_000 }],
+  segment: { startMs: 10_000, endMs: 30_000 },
   artist: "Oasis",
   title: "Wonderwall",
   guitar: "Cort G250",
@@ -22,56 +22,31 @@ const RESOLVED: ResolvedRequest = {
   processor: { id: "p1", slug: "valeton-gp-150" },
 };
 
-const OBSERVATIONS = [
-  {
-    role: "lead" as const,
-    startMs: 10_000,
-    endMs: 30_000,
-    gain: "crunch" as const,
-    brightness: "balanced" as const,
-    compression: "medium" as const,
-    effects: [],
-    notes: "관측",
-    confidence: 0.8,
-  },
-];
-
-const CANON: CanonDraftResult = {
-  modelUsed: "gemini-2.5-flash",
-  rawResponseHash: "fixture-hash",
-  sources: [],
-  roles: [
-    {
-      role: "lead",
-      status: "null",
-      chain: null,
-      nullReason: "fixture",
-      confidence: 0.5,
-    },
-    {
-      role: "backing",
-      status: "null",
-      chain: null,
-      nullReason: "fixture",
-      confidence: 0.5,
-    },
-    {
-      role: "solo",
-      status: "null",
-      chain: null,
-      nullReason: "fixture",
-      confidence: 0.5,
-    },
-  ],
+const OBSERVATION = {
+  startMs: 10_000,
+  endMs: 30_000,
+  gain: "crunch" as const,
+  brightness: "balanced" as const,
+  compression: "medium" as const,
+  effects: [],
+  notes: "관측",
+  confidence: 0.8,
 };
 
-const PROJECTED: ProjectDraftResult = {
-  roles: ["lead", "backing", "solo", "real_amp", "phone"].map((role) => ({
-    role: role as ProjectDraftResult["roles"][number]["role"],
-    status: "projected" as const,
-    chain: [],
-    nullReason: null,
-  })),
+const CANON: SingleCanonDraftResult = {
+  status: "null",
+  chain: null,
+  nullReason: "fixture",
+  confidence: 0.5,
+  sources: [],
+  modelUsed: "gemini-2.5-flash",
+  rawResponseHash: "fixture-hash",
+};
+
+const PROJECTED: ProjectSingleToneResult = {
+  status: "projected",
+  chain: [],
+  nullReason: null,
 };
 
 function dependencies(overrides: Partial<RunnerDeps> = {}) {
@@ -85,7 +60,7 @@ function dependencies(overrides: Partial<RunnerDeps> = {}) {
     })),
     grounding: vi.fn(async () => ({ context: "same grounding" })),
     catalog: vi.fn(async () => ({ entries: [] })),
-    analyze: vi.fn(async () => OBSERVATIONS),
+    analyze: vi.fn(async () => OBSERVATION),
     generate: vi.fn(async () => CANON),
     project: vi.fn(() => PROJECTED),
     update: vi.fn(async (_id, status) => {
@@ -114,9 +89,9 @@ describe("runToneExperiment", () => {
     const [baseline, enriched] = vi.mocked(deps.generate).mock.calls.map(
       ([call]) => call,
     );
-    expect({ ...enriched, audioObservations: undefined }).toEqual(baseline);
-    expect(baseline.audioObservations).toBeUndefined();
-    expect(enriched.audioObservations).toEqual(OBSERVATIONS);
+    expect({ ...enriched, audioObservation: undefined }).toEqual(baseline);
+    expect(baseline.audioObservation).toBeUndefined();
+    expect(enriched.audioObservation).toEqual(OBSERVATION);
     expect(deps.ready).toHaveBeenCalledOnce();
     expect(deps.fail).not.toHaveBeenCalled();
   });
@@ -213,17 +188,18 @@ describe("runToneExperiment", () => {
     );
   });
 
-  test("fails the whole experiment on either projection failure", async () => {
-    const failedProjection: ProjectDraftResult = {
-      roles: PROJECTED.roles.map((role, index) =>
-        index === 0 ? { ...role, status: "skipped" as const } : role,
-      ),
+  test("fails the whole experiment when either projection is skipped", async () => {
+    const skipped: ProjectSingleToneResult = {
+      status: "skipped",
+      chain: null,
+      nullReason: null,
+      issues: [{ path: "chain", message: "미매핑" }],
     };
     const { deps } = dependencies({
       project: vi
         .fn()
         .mockReturnValueOnce(PROJECTED)
-        .mockReturnValueOnce(failedProjection),
+        .mockReturnValueOnce(skipped),
     });
 
     await runToneExperiment("exp-1", REQUEST, RESOLVED, deps);
@@ -234,5 +210,21 @@ describe("runToneExperiment", () => {
       "enriched:projection_failed",
       expect.any(String),
     );
+  });
+
+  test("allows a legitimate null canon to reach ready", async () => {
+    const nullProjection: ProjectSingleToneResult = {
+      status: "null",
+      chain: null,
+      nullReason: "구간에서 톤을 확정하지 못함",
+    };
+    const { deps } = dependencies({
+      project: vi.fn(() => nullProjection),
+    });
+
+    await runToneExperiment("exp-1", REQUEST, RESOLVED, deps);
+
+    expect(deps.ready).toHaveBeenCalledOnce();
+    expect(deps.fail).not.toHaveBeenCalled();
   });
 });

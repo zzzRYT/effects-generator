@@ -2,15 +2,15 @@ import { getLlmClient } from "../llm/client";
 import { sbFetch, sbInsert, sbSelect } from "../supabase/rest";
 import { analyzeSongMedia, type AudioObservation } from "../pipeline/audio-observations";
 import {
-  generateCanonDraft,
-  type CanonDraftResult,
+  generateSingleCanonDraft,
+  type SingleCanonDraftResult,
 } from "../pipeline/canon-draft";
 import { ensureSong } from "../pipeline/generate";
 import { loadGrounding } from "../pipeline/grounding";
 import {
-  projectCanonDraft,
+  projectSingleTone,
   type EffectsCatalog,
-  type ProjectDraftResult,
+  type ProjectSingleToneResult,
 } from "../pipeline/project-draft";
 import { researchSong, type ResearchResult } from "../pipeline/research";
 import type { ResolvedRequest } from "../pipeline/types";
@@ -20,7 +20,7 @@ import type { ExperimentRequest, ExperimentStatus } from "./contracts";
 export interface RunnerGenerateInput extends ExperimentRequest {
   research: ResearchResult;
   grounding: string;
-  audioObservations?: AudioObservation[];
+  audioObservation?: AudioObservation;
 }
 
 export interface RunnerDeps {
@@ -37,13 +37,13 @@ export interface RunnerDeps {
   catalog(processorId: string): Promise<EffectsCatalog>;
   analyze(input: {
     youtubeUrl: string;
-    segments: ExperimentRequest["segments"];
-  }): Promise<AudioObservation[]>;
-  generate(input: RunnerGenerateInput): Promise<CanonDraftResult>;
+    segment: ExperimentRequest["segment"];
+  }): Promise<AudioObservation>;
+  generate(input: RunnerGenerateInput): Promise<SingleCanonDraftResult>;
   project(
-    canonical: CanonDraftResult["roles"],
+    canonical: SingleCanonDraftResult,
     catalog: EffectsCatalog,
-  ): ProjectDraftResult;
+  ): ProjectSingleToneResult;
   update(
     id: string,
     status: ExperimentStatus,
@@ -51,10 +51,10 @@ export interface RunnerDeps {
   ): Promise<void>;
   ready(
     id: string,
-    baseline: CanonDraftResult,
-    enriched: CanonDraftResult,
-    baselineProjection: ProjectDraftResult,
-    enrichedProjection: ProjectDraftResult,
+    baseline: SingleCanonDraftResult,
+    enriched: SingleCanonDraftResult,
+    baselineProjection: ProjectSingleToneResult,
+    enrichedProjection: ProjectSingleToneResult,
   ): Promise<void>;
   fail(id: string, code: string, detail: string): Promise<void>;
 }
@@ -72,15 +72,9 @@ function branchFailure(code: string, error: unknown): never {
   throw new ExperimentFailure(code, error);
 }
 
-function assertComparable(result: ProjectDraftResult, code: string): void {
-  const skipped = result.roles.filter((role) => role.status === "skipped");
-  if (skipped.length > 0) {
-    throw new ExperimentFailure(
-      code,
-      skipped
-        .map((role) => `${role.role}:${role.issues?.[0]?.message ?? "skipped"}`)
-        .join("; "),
-    );
+function assertComparable(result: ProjectSingleToneResult, code: string): void {
+  if (result.status === "skipped") {
+    throw new ExperimentFailure(code, result.issues?.[0]?.message ?? "skipped");
   }
 }
 
@@ -122,15 +116,15 @@ export async function runToneExperiment(
       deps.grounding(),
       deps.catalog(resolved.processor.id),
     ]);
-    const audioObservations = await deps
+    const audioObservation = await deps
       .analyze({
         youtubeUrl: request.youtubeUrl,
-        segments: request.segments,
+        segment: request.segment,
       })
       .catch((error) => branchFailure(classifyMediaFailure(error), error));
 
     await deps.update(id, "generating", {
-      audio_observations: audioObservations,
+      audio_observations: audioObservation,
     });
     const shared = {
       ...request,
@@ -139,25 +133,25 @@ export async function runToneExperiment(
     };
     const [baseline, enriched] = await Promise.all([
       deps
-        .generate({ ...shared, audioObservations: undefined })
+        .generate({ ...shared, audioObservation: undefined })
         .catch((error) => branchFailure("baseline:generation_failed", error)),
       deps
-        .generate({ ...shared, audioObservations })
+        .generate({ ...shared, audioObservation })
         .catch((error) => branchFailure("enriched:generation_failed", error)),
     ]);
 
     await deps.update(id, "projecting");
-    let baselineProjection: ProjectDraftResult;
-    let enrichedProjection: ProjectDraftResult;
+    let baselineProjection: ProjectSingleToneResult;
+    let enrichedProjection: ProjectSingleToneResult;
     try {
-      baselineProjection = deps.project(baseline.roles, catalog);
+      baselineProjection = deps.project(baseline, catalog);
       assertComparable(baselineProjection, "baseline:projection_failed");
     } catch (error) {
       if (error instanceof ExperimentFailure) throw error;
       return branchFailure("baseline:projection_failed", error);
     }
     try {
-      enrichedProjection = deps.project(enriched.roles, catalog);
+      enrichedProjection = deps.project(enriched, catalog);
       assertComparable(enrichedProjection, "enriched:projection_failed");
     } catch (error) {
       if (error instanceof ExperimentFailure) throw error;
@@ -218,25 +212,24 @@ export function createDefaultRunnerDeps(): RunnerDeps {
     },
     analyze: (input) => analyzeSongMedia(input, llm),
     generate: (input) =>
-      generateCanonDraft(
+      generateSingleCanonDraft(
         {
           artist: input.artist,
           title: input.title,
           research: input.research.notes,
           grounding: input.grounding,
-          audioObservations: input.audioObservations,
+          audioObservation: input.audioObservation,
         },
         { llm, model },
       ),
-    project: (roles, catalog) =>
-      projectCanonDraft(
-        roles.map((role) => ({
-          role: role.role,
-          status: role.status,
-          chain: role.chain,
-          nullReason: role.nullReason,
-          issues: role.issues,
-        })),
+    project: (canonical, catalog) =>
+      projectSingleTone(
+        {
+          chain: canonical.chain,
+          nullReason: canonical.nullReason,
+          status: canonical.status,
+          issues: canonical.issues,
+        },
         catalog,
       ),
     update: (experimentId, status, patch = {}) =>
