@@ -56,13 +56,17 @@
 >   n8n·generation_jobs·구 patches 참조 전수 제거. 라이브 QA: 신곡 36초 done·미등록 기어 unresolved·실제
 >   Gemini 503 실패 경로까지 검증. 테스트 391→450, build 그린. 이월: D6 비주얼 스냅샷·루브릭 전수(리뷰 문서 참조).
 >   **← 다음 = R5**(어드민 수동 입력 UI + 레퍼런스 업로드).
-> - **R4.5 오디오 톤 A/B 랩** — ✅ **코드·원격 마이그레이션·자동 검증 완료(실환경 표본 대기, 2026-07-12).** 관리자 전용
+> - **R4.5 오디오 톤 A/B 랩** — ✅ **코드·자동 게이트 완료(실환경 표본 대기, 2026-07-12).** 관리자 전용
 >   `/lab/audio-tone`에서 YouTube `lead/backing/solo` 구간을 직접 선택하고, 동일 모델·문헌·프롬프트·temperature로
 >   텍스트 baseline과 오디오 관측 enriched 캐논을 비영속 생성한 뒤 같은 GP-150 카탈로그로 5-role 투영한다.
 >   결과는 RLS 비공개 `tone_experiments`에만 저장하고 운영 `canonical_tones`·`tones`에는 쓰지 않는다. 익명 A/B
 >   설정표를 논리적 정합성·체인 타당성·노브 실사용성으로 평가한다. 관리자 HMAC 세션, Gemini 네이티브 YouTube
->   입력, 원자 실행, 단회 평가, 모바일 E2E 구현 완료. `20260711090000` 원격 적용 후 RLS=true·공개 정책 0·
->   update trigger·롤백 INSERT를 검증했다. **미완:** 실 Gemini smoke와 표본 수집. 메인 채택은 10곡/30구간,
+>   입력 + 실제 검색 그라운딩(`groundedSearch`), 원자 실행, 단회 평가 구현. `20260711090000` 원격 적용 후
+>   RLS=true·공개 정책 0·update trigger·INSERT/UPDATE/DELETE 롤백을 재검증했다(2026-07-12). Task 11 수용
+>   게이트 전수 실행 완료: 모바일 E2E 4브레이크포인트×3케이스(로그인·3-레인 편집·익명 평가·실패 재시도·a11y)
+>   12건 그린 — 실행 중 블라인드 응답 계약(`PublicProjection`) 변경에 e2e 목이 안 맞아 화면이 크래시하는
+>   실결함을 발견·수정했다. 유닛 556건·커버리지 80%+ 전항목·lint·typecheck·typecheck:full·build 전부 그린.
+>   **미완:** 실 Gemini smoke(진행 예정)와 표본 수집. 메인 채택은 10곡/30구간,
 >   enriched 선호 ≥70%, 평균 +0.5/5, 투영 실패율 증가 없음일 때만.
 >   설정표 평가만으로 실제 음향 유사도를 입증하지 않는다. 설계·계획 = `docs/superpowers/{specs,plans}/2026-07-11-*`.
 > - **R5** — 어드민 — gear/processors/guitars 수동 입력 UI + 레퍼런스 업로드(Storage).
