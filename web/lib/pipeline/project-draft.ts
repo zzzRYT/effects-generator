@@ -159,3 +159,66 @@ export function projectCanonDraft(
 
   return { roles };
 }
+
+// ── 오디오 랩 단일 톤 투영 ─────────────────────────────
+// role/real_amp/phone 파생 없음 — 선택 구간 하나의 투영 성공/실패만 판정(설계 §5).
+export interface SingleToneProjectionInput {
+  chain: CanonBlock[] | null;
+  nullReason?: string | null;
+  status?: "valid" | "null" | "skipped";
+  issues?: GateIssue[];
+}
+
+export interface ProjectSingleToneResult {
+  status: "projected" | "null" | "skipped";
+  chain: Block[] | null;
+  nullReason: string | null;
+  issues?: GateIssue[];
+}
+
+export function projectSingleTone(
+  input: SingleToneProjectionInput,
+  catalog: EffectsCatalog,
+): ProjectSingleToneResult {
+  if (input.status === "skipped") {
+    return {
+      status: "skipped",
+      chain: null,
+      nullReason: null,
+      ...(input.issues ? { issues: input.issues } : {}),
+    };
+  }
+  if (!Array.isArray(input.chain)) {
+    return {
+      status: "null",
+      chain: null,
+      nullReason: input.nullReason ?? "캐논에서 톤을 확정하지 못함",
+    };
+  }
+
+  const index = buildReverseIndex(catalog.entries);
+  const modelCatalog = {
+    exact: new Set(catalog.entries.map((entry) => entry.model)),
+    prefixes: [] as string[],
+  };
+
+  const projected = projectChain(input.chain, index, catalog.defaults);
+  if (!projected.ok) {
+    return {
+      status: "skipped",
+      chain: null,
+      nullReason: null,
+      issues:
+        projected.unmapped?.map((item) => ({
+          path: `chain[${item.blockIndex}].base_gear`,
+          message: `실기 "${item.name}"(${item.category || "unknown"})를 카탈로그에서 찾을 수 없음`,
+        })) ?? [],
+    };
+  }
+
+  const gate = validateProjection(projected.chain, modelCatalog);
+  if (!gate.ok) {
+    return { status: "skipped", chain: null, nullReason: null, issues: gate.issues };
+  }
+  return { status: "projected", chain: projected.chain ?? [], nullReason: null };
+}

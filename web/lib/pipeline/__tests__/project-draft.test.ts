@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import type { CanonBlock } from "../types";
-import { projectCanonDraft } from "../project-draft";
+import { projectCanonDraft, projectSingleTone } from "../project-draft";
 
 const LEAD_CHAIN: CanonBlock[] = [
   {
@@ -80,5 +80,55 @@ describe("projectCanonDraft", () => {
     expect(result.roles.slice(-2).every((role) => role.status === "skipped")).toBe(
       true,
     );
+  });
+});
+
+describe("projectSingleTone", () => {
+  const CATALOG = {
+    entries: [
+      { model: "UK 800", kind: "amp", base_gear: "Marshall JCM800" },
+      { model: "Vintage 30", kind: "cab", base_gear: "Celestion Vintage 30" },
+    ],
+    defaults: {},
+  };
+  const CHAIN: CanonBlock[] = [
+    {
+      type: "AMP",
+      base_gear: { name: "Marshall JCM800", category: "amp" },
+      enabled: true,
+      knobs: [{ name: "Gain", value: 7, scale: "0-10" }],
+    },
+  ];
+
+  test("projects a single valid chain without role bookkeeping", () => {
+    const result = projectSingleTone({ chain: CHAIN, nullReason: null }, CATALOG);
+    expect(result.status).toBe("projected");
+    expect(result.chain?.[0]).toMatchObject({ model: "UK 800" });
+  });
+
+  test("passes through a legitimate null canon", () => {
+    const result = projectSingleTone({ chain: null, nullReason: "구간 불명확" }, CATALOG);
+    expect(result).toEqual({ status: "null", chain: null, nullReason: "구간 불명확" });
+  });
+
+  test("marks a canon gate failure as skipped without projecting", () => {
+    const result = projectSingleTone(
+      { chain: null, status: "skipped", issues: [{ path: "chain", message: "게이트 실패" }] },
+      CATALOG,
+    );
+    expect(result).toMatchObject({ status: "skipped", chain: null });
+  });
+
+  test("fails atomically when any block is unmapped", () => {
+    const result = projectSingleTone(
+      {
+        chain: [{ ...CHAIN[0], base_gear: { name: "Unknown Amp", category: "amp" } }],
+        nullReason: null,
+      },
+      CATALOG,
+    );
+    expect(result.status).toBe("skipped");
+    expect(result.chain).toBeNull();
+    expect(result.issues?.length).toBeGreaterThan(0);
   });
 });
