@@ -1,4 +1,4 @@
-import { AUDIO_ROLES, type AudioSegment } from "../pipeline/audio-observations";
+import type { AudioSegment } from "../pipeline/audio-observations";
 import type {
   ExperimentEvaluation,
   ExperimentRequest,
@@ -64,42 +64,26 @@ export function normalizeYouTubeUrl(value: unknown): {
   };
 }
 
-function parseSegments(value: unknown, durationMs: number): AudioSegment[] {
-  if (!Array.isArray(value) || value.length < 1 || value.length > 3) {
+function parseSegment(value: unknown, durationMs: number): AudioSegment {
+  const source = record(value);
+  if (!source) return fail("input:invalid_segment");
+  const { startMs, endMs } = source;
+  if (!Number.isInteger(startMs) || !Number.isInteger(endMs)) {
     return fail("input:invalid_segment");
   }
-  const segments: AudioSegment[] = [];
-  const roles = new Set<string>();
-  for (const item of value) {
-    const source = record(item);
-    if (!source) return fail("input:invalid_segment");
-    const { role, startMs, endMs } = source;
-    if (
-      typeof role !== "string" ||
-      !AUDIO_ROLES.includes(role as AudioSegment["role"]) ||
-      !Number.isInteger(startMs) ||
-      !Number.isInteger(endMs)
-    ) {
-      return fail("input:invalid_segment");
-    }
-    if (roles.has(role)) return fail("input:duplicate_role");
-    roles.add(role);
-
-    const start = startMs as number;
-    const end = endMs as number;
-    const length = end - start;
-    if (
-      start < 0 ||
-      end <= start ||
-      length < MIN_SEGMENT_MS ||
-      length > MAX_SEGMENT_MS ||
-      end > durationMs
-    ) {
-      return fail("input:invalid_segment");
-    }
-    segments.push({ role: role as AudioSegment["role"], startMs: start, endMs: end });
+  const start = startMs as number;
+  const end = endMs as number;
+  const length = end - start;
+  if (
+    start < 0 ||
+    end <= start ||
+    length < MIN_SEGMENT_MS ||
+    length > MAX_SEGMENT_MS ||
+    end > durationMs
+  ) {
+    return fail("input:invalid_segment");
   }
-  return segments;
+  return { startMs: start, endMs: end };
 }
 
 export function validateExperimentInput(value: unknown): ExperimentRequest {
@@ -116,7 +100,7 @@ export function validateExperimentInput(value: unknown): ExperimentRequest {
     title: requiredText(input.title),
     guitar: requiredText(input.guitar),
     processor: requiredText(input.processor),
-    segments: parseSegments(input.segments, input.durationMs as number),
+    segment: parseSegment(input.segment, input.durationMs as number),
   };
 }
 

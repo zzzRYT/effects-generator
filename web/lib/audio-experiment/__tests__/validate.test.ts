@@ -14,7 +14,7 @@ function input(overrides: Record<string, unknown> = {}) {
     title: " Wonderwall ",
     guitar: " Cort G250 ",
     processor: " Valeton GP-150 ",
-    segments: [{ role: "lead", startMs: 10_000, endMs: 30_000 }],
+    segment: { startMs: 10_000, endMs: 30_000 },
     ...overrides,
   };
 }
@@ -30,6 +30,7 @@ describe("validateExperimentInput", () => {
       videoId: VIDEO_ID,
       artist: "Oasis",
       title: "Wonderwall",
+      segment: { startMs: 10_000, endMs: 30_000 },
     });
   });
 
@@ -43,29 +44,9 @@ describe("validateExperimentInput", () => {
     );
   });
 
-  test("rejects duplicate roles and more than three segments", () => {
+  test("rejects a non-object segment", () => {
     expect(() =>
-      validateExperimentInput(
-        input({
-          segments: [
-            { role: "lead", startMs: 0, endMs: 5_000 },
-            { role: "lead", startMs: 6_000, endMs: 11_000 },
-          ],
-        }),
-      ),
-    ).toThrow("input:duplicate_role");
-
-    expect(() =>
-      validateExperimentInput(
-        input({
-          segments: [
-            { role: "lead", startMs: 0, endMs: 5_000 },
-            { role: "backing", startMs: 5_000, endMs: 10_000 },
-            { role: "solo", startMs: 10_000, endMs: 15_000 },
-            { role: "lead", startMs: 15_000, endMs: 20_000 },
-          ],
-        }),
-      ),
+      validateExperimentInput(input({ segment: [{ startMs: 0, endMs: 5_000 }] })),
     ).toThrow("input:invalid_segment");
   });
 
@@ -76,9 +57,7 @@ describe("validateExperimentInput", () => {
     [60_001, false],
   ])("enforces segment duration boundary %ims", (length, valid) => {
     const run = () =>
-      validateExperimentInput(
-        input({ segments: [{ role: "lead", startMs: 0, endMs: length }] }),
-      );
+      validateExperimentInput(input({ segment: { startMs: 0, endMs: length } }));
     if (valid) expect(run).not.toThrow();
     else expect(run).toThrow("input:invalid_segment");
   });
@@ -88,7 +67,7 @@ describe("validateExperimentInput", () => {
       validateExperimentInput(
         input({
           durationMs: 20_000,
-          segments: [{ role: "lead", startMs: 10_000, endMs: 20_001 }],
+          segment: { startMs: 10_000, endMs: 20_001 },
         }),
       ),
     ).toThrow("input:invalid_segment");
