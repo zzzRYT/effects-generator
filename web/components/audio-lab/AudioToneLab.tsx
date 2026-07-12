@@ -90,11 +90,15 @@ function emptyScores(): Record<BlindLabel, Record<string, string>> {
   };
 }
 
+function gearLabel(item: GearOption): string {
+  return `${item.brand} ${item.model}`;
+}
+
 export function AudioToneLab({ guitars, processors }: AudioToneLabProps) {
   const [artist, setArtist] = useState("");
   const [title, setTitle] = useState("");
-  const [guitar, setGuitar] = useState(guitars[0]?.model ?? "");
-  const [processor, setProcessor] = useState(processors[0]?.model ?? "");
+  const [guitar, setGuitar] = useState(guitars[0] ? gearLabel(guitars[0]) : "");
+  const [processor, setProcessor] = useState(processors[0] ? gearLabel(processors[0]) : "");
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [videoId, setVideoId] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -287,8 +291,8 @@ export function AudioToneLab({ guitars, processors }: AudioToneLabProps) {
           <div className={styles.fieldGrid}>
             <label>아티스트<input required value={artist} onChange={(e) => setArtist(e.target.value)} /></label>
             <label>곡명<input required value={title} onChange={(e) => setTitle(e.target.value)} /></label>
-            <label>기타<select value={guitar} onChange={(e) => setGuitar(e.target.value)}>{guitars.map((item) => <option key={item.id} value={item.model}>{item.brand} {item.model}</option>)}</select></label>
-            <label>프로세서<select value={processor} onChange={(e) => setProcessor(e.target.value)}>{processors.map((item) => <option key={item.id} value={item.model}>{item.brand} {item.model}</option>)}</select></label>
+            <label>기타<select value={guitar} onChange={(e) => setGuitar(e.target.value)}>{guitars.map((item) => <option key={item.id} value={gearLabel(item)}>{gearLabel(item)}</option>)}</select></label>
+            <label>프로세서<select value={processor} onChange={(e) => setProcessor(e.target.value)}>{processors.map((item) => <option key={item.id} value={gearLabel(item)}>{gearLabel(item)}</option>)}</select></label>
           </div>
           <div className={styles.urlRow}>
             <label>YouTube URL<input required value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} /></label>
