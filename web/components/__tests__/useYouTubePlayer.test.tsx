@@ -86,4 +86,23 @@ describe("useYouTubePlayer", () => {
     expect(controls.seekTo).not.toHaveBeenCalled();
     expect(controls.playVideo).not.toHaveBeenCalled();
   });
+
+  test("clears the polling interval on unmount", async () => {
+    const clearIntervalSpy = vi.spyOn(global, "clearInterval");
+    const node = document.createElement("div");
+    const { result, unmount } = renderHook(() => useYouTubePlayer("dQw4w9WgXcQ"));
+    await act(async () => {
+      result.current.containerRef(node);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    // Polling interval should be active now
+    expect(result.current.currentTimeMs).toBe(0);
+    act(() => {
+      unmount();
+    });
+    // Verify clearInterval was called to clean up the polling interval
+    expect(clearIntervalSpy).toHaveBeenCalled();
+    clearIntervalSpy.mockRestore();
+  });
 });
