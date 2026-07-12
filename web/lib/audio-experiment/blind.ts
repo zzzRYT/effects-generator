@@ -48,26 +48,18 @@ function publicBlock(value: unknown): Record<string, unknown> | null {
 }
 
 function publicProjection(result: unknown): PublicProjection {
-  if (!isRecord(result) || !isRecord(result.projection)) return { roles: [] };
-  const roles = Array.isArray(result.projection.roles)
-    ? result.projection.roles
-    : [];
+  if (!isRecord(result) || !isRecord(result.projection)) {
+    return { status: "skipped", chain: null, nullReason: null };
+  }
+  const projection = result.projection;
   return {
-    roles: roles.flatMap((value) => {
-      if (!isRecord(value) || typeof value.role !== "string" || typeof value.status !== "string") {
-        return [];
-      }
-      return [{
-        role: value.role,
-        status: value.status,
-        chain: Array.isArray(value.chain)
-          ? value.chain.map(publicBlock).filter((block) => block !== null)
-          : null,
-        // Canon null reasons are model-authored and can reveal which branch used media.
-        nullReason: null,
-      }];
-    }),
-  } as PublicProjection;
+    status: typeof projection.status === "string" ? projection.status : "skipped",
+    chain: Array.isArray(projection.chain)
+      ? projection.chain.map(publicBlock).filter((block) => block !== null)
+      : null,
+    // Canon null reasons are model-authored and can reveal which branch used media.
+    nullReason: null,
+  };
 }
 
 function resultFor(row: ToneExperimentRow, variant: ExperimentVariant): PublicProjection {

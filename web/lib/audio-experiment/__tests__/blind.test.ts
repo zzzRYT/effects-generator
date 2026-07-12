@@ -8,7 +8,7 @@ function row(status: ToneExperimentRow["status"]): ToneExperimentRow {
     request: {},
     youtube_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     video_id: "dQw4w9WgXcQ",
-    segments: [],
+    segment: { start_ms: 10_000, end_ms: 30_000 },
     model_used: "gemini-2.5-flash",
     prompt_version: "1",
     projector_version: "1",
@@ -22,7 +22,9 @@ function row(status: ToneExperimentRow["status"]): ToneExperimentRow {
         rawResponseHash: "secret baseline hash",
       },
       projection: {
-        roles: [{ role: "lead", status: "null", chain: null, nullReason: "문헌에서 파트를 확인할 수 없음", canonicalId: "secret-id" }],
+        status: "null",
+        chain: null,
+        nullReason: "문헌에서 파트를 확인할 수 없음",
       },
     },
     enriched_result: {
@@ -32,7 +34,9 @@ function row(status: ToneExperimentRow["status"]): ToneExperimentRow {
         rawResponseHash: "secret enriched hash",
       },
       projection: {
-        roles: [{ role: "lead", status: "null", chain: null, nullReason: "오디오 관측에서 파트를 확인할 수 없음", sourceRole: "lead" }],
+        status: "null",
+        chain: null,
+        nullReason: "오디오 관측에서 파트를 확인할 수 없음",
       },
     },
     blind_assignment: { A: "enriched", B: "baseline" },
@@ -59,8 +63,8 @@ describe("blind experiment projection", () => {
       id: "exp-1",
       status: "ready",
       variants: {
-        A: { roles: [{ role: "lead", chain: null, nullReason: null }] },
-        B: { roles: [{ role: "lead", chain: null, nullReason: null }] },
+        A: { status: "null", chain: null, nullReason: null },
+        B: { status: "null", chain: null, nullReason: null },
       },
     });
     const serialized = JSON.stringify(publicValue);
@@ -71,8 +75,6 @@ describe("blind experiment projection", () => {
     expect(serialized).not.toContain("sources");
     expect(serialized).not.toContain("modelUsed");
     expect(serialized).not.toContain("rawResponseHash");
-    expect(serialized).not.toContain("canonicalId");
-    expect(serialized).not.toContain("sourceRole");
     expect(serialized).not.toContain("오디오 관측");
     expect(serialized).not.toContain("문헌에서");
   });
