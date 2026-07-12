@@ -8,16 +8,19 @@ const controls = {
   playVideo: vi.fn(),
   seekTo: vi.fn(),
 };
+let currentTime = 0;
 
 describe("useYouTubePlayer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
+    currentTime = 0;
     class Player {
       constructor(_element: HTMLElement, options: { events: { onReady(event: unknown): void } }) {
         options.events.onReady({ target: this });
       }
       destroy = controls.destroy;
+      getCurrentTime() { return currentTime; }
       getDuration() { return 180; }
       pauseVideo = controls.pauseVideo;
       playVideo = controls.playVideo;
@@ -57,6 +60,20 @@ describe("useYouTubePlayer", () => {
 
     unmount();
     expect(controls.destroy).toHaveBeenCalledOnce();
+  });
+
+  test("polls current playback time while the player is ready", async () => {
+    const node = document.createElement("div");
+    const { result } = renderHook(() => useYouTubePlayer("dQw4w9WgXcQ"));
+    await act(async () => {
+      result.current.containerRef(node);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(result.current.currentTimeMs).toBe(0);
+    currentTime = 12.4;
+    act(() => vi.advanceTimersByTime(250));
+    expect(result.current.currentTimeMs).toBe(12_400);
   });
 
   test("does nothing without a video or ready player", () => {

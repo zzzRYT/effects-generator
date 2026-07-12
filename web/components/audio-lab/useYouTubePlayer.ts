@@ -2,8 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+const CURRENT_TIME_POLL_MS = 250;
+
 interface YouTubePlayer {
   destroy(): void;
+  getCurrentTime(): number;
   getDuration(): number;
   pauseVideo(): void;
   playVideo(): void;
@@ -54,6 +57,7 @@ function loadYouTubeApi(): Promise<void> {
 export function useYouTubePlayer(videoId: string | null) {
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const [durationMs, setDurationMs] = useState(0);
+  const [currentTimeMs, setCurrentTimeMs] = useState(0);
   const playerRef = useRef<YouTubePlayer | null>(null);
   const loopRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -66,6 +70,7 @@ export function useYouTubePlayer(videoId: string | null) {
     if (!container || !videoId) return;
     let active = true;
     let player: YouTubePlayer | null = null;
+    let pollId: ReturnType<typeof setInterval> | null = null;
     void loadYouTubeApi().then(() => {
       if (!active || !window.YT?.Player) return;
       player = new window.YT.Player(container, {
@@ -74,12 +79,18 @@ export function useYouTubePlayer(videoId: string | null) {
           onReady: (event) => {
             playerRef.current = event.target;
             setDurationMs(Math.round(event.target.getDuration() * 1_000));
+            pollId = setInterval(() => {
+              setCurrentTimeMs(
+                Math.round((playerRef.current?.getCurrentTime() ?? 0) * 1_000),
+              );
+            }, CURRENT_TIME_POLL_MS);
           },
         },
       });
     });
     return () => {
       active = false;
+      if (pollId) clearInterval(pollId);
       clearLoop();
       playerRef.current = null;
       player?.destroy();
@@ -110,6 +121,7 @@ export function useYouTubePlayer(videoId: string | null) {
   return {
     containerRef: setContainer,
     durationMs,
+    currentTimeMs,
     seekTo,
     playRange,
     stop,
