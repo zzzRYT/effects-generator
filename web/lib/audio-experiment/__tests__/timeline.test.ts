@@ -19,6 +19,11 @@ describe("point timeline", () => {
       startMs: 85_000,
       endMs: 90_000,
     });
+    // 영상 지속시간이 5초 이하일 때: 전체 구간 반환
+    expect(clampSegment({ startMs: 0, endMs: 50_000 }, 3_000)).toEqual({
+      startMs: 0,
+      endMs: 3_000,
+    });
   });
 
   test("moveSegment translates the whole segment and preserves width", () => {
