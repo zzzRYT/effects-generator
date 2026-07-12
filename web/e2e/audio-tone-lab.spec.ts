@@ -3,6 +3,19 @@ import AxeBuilder from "@axe-core/playwright";
 
 const EXPERIMENTS = /\/api\/lab\/audio-tone\/experiments(?:\/exp-1(?:\/evaluation)?)?$/;
 
+function projection(amp: string) {
+  return {
+    roles: [
+      {
+        role: "lead",
+        status: "projected",
+        chain: [{ type: "AMP", model: amp, enabled: true, knobs: [] }],
+        nullReason: null,
+      },
+    ],
+  };
+}
+
 async function mockYouTube(page: Page) {
   await page.addInitScript(() => {
     class Player {
@@ -57,7 +70,7 @@ test("admin login → three lanes → anonymous evaluation → reveal", async ({
           id: "exp-1",
           status: "evaluated",
           progress: {},
-          variants: { A: { amp: "UK 800" }, B: { amp: "US Deluxe" } },
+          variants: { A: projection("UK 800"), B: projection("US Deluxe") },
           reveal: { A: "enriched", B: "baseline" },
           preferredVariant: "enriched",
         }),
@@ -74,7 +87,7 @@ test("admin login → three lanes → anonymous evaluation → reveal", async ({
               id: "exp-1",
               status: "ready",
               progress: { stage: "ready" },
-              variants: { A: { amp: "UK 800" }, B: { amp: "US Deluxe" } },
+              variants: { A: projection("UK 800"), B: projection("US Deluxe") },
             },
       ),
     });
