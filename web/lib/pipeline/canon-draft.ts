@@ -135,13 +135,6 @@ export interface SingleCanonDraftResult {
   rawResponseHash: string;
 }
 
-interface SingleTonePayload {
-  chain: unknown;
-  null_reason?: unknown;
-  confidence?: unknown;
-  sources?: unknown;
-}
-
 export async function generateSingleCanonDraft(
   input: SingleCanonDraftInput,
   deps: CanonDraftDeps = {},
@@ -156,7 +149,7 @@ export async function generateSingleCanonDraft(
     ],
     { json: true, temperature: 0 },
   );
-  const parsed = parseLlmJson(raw) as SingleTonePayload;
+  const parsed = parseLlmJson(raw);
   const sources = Array.isArray(parsed.sources) ? parsed.sources : [];
   const confidence = typeof parsed.confidence === "number" ? parsed.confidence : null;
   const rawResponseHash = createHash("sha256").update(raw).digest("hex");
