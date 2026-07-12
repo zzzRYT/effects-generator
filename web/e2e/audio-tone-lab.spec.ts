@@ -5,14 +5,9 @@ const EXPERIMENTS = /\/api\/lab\/audio-tone\/experiments(?:\/exp-1(?:\/evaluatio
 
 function projection(amp: string) {
   return {
-    roles: [
-      {
-        role: "lead",
-        status: "projected",
-        chain: [{ type: "AMP", model: amp, enabled: true, knobs: [] }],
-        nullReason: null,
-      },
-    ],
+    status: "projected",
+    chain: [{ type: "AMP", model: amp, enabled: true, knobs: [] }],
+    nullReason: null,
   };
 }
 
@@ -23,6 +18,7 @@ async function mockYouTube(page: Page) {
         queueMicrotask(() => options.events.onReady({ target: this }));
       }
       destroy() {}
+      getCurrentTime() { return 0; }
       getDuration() { return 180; }
       pauseVideo() {}
       playVideo() {}
@@ -47,14 +43,17 @@ async function fillExperiment(page: Page) {
   await lab.getByLabel("YouTube URL", { exact: true }).fill("https://youtu.be/dQw4w9WgXcQ");
   await lab.getByRole("button", { name: "영상 불러오기" }).click();
   await expect(lab.getByTestId("youtube-player")).toBeVisible();
-  await expect(lab.getByRole("slider", { name: "lead 종료" })).toHaveValue("20000");
+  await expect(lab.getByRole("slider", { name: "구간 선택" })).toHaveAttribute(
+    "aria-valuetext",
+    "00:00–00:20",
+  );
 }
 
 test.beforeEach(async ({ page }) => {
   await mockYouTube(page);
 });
 
-test("admin login → three lanes → anonymous evaluation → reveal", async ({ page }) => {
+test("admin login → drag a point on the timeline → anonymous evaluation → reveal → replay", async ({ page }) => {
   let pollCount = 0;
   await page.route(EXPERIMENTS, async (route) => {
     const url = route.request().url();
@@ -95,16 +94,23 @@ test("admin login → three lanes → anonymous evaluation → reveal", async ({
 
   await login(page);
   await fillExperiment(page);
-  await page.getByRole("checkbox", { name: "backing 활성화" }).check();
-  await page.getByRole("checkbox", { name: "solo 활성화" }).check();
-  await expect(page.locator("[data-role-lane]" )).toHaveCount(3);
 
-  const start = page.getByRole("slider", { name: "lead 시작" });
-  await start.focus();
+  const timeline = page.getByTestId("point-timeline");
+  const box = await timeline.boundingBox();
+  if (!box) throw new Error("timeline not rendered");
+  await page.mouse.move(box.x + box.width * 0.2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * 0.4, box.y + box.height / 2);
+  await page.mouse.up();
+  const slider = page.getByRole("slider", { name: "구간 선택" });
+  await expect(slider).not.toHaveAttribute("aria-valuetext", "00:00–00:20");
+
+  await slider.focus();
   await page.keyboard.press("ArrowRight");
-  await expect(start).toHaveValue("1000");
+  const afterMove = await slider.getAttribute("aria-valuenow");
   await page.keyboard.press("Shift+ArrowRight");
-  await expect(start).toHaveValue("6000");
+  const afterShiftMove = await slider.getAttribute("aria-valuenow");
+  expect(Number(afterShiftMove)).toBe(Number(afterMove) + 5_000);
 
   await page.getByRole("button", { name: "A/B 분석 시작" }).click();
   await expect(page.getByRole("status")).toContainText("분석 진행 중");
@@ -126,6 +132,10 @@ test("admin login → three lanes → anonymous evaluation → reveal", async ({
 
   const overflow = await page.evaluate(() => document.body.scrollWidth > window.innerWidth);
   expect(overflow).toBe(false);
+
+  await page.getByRole("button", { name: "다른 구간 다시 보기" }).click();
+  await expect(page.locator("main").getByLabel("아티스트", { exact: true })).toHaveValue("Oasis");
+  await expect(page.getByTestId("point-timeline")).toBeVisible();
 });
 
 test("failed experiment can return to editing", async ({ page }) => {
