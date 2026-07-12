@@ -5,6 +5,7 @@ import type {
   PublicExperiment,
   ToneExperimentRow,
 } from "./contracts";
+import type { Block } from "../types";
 
 export function assignBlind(random: () => number = Math.random): BlindAssignment {
   return random() < 0.5
@@ -55,7 +56,7 @@ function publicProjection(result: unknown): PublicProjection {
   return {
     status: typeof projection.status === "string" ? projection.status : "skipped",
     chain: Array.isArray(projection.chain)
-      ? projection.chain.map(publicBlock).filter((block) => block !== null)
+      ? (projection.chain.map(publicBlock).filter((block) => block !== null) as unknown as Block[])
       : null,
     // Canon null reasons are model-authored and can reveal which branch used media.
     nullReason: null,
