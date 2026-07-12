@@ -9,8 +9,8 @@ import type {
 } from "@/lib/audio-experiment/contracts";
 import { normalizeYouTubeUrl } from "@/lib/audio-experiment/validate";
 import { clampSegment } from "@/lib/audio-experiment/timeline";
-import type { AudioRole, AudioSegment } from "@/lib/pipeline/audio-observations";
-import { RoleRangeLane } from "./RoleRangeLane";
+import type { AudioSegment } from "@/lib/pipeline/audio-observations";
+import { PointTimeline } from "./PointTimeline";
 import { useYouTubePlayer } from "./useYouTubePlayer";
 import styles from "./audio-tone-lab.module.css";
 
@@ -34,16 +34,13 @@ type Phase =
   | { type: "revealed"; result: PublicExperiment }
   | { type: "failed"; message: string };
 
-const ROLE_LABELS: Record<AudioRole, string> = {
-  lead: "lead",
-  backing: "backing",
-  solo: "solo",
-};
 const METRICS = [
   ["logicalFit", "논리적 정합성"],
   ["signalChain", "체인 타당성"],
   ["knobUsability", "노브 실사용성"],
 ] as const;
+
+const DEFAULT_SEGMENT: AudioSegment = { startMs: 0, endMs: 20_000 };
 
 function SettingsValue({ value }: { value: unknown }) {
   if (value === null || typeof value !== "object") {
@@ -73,12 +70,7 @@ function SettingsValue({ value }: { value: unknown }) {
 function VariantSettings({ variant }: { variant: PublicProjection }) {
   return (
     <div>
-      {variant.roles.map((role) => (
-        <section key={role.role}>
-          <h4>{role.role}</h4>
-          {role.chain ? <SettingsValue value={role.chain} /> : <p>{role.nullReason ?? role.status}</p>}
-        </section>
-      ))}
+      {variant.chain ? <SettingsValue value={variant.chain} /> : <p>{variant.nullReason ?? variant.status}</p>}
     </div>
   );
 }
@@ -102,22 +94,21 @@ export function AudioToneLab({ guitars, processors }: AudioToneLabProps) {
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [videoId, setVideoId] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
-  const [segments, setSegments] = useState<AudioSegment[]>([
-    { role: "lead", startMs: 0, endMs: 20_000 },
-  ]);
+  const [segment, setSegment] = useState<AudioSegment>(DEFAULT_SEGMENT);
   const [phase, setPhase] = useState<Phase>({ type: "editing" });
   const [scores, setScores] = useState(emptyScores);
   const [preference, setPreference] = useState<BlindLabel | null>(null);
   const {
     containerRef,
     durationMs,
+    currentTimeMs,
     playRange,
   } = useYouTubePlayer(videoId);
   const pollingExperimentId =
     phase.type === "polling" ? phase.experimentId : null;
-  const visibleSegments = useMemo(
-    () => segments.map((segment) => clampSegment(segment, durationMs || 20_000)),
-    [durationMs, segments],
+  const visibleSegment = useMemo(
+    () => clampSegment(segment, durationMs || 20_000),
+    [durationMs, segment],
   );
   const locked = phase.type !== "editing";
 
@@ -173,14 +164,6 @@ export function AudioToneLab({ guitars, processors }: AudioToneLabProps) {
     }
   }
 
-  function toggleRole(role: AudioRole) {
-    setSegments((current) => {
-      const exists = current.some((segment) => segment.role === role);
-      if (exists) return current.length === 1 ? current : current.filter((s) => s.role !== role);
-      return [...current, { role, startMs: 0, endMs: Math.min(20_000, durationMs || 20_000) }];
-    });
-  }
-
   async function startExperiment(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!videoId || durationMs < 5_000) {
@@ -200,7 +183,7 @@ export function AudioToneLab({ guitars, processors }: AudioToneLabProps) {
           processor,
           youtubeUrl,
           durationMs,
-          segments: visibleSegments,
+          segment: visibleSegment,
         }),
       });
       const body = await response.json();
@@ -260,6 +243,13 @@ export function AudioToneLab({ guitars, processors }: AudioToneLabProps) {
     }
   }
 
+  function restartWithNewSegment() {
+    setScores(emptyScores());
+    setPreference(null);
+    setSegment(DEFAULT_SEGMENT);
+    setPhase({ type: "editing" });
+  }
+
   if (phase.type === "failed") {
     return (
       <section className={styles.feedback} role="alert">
@@ -277,6 +267,7 @@ export function AudioToneLab({ guitars, processors }: AudioToneLabProps) {
         <p>A = {phase.result.reveal?.A}</p>
         <p>B = {phase.result.reveal?.B}</p>
         <p>선호 결과: {phase.result.preferredVariant}</p>
+        <button type="button" onClick={restartWithNewSegment}>다른 구간 다시 보기</button>
       </section>
     );
   }
@@ -299,27 +290,18 @@ export function AudioToneLab({ guitars, processors }: AudioToneLabProps) {
             <button type="button" onClick={loadVideo}>영상 불러오기</button>
           </div>
           {formError ? <p className={styles.error} role="alert">{formError}</p> : null}
-          {videoId ? <div className={styles.player} ref={containerRef} data-testid="youtube-player" /> : null}
-          <fieldset className={styles.roles}>
-            <legend>분석 역할</legend>
-            {(["lead", "backing", "solo"] as const).map((role) => (
-              <label key={role}>
-                <input type="checkbox" checked={segments.some((segment) => segment.role === role)} onChange={() => toggleRole(role)} />
-                {ROLE_LABELS[role]} 활성화
-              </label>
-            ))}
-          </fieldset>
-          <div className={styles.lanes}>
-            {visibleSegments.map((segment) => (
-              <RoleRangeLane
-                key={segment.role}
-                segment={segment}
+          {videoId ? (
+            <div className={styles.playerFrame}>
+              <div className={styles.player} ref={containerRef} data-testid="youtube-player" />
+              <PointTimeline
+                segment={visibleSegment}
                 durationMs={durationMs || 20_000}
-                onChange={(next) => setSegments((current) => current.map((item) => item.role === next.role ? next : item))}
+                currentTimeMs={currentTimeMs}
+                onChange={setSegment}
                 onPreview={playRange}
               />
-            ))}
-          </div>
+            </div>
+          ) : null}
           <button className={styles.primary} type="submit">A/B 분석 시작</button>
         </fieldset>
       </form>

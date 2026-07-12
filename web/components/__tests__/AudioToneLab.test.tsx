@@ -4,6 +4,7 @@ import { AudioToneLab } from "@/components/audio-lab/AudioToneLab";
 
 const player = vi.hoisted(() => ({
   durationMs: 180_000,
+  currentTimeMs: 0,
   playRange: vi.fn(),
   seekTo: vi.fn(),
   stop: vi.fn(),
@@ -40,16 +41,15 @@ describe("AudioToneLab", () => {
     vi.stubGlobal("fetch", vi.fn());
   });
 
-  test("loads a YouTube URL and allows one to three role lanes", () => {
+  test("loads a YouTube URL and shows the point timeline with a default segment", () => {
     render(<AudioToneLab {...props} />);
     fillBase();
     expect(screen.getByTestId("youtube-player")).toBeInTheDocument();
-    expect(screen.getByRole("group", { name: "lead" })).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("checkbox", { name: "backing 활성화" }));
-    fireEvent.click(screen.getByRole("checkbox", { name: "solo 활성화" }));
-    expect(screen.getByRole("group", { name: "backing" })).toBeInTheDocument();
-    expect(screen.getByRole("group", { name: "solo" })).toBeInTheDocument();
+    expect(screen.getByTestId("point-timeline")).toBeInTheDocument();
+    expect(screen.getByRole("slider", { name: "구간 선택" })).toHaveAttribute(
+      "aria-valuetext",
+      "00:00–00:20",
+    );
   });
 
   test("locks inputs while polling and shows anonymous A/B settings", async () => {
@@ -65,10 +65,12 @@ describe("AudioToneLab", () => {
             progress: { stage: "ready" },
             variants: {
               A: {
-                roles: [{ role: "lead", status: "projected", chain: [{ model: "UK 800" }], nullReason: null }],
+                status: "projected",
+                chain: [{ model: "UK 800" }],
+                nullReason: null,
                 canonical: { modelUsed: "DO NOT RENDER", sources: ["PRIVATE SOURCE"] },
               },
-              B: { roles: [{ role: "lead", status: "projected", chain: [{ model: "US Deluxe" }], nullReason: null }] },
+              B: { status: "projected", chain: [{ model: "US Deluxe" }], nullReason: null },
             },
           }),
         ),
@@ -90,7 +92,7 @@ describe("AudioToneLab", () => {
     expect(document.body.textContent).not.toContain("PRIVATE SOURCE");
   });
 
-  test("requires six scores and preference, then reveals identities", async () => {
+  test("requires six scores and preference, then reveals identities and allows another segment", async () => {
     vi.mocked(fetch)
       .mockResolvedValueOnce(
         new Response(JSON.stringify({ experimentId: "exp-1" }), { status: 202 }),
@@ -102,8 +104,8 @@ describe("AudioToneLab", () => {
             status: "ready",
             progress: {},
             variants: {
-              A: { roles: [{ role: "lead", status: "projected", chain: [{ model: "UK 800" }], nullReason: null }] },
-              B: { roles: [{ role: "lead", status: "projected", chain: [{ model: "US Deluxe" }], nullReason: null }] },
+              A: { status: "projected", chain: [{ model: "UK 800" }], nullReason: null },
+              B: { status: "projected", chain: [{ model: "US Deluxe" }], nullReason: null },
             },
           }),
         ),
@@ -115,8 +117,8 @@ describe("AudioToneLab", () => {
             status: "evaluated",
             progress: {},
             variants: {
-              A: { roles: [{ role: "lead", status: "projected", chain: [{ model: "UK 800" }], nullReason: null }] },
-              B: { roles: [{ role: "lead", status: "projected", chain: [{ model: "US Deluxe" }], nullReason: null }] },
+              A: { status: "projected", chain: [{ model: "UK 800" }], nullReason: null },
+              B: { status: "projected", chain: [{ model: "US Deluxe" }], nullReason: null },
             },
             reveal: { A: "enriched", B: "baseline" },
             preferredVariant: "enriched",
@@ -143,6 +145,10 @@ describe("AudioToneLab", () => {
 
     await screen.findByRole("heading", { name: "평가 결과" });
     expect(screen.getByText(/A = enriched/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "다른 구간 다시 보기" }));
+    expect(screen.getByLabelText("아티스트")).toHaveValue("Oasis");
+    expect(screen.getByTestId("point-timeline")).toBeInTheDocument();
   });
 
   test("shows a retry after failure and avoids acoustic-similarity claims", async () => {
