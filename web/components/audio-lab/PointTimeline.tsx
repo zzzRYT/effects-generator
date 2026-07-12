@@ -52,6 +52,11 @@ export function PointTimeline({
     event.currentTarget.releasePointerCapture?.(event.pointerId);
   }
 
+  function onPointerCancel(event: React.PointerEvent<HTMLDivElement>) {
+    anchorRef.current = null;
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+  }
+
   function onKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
     const delta = event.shiftKey ? 5_000 : 1_000;
     if (event.key === "ArrowLeft") {
@@ -83,6 +88,7 @@ export function PointTimeline({
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
+        onPointerCancel={onPointerCancel}
       >
         <div className={styles.timelinePlayhead} style={{ left: `${playheadPct}%` }} />
         <div

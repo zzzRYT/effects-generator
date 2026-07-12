@@ -77,4 +77,33 @@ describe("PointTimeline", () => {
     fireEvent.click(screen.getByRole("button", { name: "미리듣기" }));
     expect(onPreview).toHaveBeenCalledWith(10_000, 30_000);
   });
+
+  test("resets stale anchor on pointercancel to prevent resuming drag on unrelated pointermove", () => {
+    mockTrackRect();
+    render(<Harness />);
+    const track = screen.getByTestId("point-timeline");
+    const slider = screen.getByRole("slider", { name: "구간 선택" });
+
+    // Start a drag at clientX=100
+    fireEvent.pointerDown(track, { clientX: 100, pointerId: 1 });
+    // Capture state after pointerdown (should be a 5-second segment at ~12s)
+    const stateAfterPointerDown = slider.getAttribute("aria-valuetext");
+    expect(stateAfterPointerDown).toBe("00:12–00:17");
+
+    // Cancel it (e.g., browser gesture, alt-tab)
+    // Manually dispatch pointercancel event since fireEvent might not support it properly
+    const cancelEvent = new PointerEvent("pointercancel", {
+      bubbles: true,
+      cancelable: true,
+      clientX: 100,
+      pointerId: 1,
+    });
+    track.dispatchEvent(cancelEvent);
+
+    // Fire an unrelated pointermove at clientX=400 (should NOT resume dragging from stale anchor)
+    fireEvent.pointerMove(track, { clientX: 400, pointerId: 1 });
+
+    // Verify segment stayed at the state set by pointerdown (not changed by the stale drag resumption)
+    expect(slider).toHaveAttribute("aria-valuetext", stateAfterPointerDown);
+  });
 });
