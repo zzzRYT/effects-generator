@@ -17,7 +17,7 @@ export interface ExperimentRequest {
   youtubeUrl: string;
   videoId: string;
   durationMs: number;
-  segments: AudioSegment[];
+  segment: AudioSegment;
   artist: string;
   title: string;
   guitar: string;
@@ -40,7 +40,7 @@ export interface ToneExperimentRow {
   request: unknown;
   youtube_url: string;
   video_id: string;
-  segments: unknown;
+  segment: unknown;
   model_used: string;
   prompt_version: string;
   projector_version: string;
@@ -70,13 +70,8 @@ export interface PublicExperiment {
   preferredVariant?: ExperimentVariant;
 }
 
-export interface PublicProjectedRole {
-  role: string;
+export interface PublicProjection {
   status: string;
   chain: Block[] | null;
   nullReason: string | null;
-}
-
-export interface PublicProjection {
-  roles: PublicProjectedRole[];
 }
