@@ -92,6 +92,21 @@ function classify(error: unknown): string {
   return "experiment:failed";
 }
 
+function classifyMediaFailure(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error);
+  const marker = message.split(/\s/, 1)[0];
+  if (marker === "provider:video_unsupported") {
+    return marker;
+  }
+  if (
+    marker === "provider:video_unavailable" ||
+    marker === "media:video_unavailable"
+  ) {
+    return "media:video_unavailable";
+  }
+  return "media:analysis_failed";
+}
+
 export async function runToneExperiment(
   id: string,
   request: ExperimentRequest,
@@ -107,10 +122,12 @@ export async function runToneExperiment(
       deps.grounding(),
       deps.catalog(resolved.processor.id),
     ]);
-    const audioObservations = await deps.analyze({
-      youtubeUrl: request.youtubeUrl,
-      segments: request.segments,
-    });
+    const audioObservations = await deps
+      .analyze({
+        youtubeUrl: request.youtubeUrl,
+        segments: request.segments,
+      })
+      .catch((error) => branchFailure(classifyMediaFailure(error), error));
 
     await deps.update(id, "generating", {
       audio_observations: audioObservations,

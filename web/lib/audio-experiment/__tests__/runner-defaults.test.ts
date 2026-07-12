@@ -59,7 +59,12 @@ describe("createDefaultRunnerDeps", () => {
     mocks.researchSong.mockResolvedValue({ notes: {}, cached: true, modelUsed: "m" });
     mocks.loadGrounding.mockResolvedValue({ context: "context" });
     mocks.analyzeSongMedia.mockResolvedValue([]);
-    mocks.generateCanonDraft.mockResolvedValue({ roles: [], sources: [], modelUsed: "m" });
+    mocks.generateCanonDraft.mockResolvedValue({
+      roles: [],
+      sources: [],
+      modelUsed: "m",
+      rawResponseHash: "raw-hash",
+    });
     mocks.projectCanonDraft.mockReturnValue({ roles: [] });
   });
 
@@ -82,14 +87,23 @@ describe("createDefaultRunnerDeps", () => {
 
   test("patches progress, ready results and atomic failure", async () => {
     const deps = createDefaultRunnerDeps();
-    const canon = { roles: [], sources: [], modelUsed: "m" };
+    const canon = {
+      roles: [],
+      sources: [],
+      modelUsed: "m",
+      rawResponseHash: "raw-hash",
+    };
     const projection = { roles: [] };
     await deps.update("exp-1", "analyzing", { audio_observations: [] });
     await deps.ready("exp-1", canon, canon, projection, projection);
     await deps.fail("exp-1", "failed", "detail");
 
     expect(mocks.sbFetch).toHaveBeenCalledTimes(3);
-    expect(mocks.sbFetch.mock.calls[1][1].body).toMatchObject({ status: "ready" });
+    expect(mocks.sbFetch.mock.calls[1][1].body).toMatchObject({
+      status: "ready",
+      baseline_result: { canonical: { rawResponseHash: "raw-hash" } },
+      enriched_result: { canonical: { rawResponseHash: "raw-hash" } },
+    });
     expect(mocks.sbFetch.mock.calls[2][1].body).toMatchObject({
       status: "failed",
       baseline_result: null,

@@ -15,8 +15,26 @@ function row(status: ToneExperimentRow["status"]): ToneExperimentRow {
     status,
     progress: { stage: status },
     audio_observations: null,
-    baseline_result: { marker: "text result" },
-    enriched_result: { marker: "audio result" },
+    baseline_result: {
+      canonical: {
+        sources: ["secret baseline source"],
+        modelUsed: "secret baseline model",
+        rawResponseHash: "secret baseline hash",
+      },
+      projection: {
+        roles: [{ role: "lead", status: "null", chain: null, nullReason: "문헌에서 파트를 확인할 수 없음", canonicalId: "secret-id" }],
+      },
+    },
+    enriched_result: {
+      canonical: {
+        sources: ["secret enriched source"],
+        modelUsed: "secret enriched model",
+        rawResponseHash: "secret enriched hash",
+      },
+      projection: {
+        roles: [{ role: "lead", status: "null", chain: null, nullReason: "오디오 관측에서 파트를 확인할 수 없음", sourceRole: "lead" }],
+      },
+    },
     blind_assignment: { A: "enriched", B: "baseline" },
     evaluation: null,
     preferred_variant: null,
@@ -41,13 +59,22 @@ describe("blind experiment projection", () => {
       id: "exp-1",
       status: "ready",
       variants: {
-        A: { marker: "audio result" },
-        B: { marker: "text result" },
+        A: { roles: [{ role: "lead", chain: null, nullReason: null }] },
+        B: { roles: [{ role: "lead", chain: null, nullReason: null }] },
       },
     });
-    expect(JSON.stringify(publicValue)).not.toContain("blind_assignment");
-    expect(JSON.stringify(publicValue)).not.toContain('"baseline"');
-    expect(JSON.stringify(publicValue)).not.toContain('"enriched"');
+    const serialized = JSON.stringify(publicValue);
+    expect(serialized).not.toContain("blind_assignment");
+    expect(serialized).not.toContain('"baseline"');
+    expect(serialized).not.toContain('"enriched"');
+    expect(serialized).not.toContain("canonical");
+    expect(serialized).not.toContain("sources");
+    expect(serialized).not.toContain("modelUsed");
+    expect(serialized).not.toContain("rawResponseHash");
+    expect(serialized).not.toContain("canonicalId");
+    expect(serialized).not.toContain("sourceRole");
+    expect(serialized).not.toContain("오디오 관측");
+    expect(serialized).not.toContain("문헌에서");
   });
 
   test("reveals identities only for an evaluated experiment", () => {
@@ -55,6 +82,12 @@ describe("blind experiment projection", () => {
     expect(toPublicExperiment(row("evaluated"), true)).toMatchObject({
       reveal: { A: "enriched", B: "baseline" },
     });
+    expect(JSON.stringify(toPublicExperiment(row("evaluated"), true))).not.toContain(
+      "secret enriched source",
+    );
+    expect(JSON.stringify(toPublicExperiment(row("evaluated"), true))).not.toContain(
+      "오디오 관측",
+    );
   });
 
   test("never exposes internal failure detail", () => {

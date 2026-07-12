@@ -38,6 +38,7 @@ const OBSERVATIONS = [
 
 const CANON: CanonDraftResult = {
   modelUsed: "gemini-2.5-flash",
+  rawResponseHash: "fixture-hash",
   sources: [],
   roles: [
     {
@@ -145,6 +146,70 @@ describe("runToneExperiment", () => {
       "exp-1",
       "enriched:generation_failed",
       expect.stringContaining("provider exploded"),
+    );
+  });
+
+  test("preserves explicit unsupported-video provider failures", async () => {
+    const { deps } = dependencies({
+      analyze: vi.fn(async () => {
+        throw new Error("provider:video_unsupported");
+      }),
+    });
+
+    await runToneExperiment("exp-1", REQUEST, RESOLVED, deps);
+
+    expect(deps.fail).toHaveBeenCalledWith(
+      "exp-1",
+      "provider:video_unsupported",
+      "provider:video_unsupported",
+    );
+  });
+
+  test("classifies only an explicit unavailable-video marker as unavailable", async () => {
+    const { deps } = dependencies({
+      analyze: vi.fn(async () => {
+        throw new Error("provider:video_unavailable private or deleted");
+      }),
+    });
+
+    await runToneExperiment("exp-1", REQUEST, RESOLVED, deps);
+
+    expect(deps.fail).toHaveBeenCalledWith(
+      "exp-1",
+      "media:video_unavailable",
+      "provider:video_unavailable private or deleted",
+    );
+  });
+
+  test("does not infer video unavailability from generic provider HTTP errors", async () => {
+    const { deps } = dependencies({
+      analyze: vi.fn(async () => {
+        throw new Error("LLM 404: upstream request failed");
+      }),
+    });
+
+    await runToneExperiment("exp-1", REQUEST, RESOLVED, deps);
+
+    expect(deps.fail).toHaveBeenCalledWith(
+      "exp-1",
+      "media:analysis_failed",
+      "LLM 404: upstream request failed",
+    );
+  });
+
+  test("classifies media parsing failures stably", async () => {
+    const { deps } = dependencies({
+      analyze: vi.fn(async () => {
+        throw new Error("audio_observations:invalid");
+      }),
+    });
+
+    await runToneExperiment("exp-1", REQUEST, RESOLVED, deps);
+
+    expect(deps.fail).toHaveBeenCalledWith(
+      "exp-1",
+      "media:analysis_failed",
+      "audio_observations:invalid",
     );
   });
 

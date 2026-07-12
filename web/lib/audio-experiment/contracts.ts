@@ -1,4 +1,5 @@
 import type { AudioSegment } from "../pipeline/audio-observations";
+import type { Block } from "../types";
 
 export type ExperimentVariant = "baseline" | "enriched";
 export type BlindLabel = "A" | "B";
@@ -62,9 +63,20 @@ export interface PublicExperiment {
   id: string;
   status: ExperimentStatus;
   progress: unknown;
-  variants?: Record<BlindLabel, unknown>;
+  variants?: Record<BlindLabel, PublicProjection>;
   failureCode?: string;
   reveal?: BlindAssignment;
   evaluation?: ExperimentEvaluation;
   preferredVariant?: ExperimentVariant;
+}
+
+export interface PublicProjectedRole {
+  role: string;
+  status: string;
+  chain: Block[] | null;
+  nullReason: string | null;
+}
+
+export interface PublicProjection {
+  roles: PublicProjectedRole[];
 }

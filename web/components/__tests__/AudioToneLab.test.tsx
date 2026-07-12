@@ -63,7 +63,13 @@ describe("AudioToneLab", () => {
             id: "exp-1",
             status: "ready",
             progress: { stage: "ready" },
-            variants: { A: { amp: "UK 800" }, B: { amp: "US Deluxe" } },
+            variants: {
+              A: {
+                roles: [{ role: "lead", status: "projected", chain: [{ model: "UK 800" }], nullReason: null }],
+                canonical: { modelUsed: "DO NOT RENDER", sources: ["PRIVATE SOURCE"] },
+              },
+              B: { roles: [{ role: "lead", status: "projected", chain: [{ model: "US Deluxe" }], nullReason: null }] },
+            },
           }),
         ),
       );
@@ -78,6 +84,10 @@ describe("AudioToneLab", () => {
     expect(screen.getByText("US Deluxe")).toBeInTheDocument();
     expect(document.body.textContent).not.toContain("baseline");
     expect(document.body.textContent).not.toContain("enriched");
+    expect(document.body.textContent).not.toContain("canonical");
+    expect(document.body.textContent).not.toContain("modelUsed");
+    expect(document.body.textContent).not.toContain("DO NOT RENDER");
+    expect(document.body.textContent).not.toContain("PRIVATE SOURCE");
   });
 
   test("requires six scores and preference, then reveals identities", async () => {
@@ -91,7 +101,10 @@ describe("AudioToneLab", () => {
             id: "exp-1",
             status: "ready",
             progress: {},
-            variants: { A: { amp: "UK 800" }, B: { amp: "US Deluxe" } },
+            variants: {
+              A: { roles: [{ role: "lead", status: "projected", chain: [{ model: "UK 800" }], nullReason: null }] },
+              B: { roles: [{ role: "lead", status: "projected", chain: [{ model: "US Deluxe" }], nullReason: null }] },
+            },
           }),
         ),
       )
@@ -101,7 +114,10 @@ describe("AudioToneLab", () => {
             id: "exp-1",
             status: "evaluated",
             progress: {},
-            variants: { A: { amp: "UK 800" }, B: { amp: "US Deluxe" } },
+            variants: {
+              A: { roles: [{ role: "lead", status: "projected", chain: [{ model: "UK 800" }], nullReason: null }] },
+              B: { roles: [{ role: "lead", status: "projected", chain: [{ model: "US Deluxe" }], nullReason: null }] },
+            },
             reveal: { A: "enriched", B: "baseline" },
             preferredVariant: "enriched",
           }),

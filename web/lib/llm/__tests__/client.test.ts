@@ -34,6 +34,7 @@ describe("createOpenAICompatClient", () => {
       audioInput: false,
       videoInput: false,
       structuredOutput: true,
+      searchGrounding: false,
     });
     expect(fetchImpl).toHaveBeenCalledOnce();
     const [url, init] = (fetchImpl as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -113,6 +114,21 @@ describe("createOpenAICompatClient", () => {
     ).rejects.toThrow("provider:media_unsupported");
     expect(fetchImpl).not.toHaveBeenCalled();
   });
+
+  test("rejects grounded search before sending a request", async () => {
+    const fetchImpl = mockFetch({ choices: [] });
+    const client = createOpenAICompatClient({
+      baseUrl: "https://api.example/v1",
+      apiKey: "k",
+      defaultModel: "m",
+      fetchImpl,
+    });
+
+    await expect(client.groundedSearch(MSGS)).rejects.toThrow(
+      "provider:search_grounding_unsupported",
+    );
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
 });
 
 describe("createGeminiClient", () => {
@@ -130,6 +146,7 @@ describe("createGeminiClient", () => {
       audioInput: true,
       videoInput: true,
       structuredOutput: true,
+      searchGrounding: true,
     });
     await client.chat(
       [
@@ -169,6 +186,57 @@ describe("createGeminiClient", () => {
       temperature: 0,
       responseMimeType: "application/json",
     });
+  });
+
+  test("serializes grounded search without JSON mode and extracts deduplicated citations", async () => {
+    const fetchImpl = mockFetch({
+      candidates: [
+        {
+          content: { parts: [{ text: "grounded report" }] },
+          groundingMetadata: {
+            groundingChunks: [
+              { web: { uri: "https://example.com/rig", title: "Rig source" } },
+              { web: { uri: "https://example.com/rig", title: "Duplicate" } },
+              { web: { uri: "https://example.com/interview", title: "Interview" } },
+              { retrievedContext: { uri: "https://ignored.example" } },
+            ],
+          },
+        },
+      ],
+    });
+    const client = createGeminiClient({
+      apiKey: "k",
+      defaultModel: "gemini-2.5-flash",
+      fetchImpl,
+    });
+
+    const result = await client.groundedSearch(MSGS, {
+      temperature: 0,
+      model: "models/gemini-2.5-flash",
+    });
+
+    expect(result).toEqual({
+      text: "grounded report",
+      sources: [
+        { uri: "https://example.com/rig", title: "Rig source" },
+        { uri: "https://example.com/interview", title: "Interview" },
+      ],
+    });
+    const [url, init] = (fetchImpl as unknown as ReturnType<typeof vi.fn>)
+      .mock.calls[0];
+    expect(url).toBe(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+    );
+    const payload = JSON.parse(init.body);
+    expect(payload).toEqual({
+      system_instruction: { parts: [{ text: "you are a tone researcher" }] },
+      contents: [
+        { role: "user", parts: [{ text: "oasis - wonderwall" }] },
+      ],
+      tools: [{ google_search: {} }],
+      generationConfig: { temperature: 0 },
+    });
+    expect(payload.generationConfig.responseMimeType).toBeUndefined();
   });
 });
 

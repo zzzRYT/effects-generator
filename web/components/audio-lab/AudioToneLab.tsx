@@ -5,6 +5,7 @@ import type {
   BlindLabel,
   ExperimentEvaluation,
   PublicExperiment,
+  PublicProjection,
 } from "@/lib/audio-experiment/contracts";
 import { normalizeYouTubeUrl } from "@/lib/audio-experiment/validate";
 import { clampSegment } from "@/lib/audio-experiment/timeline";
@@ -66,6 +67,19 @@ function SettingsValue({ value }: { value: unknown }) {
         </div>
       ))}
     </dl>
+  );
+}
+
+function VariantSettings({ variant }: { variant: PublicProjection }) {
+  return (
+    <div>
+      {variant.roles.map((role) => (
+        <section key={role.role}>
+          <h4>{role.role}</h4>
+          {role.chain ? <SettingsValue value={role.chain} /> : <p>{role.nullReason ?? role.status}</p>}
+        </section>
+      ))}
+    </div>
   );
 }
 
@@ -322,7 +336,7 @@ export function AudioToneLab({ guitars, processors }: AudioToneLabProps) {
             {(["A", "B"] as const).map((label) => (
               <section key={label} className={styles.variant}>
                 <h3>설정 {label}</h3>
-                <SettingsValue value={phase.result.variants?.[label]} />
+                <VariantSettings variant={phase.result.variants![label]} />
                 {METRICS.map(([metric, metricLabel]) => (
                   <label key={metric}>{label} {metricLabel}
                     <select aria-label={`${label} ${metricLabel}`} value={scores[label][metric]} onChange={(event) => setScores((current) => ({ ...current, [label]: { ...current[label], [metric]: event.target.value } }))}>

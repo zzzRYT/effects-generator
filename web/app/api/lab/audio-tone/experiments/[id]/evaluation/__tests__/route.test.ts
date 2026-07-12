@@ -27,8 +27,14 @@ const READY = {
   id: "exp-1",
   status: "ready",
   progress: {},
-  baseline_result: { marker: "text" },
-  enriched_result: { marker: "audio" },
+  baseline_result: {
+    canonical: { modelUsed: "private baseline model", sources: ["private"] },
+    projection: { roles: [{ role: "lead", status: "projected", chain: [{ type: "AMP", model: "US Deluxe", enabled: true, knobs: [] }], nullReason: null }] },
+  },
+  enriched_result: {
+    canonical: { modelUsed: "private enriched model", sources: ["private"] },
+    projection: { roles: [{ role: "lead", status: "projected", chain: [{ type: "AMP", model: "UK 800", enabled: true, knobs: [] }], nullReason: null }] },
+  },
   blind_assignment: { A: "enriched", B: "baseline" },
   evaluation: null,
   preferred_variant: null,
@@ -80,6 +86,7 @@ describe("POST audio tone evaluation", () => {
     });
     const body = await response.json();
     expect(body.reveal).toEqual({ A: "enriched", B: "baseline" });
+    expect(JSON.stringify(body)).not.toContain("private enriched model");
   });
 
   test("returns 409 when the conditional update finds no ready row", async () => {

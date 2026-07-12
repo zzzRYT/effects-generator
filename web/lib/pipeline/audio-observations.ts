@@ -88,12 +88,19 @@ function invalid(): never {
   throw new Error("audio_observations:invalid");
 }
 
+function hasExactKeys(value: Record<string, unknown>, keys: readonly string[]): boolean {
+  const actual = Object.keys(value);
+  return actual.length === keys.length && actual.every((key) => keys.includes(key));
+}
+
 function parseEffect(value: unknown): AudioObservation["effects"][number] {
   if (!isRecord(value)) return invalid();
   if (
+    !hasExactKeys(value, ["kind", "description", "confidence"]) ||
     !isOneOf(value.kind, EFFECT_KINDS) ||
     typeof value.description !== "string" ||
     value.description.trim().length === 0 ||
+    value.description.length > 200 ||
     !isConfidence(value.confidence)
   ) {
     return invalid();
@@ -108,6 +115,17 @@ function parseEffect(value: unknown): AudioObservation["effects"][number] {
 function parseObservation(value: unknown): AudioObservation {
   if (!isRecord(value)) return invalid();
   if (
+    !hasExactKeys(value, [
+      "role",
+      "startMs",
+      "endMs",
+      "gain",
+      "brightness",
+      "compression",
+      "effects",
+      "notes",
+      "confidence",
+    ]) ||
     typeof value.role !== "string" ||
     !Number.isInteger(value.startMs) ||
     !Number.isInteger(value.endMs) ||
@@ -116,6 +134,7 @@ function parseObservation(value: unknown): AudioObservation {
     !isOneOf(value.compression, COMPRESSION) ||
     !Array.isArray(value.effects) ||
     typeof value.notes !== "string" ||
+    value.notes.length > 500 ||
     !isConfidence(value.confidence)
   ) {
     return invalid();
@@ -141,7 +160,9 @@ export function parseAudioObservations(
   requestedSegments: AudioSegment[],
 ): AudioObservation[] {
   const parsed = typeof raw === "string" ? parseLlmJson(raw) : raw;
-  if (!Array.isArray(parsed.observations)) return invalid();
+  if (!hasExactKeys(parsed, ["observations"]) || !Array.isArray(parsed.observations)) {
+    return invalid();
+  }
 
   const observations: AudioObservation[] = [];
   const seen = new Set<AudioRole>();

@@ -1,5 +1,10 @@
 import { describe, expect, test } from "vitest";
-import { buildCanonPrompt, buildResearchPrompt } from "../prompts";
+import {
+  buildCanonPrompt,
+  buildGroundedResearchPrompt,
+  buildResearchNormalizationPrompt,
+  buildResearchPrompt,
+} from "../prompts";
 
 describe("buildResearchPrompt", () => {
   test("곡·아티스트와 JSON 스키마를 포함", () => {
@@ -9,6 +14,30 @@ describe("buildResearchPrompt", () => {
     expect(user).toContain("Oasis");
     expect(user).toContain('"gear"');
     expect(user).toContain('"sources"');
+  });
+});
+
+describe("grounded research prompts", () => {
+  test("search prompt requests an evidence report rather than JSON", () => {
+    const { system, user } = buildGroundedResearchPrompt("Oasis", "Wonderwall");
+
+    expect(system).toContain("근거");
+    expect(user).toContain("Wonderwall");
+    expect(user).not.toContain("JSON 스키마");
+  });
+
+  test("normalization prompt carries the grounded report and authoritative citations", () => {
+    const { system, user } = buildResearchNormalizationPrompt({
+      artist: "Oasis",
+      title: "Wonderwall",
+      report: "Marshall 장비를 사용했다는 인터뷰",
+      sources: [{ uri: "https://example.com/interview", title: "Interview" }],
+    });
+
+    expect(system).toContain("JSON");
+    expect(user).toContain("Marshall 장비");
+    expect(user).toContain("https://example.com/interview");
+    expect(user).toContain("권위");
   });
 });
 

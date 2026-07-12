@@ -5,7 +5,11 @@
 import { getLlmClient, type LlmClient } from "../llm/client";
 import { sbInsert, sbSelect } from "../supabase/rest";
 import { parseLlmJson } from "./json";
-import { buildResearchPrompt } from "./prompts";
+import {
+  buildGroundedResearchPrompt,
+  buildResearchNormalizationPrompt,
+  buildResearchPrompt,
+} from "./prompts";
 
 export interface ResearchInput {
   songId: string;
@@ -42,6 +46,50 @@ export async function researchSong(input: ResearchInput, deps: ResearchDeps = {}
   }
 
   const llm = deps.llm ?? getLlmClient();
+  const notes = llm.capabilities.searchGrounding
+    ? await groundedResearch(input, llm)
+    : await textOnlyResearch(input, llm);
+  const modelUsed = deps.model ?? process.env.LLM_MODEL ?? "gemini";
+
+  const insert = deps.insert ?? sbInsert;
+  await insert("song_research", [{ song_id: input.songId, notes, model_used: modelUsed }], {
+    onConflict: "song_id",
+  });
+  return { notes, modelUsed, cached: false };
+}
+
+async function groundedResearch(
+  input: ResearchInput,
+  llm: LlmClient,
+): Promise<Record<string, unknown>> {
+  const searchPrompt = buildGroundedResearchPrompt(input.artist, input.title);
+  const grounded = await llm.groundedSearch(
+    [
+      { role: "system", content: searchPrompt.system },
+      { role: "user", content: searchPrompt.user },
+    ],
+    { temperature: 0 },
+  );
+  const normalizationPrompt = buildResearchNormalizationPrompt({
+    artist: input.artist,
+    title: input.title,
+    report: grounded.text,
+    sources: grounded.sources,
+  });
+  const raw = await llm.chat(
+    [
+      { role: "system", content: normalizationPrompt.system },
+      { role: "user", content: normalizationPrompt.user },
+    ],
+    { json: true, temperature: 0 },
+  );
+  return { ...parseLlmJson(raw), sources: grounded.sources };
+}
+
+async function textOnlyResearch(
+  input: ResearchInput,
+  llm: LlmClient,
+): Promise<Record<string, unknown>> {
   const { system, user } = buildResearchPrompt(input.artist, input.title);
   const raw = await llm.chat(
     [
@@ -50,12 +98,5 @@ export async function researchSong(input: ResearchInput, deps: ResearchDeps = {}
     ],
     { json: true },
   );
-  const notes = parseLlmJson(raw);
-  const modelUsed = deps.model ?? process.env.LLM_MODEL ?? "gemini";
-
-  const insert = deps.insert ?? sbInsert;
-  await insert("song_research", [{ song_id: input.songId, notes, model_used: modelUsed }], {
-    onConflict: "song_id",
-  });
-  return { notes, modelUsed, cached: false };
+  return parseLlmJson(raw);
 }

@@ -1,4 +1,5 @@
 import { getLlmClient, type LlmClient } from "../llm/client";
+import { createHash } from "node:crypto";
 import { validateCanon, type GateIssue } from "./gate";
 import { parseLlmJson } from "./json";
 import { buildCanonPrompt } from "./prompts";
@@ -29,6 +30,7 @@ export interface CanonDraftResult {
   roles: CanonDraftRole[];
   sources: unknown[];
   modelUsed: string;
+  rawResponseHash: string;
 }
 
 export interface CanonDraftDeps {
@@ -102,7 +104,12 @@ export async function generateCanonDraft(
     });
   }
 
-  return { roles, sources, modelUsed };
+  return {
+    roles,
+    sources,
+    modelUsed,
+    rawResponseHash: createHash("sha256").update(raw).digest("hex"),
+  };
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {

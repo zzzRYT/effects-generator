@@ -28,12 +28,30 @@ export interface LlmCapabilities {
   audioInput: boolean;
   videoInput: boolean;
   structuredOutput: boolean;
+  searchGrounding: boolean;
 }
+
+export interface GroundedSource {
+  uri: string;
+  title?: string;
+}
+
+export interface GroundedSearchResult {
+  text: string;
+  sources: GroundedSource[];
+}
+
+export type GroundedSearchOptions = Omit<ChatOptions, "json">;
 
 export interface LlmClient {
   capabilities: LlmCapabilities;
   /** messages → 어시스턴트 응답 텍스트. 실패 시 throw. */
   chat(messages: ChatMessage[], opts?: ChatOptions): Promise<string>;
+  /** 검색 근거가 붙은 비구조화 보고서. JSON 모드와 결합하지 않는다. */
+  groundedSearch(
+    messages: ChatMessage[],
+    opts?: GroundedSearchOptions,
+  ): Promise<GroundedSearchResult>;
 }
 
 export interface OpenAICompatConfig {
@@ -59,6 +77,11 @@ interface OpenAIChatResponse {
 interface GeminiResponse {
   candidates?: Array<{
     content?: { parts?: Array<{ text?: string }> };
+    groundingMetadata?: {
+      groundingChunks?: Array<{
+        web?: { uri?: string; title?: string };
+      }>;
+    };
   }>;
 }
 
@@ -66,12 +89,14 @@ const TEXT_ONLY_CAPABILITIES: LlmCapabilities = {
   audioInput: false,
   videoInput: false,
   structuredOutput: true,
+  searchGrounding: false,
 };
 
 const GEMINI_CAPABILITIES: LlmCapabilities = {
   audioInput: true,
   videoInput: true,
   structuredOutput: true,
+  searchGrounding: true,
 };
 
 function textOnlyMessages(messages: ChatMessage[]) {
@@ -96,6 +121,9 @@ export function createOpenAICompatClient(cfg: OpenAICompatConfig): LlmClient {
   const fetchImpl = cfg.fetchImpl ?? globalThis.fetch;
   return {
     capabilities: TEXT_ONLY_CAPABILITIES,
+    async groundedSearch() {
+      throw new Error("provider:search_grounding_unsupported");
+    },
     async chat(messages, opts = {}) {
       const normalizedMessages = textOnlyMessages(messages);
       const res = await fetchImpl(`${cfg.baseUrl}/chat/completions`, {
@@ -172,18 +200,45 @@ export function createGeminiClient(cfg: GeminiConfig): LlmClient {
 
   return {
     capabilities: GEMINI_CAPABILITIES,
+    async groundedSearch(messages, opts = {}) {
+      const data = await requestGemini(messages, opts, {
+        tools: [{ google_search: {} }],
+      });
+      const candidate = data.candidates?.[0];
+      const text = geminiResponseText(data);
+      const sources: GroundedSource[] = [];
+      const seen = new Set<string>();
+      for (const chunk of candidate?.groundingMetadata?.groundingChunks ?? []) {
+        const uri = chunk.web?.uri;
+        if (!uri || seen.has(uri)) continue;
+        seen.add(uri);
+        const title = chunk.web?.title;
+        sources.push({ uri, ...(title ? { title } : {}) });
+      }
+      return { text, sources };
+    },
     async chat(messages, opts = {}) {
-      const systemParts = messages
+      const data = await requestGemini(messages, opts);
+      return geminiResponseText(data);
+    },
+  };
+
+  async function requestGemini(
+    messages: ChatMessage[],
+    opts: ChatOptions,
+    extraBody: Record<string, unknown> = {},
+  ): Promise<GeminiResponse> {
+    const systemParts = messages
         .filter((message) => message.role === "system")
         .flatMap((message) => geminiTextParts(message.content));
-      const contents = messages
+    const contents = messages
         .filter((message) => message.role !== "system")
         .map((message) => ({
           role: message.role === "assistant" ? "model" : "user",
           parts: geminiContentParts(message.content),
         }));
-      const model = (opts.model ?? cfg.defaultModel).replace(/^models\//, "");
-      const res = await fetchImpl(
+    const model = (opts.model ?? cfg.defaultModel).replace(/^models\//, "");
+    const res = await fetchImpl(
         `${baseUrl}/models/${model}:generateContent`,
         {
           method: "POST",
@@ -196,6 +251,7 @@ export function createGeminiClient(cfg: GeminiConfig): LlmClient {
               ? { system_instruction: { parts: systemParts } }
               : {}),
             contents,
+            ...extraBody,
             ...(opts.temperature !== undefined || opts.json
               ? {
                   generationConfig: {
@@ -212,21 +268,23 @@ export function createGeminiClient(cfg: GeminiConfig): LlmClient {
           signal: opts.signal,
         },
       );
-      if (!res.ok) {
-        const text = await res.text().catch(() => "");
-        throw new Error(`LLM ${res.status}: ${text}`);
-      }
-      const data = (await res.json()) as GeminiResponse;
-      const text = data.candidates?.[0]?.content?.parts
-        ?.map((part) => part.text)
-        .filter((part): part is string => typeof part === "string")
-        .join("");
-      if (!text) {
-        throw new Error("LLM 응답에 candidates[0].content.parts[].text 가 없음");
-      }
-      return text;
-    },
-  };
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`LLM ${res.status}: ${text}`);
+    }
+    return (await res.json()) as GeminiResponse;
+  }
+}
+
+function geminiResponseText(data: GeminiResponse): string {
+  const text = data.candidates?.[0]?.content?.parts
+    ?.map((part) => part.text)
+    .filter((part): part is string => typeof part === "string")
+    .join("");
+  if (!text) {
+    throw new Error("LLM 응답에 candidates[0].content.parts[].text 가 없음");
+  }
+  return text;
 }
 
 const GEMINI_NATIVE_BASE =
