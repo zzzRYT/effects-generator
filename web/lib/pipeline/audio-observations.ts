@@ -53,7 +53,7 @@ export function buildAudioObservationPrompt(segment: AudioSegment): string {
 ${timestamp(segment.startMs)}-${timestamp(segment.endMs)}
 
 JSON 오브젝트 하나만 반환하세요.
-형식: {"observation":{"startMs":10000,"endMs":30000,"gain":"clean|crunch|mid-gain|high-gain|unknown","brightness":"dark|balanced|bright|unknown","compression":"low|medium|high|unknown","effects":[{"kind":"delay|reverb|chorus|flanger|wah|other","description":"관측 설명","confidence":0.0}],"notes":"관측 메모","confidence":0.0}}`;
+형식: {"observation":{"gain":"clean|crunch|mid-gain|high-gain|unknown","brightness":"dark|balanced|bright|unknown","compression":"low|medium|high|unknown","effects":[{"kind":"delay|reverb|chorus|flanger|wah|other","description":"관측 설명","confidence":0.0}],"notes":"관측 메모","confidence":0.0}}`;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -99,12 +99,12 @@ function parseEffect(value: unknown): AudioObservation["effects"][number] {
   };
 }
 
-function parseObservation(value: unknown): AudioObservation {
+function parseObservation(
+  value: unknown,
+): Omit<AudioObservation, "startMs" | "endMs"> {
   if (!isRecord(value)) return invalid();
   if (
     !hasExactKeys(value, [
-      "startMs",
-      "endMs",
       "gain",
       "brightness",
       "compression",
@@ -112,8 +112,6 @@ function parseObservation(value: unknown): AudioObservation {
       "notes",
       "confidence",
     ]) ||
-    !Number.isInteger(value.startMs) ||
-    !Number.isInteger(value.endMs) ||
     !isOneOf(value.gain, GAINS) ||
     !isOneOf(value.brightness, BRIGHTNESS) ||
     !isOneOf(value.compression, COMPRESSION) ||
@@ -125,8 +123,6 @@ function parseObservation(value: unknown): AudioObservation {
     return invalid();
   }
   return {
-    startMs: value.startMs as number,
-    endMs: value.endMs as number,
     gain: value.gain,
     brightness: value.brightness,
     compression: value.compression,
@@ -144,13 +140,11 @@ export function parseAudioObservation(
   if (!hasExactKeys(parsed, ["observation"])) return invalid();
 
   const observation = parseObservation(parsed.observation);
-  if (
-    observation.startMs !== requestedSegment.startMs ||
-    observation.endMs !== requestedSegment.endMs
-  ) {
-    throw new Error("audio_observations:unexpected_segment");
-  }
-  return observation;
+  return {
+    startMs: requestedSegment.startMs,
+    endMs: requestedSegment.endMs,
+    ...observation,
+  };
 }
 
 export async function analyzeSongMedia(
