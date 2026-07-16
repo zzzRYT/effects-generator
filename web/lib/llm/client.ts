@@ -68,6 +68,8 @@ export interface GeminiConfig {
   baseUrl?: string;
   /** 테스트·런타임 주입(기본 globalThis.fetch). */
   fetchImpl?: typeof fetch;
+  /** 일시 오류 재시도 백오프 기준(ms). 테스트에서 0으로 주입. */
+  retryBaseDelayMs?: number;
 }
 
 interface OpenAIChatResponse {
@@ -191,9 +193,19 @@ function geminiContentParts(content: string | LlmPart[]) {
   });
 }
 
+// Gemini 무료 티어는 과부하 시 503(UNAVAILABLE)·간헐 500을 반환한다 — 짧은 백오프 재시도로 흡수.
+const RETRYABLE_STATUSES = new Set([500, 503]);
+const MAX_ATTEMPTS = 3;
+const DEFAULT_RETRY_BASE_DELAY_MS = 1_000;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 /** Gemini 네이티브 generateContent 클라이언트. URI·인라인 미디어를 지원한다. */
 export function createGeminiClient(cfg: GeminiConfig): LlmClient {
   const fetchImpl = cfg.fetchImpl ?? globalThis.fetch;
+  const retryBaseDelayMs = cfg.retryBaseDelayMs ?? DEFAULT_RETRY_BASE_DELAY_MS;
   const baseUrl = (
     cfg.baseUrl ?? "https://generativelanguage.googleapis.com/v1beta"
   ).replace(/\/(?:openai\/?)?$/, "");
@@ -238,7 +250,28 @@ export function createGeminiClient(cfg: GeminiConfig): LlmClient {
           parts: geminiContentParts(message.content),
         }));
     const model = (opts.model ?? cfg.defaultModel).replace(/^models\//, "");
-    const res = await fetchImpl(
+    const body = JSON.stringify({
+      ...(systemParts.length > 0
+        ? { system_instruction: { parts: systemParts } }
+        : {}),
+      contents,
+      ...extraBody,
+      ...(opts.temperature !== undefined || opts.json
+        ? {
+            generationConfig: {
+              ...(opts.temperature !== undefined
+                ? { temperature: opts.temperature }
+                : {}),
+              ...(opts.json
+                ? { responseMimeType: "application/json" }
+                : {}),
+            },
+          }
+        : {}),
+    });
+
+    for (let attempt = 1; ; attempt++) {
+      const res = await fetchImpl(
         `${baseUrl}/models/${model}:generateContent`,
         {
           method: "POST",
@@ -246,33 +279,22 @@ export function createGeminiClient(cfg: GeminiConfig): LlmClient {
             "Content-Type": "application/json",
             "x-goog-api-key": cfg.apiKey,
           },
-          body: JSON.stringify({
-            ...(systemParts.length > 0
-              ? { system_instruction: { parts: systemParts } }
-              : {}),
-            contents,
-            ...extraBody,
-            ...(opts.temperature !== undefined || opts.json
-              ? {
-                  generationConfig: {
-                    ...(opts.temperature !== undefined
-                      ? { temperature: opts.temperature }
-                      : {}),
-                    ...(opts.json
-                      ? { responseMimeType: "application/json" }
-                      : {}),
-                  },
-                }
-              : {}),
-          }),
+          body,
           signal: opts.signal,
         },
       );
-    if (!res.ok) {
+      if (res.ok) return (await res.json()) as GeminiResponse;
+
       const text = await res.text().catch(() => "");
-      throw new Error(`LLM ${res.status}: ${text}`);
+      const shouldRetry =
+        RETRYABLE_STATUSES.has(res.status) &&
+        attempt < MAX_ATTEMPTS &&
+        !opts.signal?.aborted;
+      if (!shouldRetry) {
+        throw new Error(`LLM ${res.status}: ${text}`);
+      }
+      await sleep(retryBaseDelayMs * 2 ** (attempt - 1));
     }
-    return (await res.json()) as GeminiResponse;
   }
 }
 
