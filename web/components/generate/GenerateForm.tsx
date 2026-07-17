@@ -15,13 +15,18 @@ interface GenerateFormProps {
 // 생성 폼 — 아티스트+곡+기타+이펙터 입력 → /api/generate.
 // 캐시 히트면 연출 모드(GenProgress), 폴링이면 실시간 모드.
 // 미등록 기어면 요청 폼으로 유도(프리필).
+// 목록 선택값은 브랜드+모델 전체 이름으로 제출한다 — 리졸버 slug(브랜드 포함)와의 매칭 계약.
+function gearLabel(g?: { brand: string; model: string }): string {
+  return g ? `${g.brand} ${g.model}` : "";
+}
+
 export function GenerateForm({ guitars = [], processors = [] }: GenerateFormProps) {
   const router = useRouter();
   const [artist, setArtist] = useState("");
   const [song, setSong] = useState("");
-  const [guitar, setGuitar] = useState(guitars[0]?.model || ""); // 기타명 (선택 또는 직접 입력)
+  const [guitar, setGuitar] = useState(gearLabel(guitars[0])); // 기타명 (선택 또는 직접 입력)
   const [guitarMode, setGuitarMode] = useState<"select" | "direct">("select"); // UI 모드
-  const [processor, setProcessor] = useState(processors[0]?.model || ""); // 이펙터명 (선택 또는 직접 입력)
+  const [processor, setProcessor] = useState(gearLabel(processors[0])); // 이펙터명 (선택 또는 직접 입력)
   const [processorMode, setProcessorMode] = useState<"select" | "direct">("select"); // UI 모드
   const [errors, setErrors] = useState<GenerateErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -225,7 +230,7 @@ export function GenerateForm({ guitars = [], processors = [] }: GenerateFormProp
           >
             <option value="">기타 선택...</option>
             {guitars.map((g) => (
-              <option key={g.id} value={g.model}>
+              <option key={g.id} value={gearLabel(g)}>
                 {g.brand} {g.model}
               </option>
             ))}
@@ -249,7 +254,7 @@ export function GenerateForm({ guitars = [], processors = [] }: GenerateFormProp
               className={styles.modeToggle}
               onClick={() => {
                 setGuitarMode("select");
-                setGuitar(guitars[0]?.model || "");
+                setGuitar(gearLabel(guitars[0]));
               }}
             >
               목록으로
@@ -286,7 +291,7 @@ export function GenerateForm({ guitars = [], processors = [] }: GenerateFormProp
           >
             <option value="">멀티이펙터 선택...</option>
             {processors.map((p) => (
-              <option key={p.id} value={p.model}>
+              <option key={p.id} value={gearLabel(p)}>
                 {p.brand} {p.model}
               </option>
             ))}
@@ -310,7 +315,7 @@ export function GenerateForm({ guitars = [], processors = [] }: GenerateFormProp
               className={styles.modeToggle}
               onClick={() => {
                 setProcessorMode("select");
-                setProcessor(processors[0]?.model || "");
+                setProcessor(gearLabel(processors[0]));
               }}
             >
               목록으로

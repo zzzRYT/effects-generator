@@ -41,12 +41,23 @@ describe("GenerateForm", () => {
     fireEvent.change(screen.getByLabelText("기타"), { target: { value: "__direct__" } });
     fireEvent.change(screen.getByLabelText("기타"), { target: { value: "Custom Guitar" } });
     fireEvent.click(screen.getAllByRole("button", { name: "목록으로" })[0]);
-    expect(screen.getByLabelText("기타")).toHaveValue("G250");
+    expect(screen.getByLabelText("기타")).toHaveValue("Cort G250");
 
     fireEvent.change(screen.getByLabelText("멀티이펙터"), { target: { value: "__direct__" } });
     fireEvent.change(screen.getByLabelText("멀티이펙터"), { target: { value: "Custom FX" } });
     fireEvent.click(screen.getByRole("button", { name: "목록으로" }));
-    expect(screen.getByLabelText("멀티이펙터")).toHaveValue("GP-150");
+    expect(screen.getByLabelText("멀티이펙터")).toHaveValue("Valeton GP-150");
+  });
+
+  test("목록 선택값은 브랜드+모델로 제출된다(리졸버 slug 매칭 계약)", async () => {
+    render(<GenerateForm {...props} />);
+    fillText();
+    await submitResponse({ status: "queued", jobId: "job-1" });
+    await waitFor(() => expect(screen.getByTestId("progress")).toBeInTheDocument());
+    const [, init] = vi.mocked(fetch).mock.calls[0]!;
+    const payload = JSON.parse(String(init?.body));
+    expect(payload.guitar).toBe("Cort G250");
+    expect(payload.processor).toBe("Valeton GP-150");
   });
 
   test("shows server field errors and generic API errors", async () => {

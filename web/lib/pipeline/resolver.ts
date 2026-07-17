@@ -24,6 +24,19 @@ export function slugVariants(input: string): string[] {
   return Array.from(variants);
 }
 
+/** 기어 행 매칭 — ① slug 변형 정확 일치 → ② 하이픈 경계 접미 매칭(양방향).
+ * 모델명 단독 입력("G250") ↔ 브랜드 포함 DB slug("cort-g250") 호환.
+ * 경계 조건(`-` 접두) 없이는 부분 문자열을 매칭하지 않는다("250" ↛ "cort-g250"). */
+export function matchGearRow<T extends { slug: string }>(variants: string[], rows: T[]): T | null {
+  const vset = new Set(variants);
+  const exact = rows.find((r) => vset.has(r.slug));
+  if (exact) return exact;
+  return (
+    rows.find((r) => variants.some((v) => r.slug.endsWith(`-${v}`) || v.endsWith(`-${r.slug}`))) ??
+    null
+  );
+}
+
 // 조회 결과 묶음. 신곡이면 songId=null(미등록 아님 — 캐논 생성으로 만든다). 기어 null 이면 미등록.
 export interface ResolverLookups {
   songId: string | null;
@@ -56,13 +69,12 @@ export interface ResolverDeps {
 const enc = encodeURIComponent;
 
 /** DB 조회 → resolveCore. songs/guitars/processors 를 병렬 조회(waterfall 회피). approved 기어만.
- * 기어는 slug 변형 집합으로 조회(정적/동적 규약 호환, 예: "gp-150" 또는 "gp150"). */
+ * 기어는 approved 전체를 가져와 코드에서 매칭(matchGearRow) — 모델명 단독 입력을 접미 매칭으로
+ * 흡수하려면 slug=in 필터로는 부족하다. 기어 KB는 소수 행(어드민 수동 온보딩)이라 전체 조회가 싸다. */
 export async function resolveRequest(req: ToneRequest, deps: ResolverDeps = {}): Promise<ResolveResult> {
   const select = deps.select ?? sbSelect;
   const artist_norm = normArtist(req.artist);
   const title_norm = normTitle(req.title);
-  const guitarVariants = slugVariants(req.guitar);
-  const procVariants = slugVariants(req.processor);
 
   const [songs, guitars, processors] = await Promise.all([
     select<{ id: string }>(
@@ -71,17 +83,14 @@ export async function resolveRequest(req: ToneRequest, deps: ResolverDeps = {}):
     ),
     select<{ id: string; slug: string; body_archetype: BodyArchetype }>(
       "guitars",
-      `slug=in.(${guitarVariants.map(enc).join(",")})&status=eq.approved&select=id,slug,body_archetype`,
+      "status=eq.approved&select=id,slug,body_archetype",
     ),
-    select<{ id: string; slug: string }>(
-      "processors",
-      `slug=in.(${procVariants.map(enc).join(",")})&status=eq.approved&select=id,slug`,
-    ),
+    select<{ id: string; slug: string }>("processors", "status=eq.approved&select=id,slug"),
   ]);
 
   return resolveCore(req, {
     songId: songs[0]?.id ?? null,
-    guitar: guitars[0] ?? null,
-    processor: processors[0] ?? null,
+    guitar: matchGearRow(slugVariants(req.guitar), guitars),
+    processor: matchGearRow(slugVariants(req.processor), processors),
   });
 }
