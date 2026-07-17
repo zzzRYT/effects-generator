@@ -91,7 +91,7 @@ web/                                   # Next.js 앱 (public + /admin + api)
 
 ## 명령어
 
-`web/` 기준: `npm run dev` · `build` · `lint` / `lint:check` · `typecheck`(tsgo) / `typecheck:full`(tsc) · `test`(vitest) / `test:cov` · `test:visual`(playwright).
+`web/` 기준, **패키지 매니저 = pnpm**(2026-07-18 npm→pnpm 전환, `packageManager` 고정): `pnpm run dev` · `build` · `lint` / `lint:check` · `typecheck`(tsgo) / `typecheck:full`(tsc) · `test`(vitest) / `test:cov` · `test:visual`(playwright).
 
 ## 현재 상태 (캐논·투영 부활)
 
