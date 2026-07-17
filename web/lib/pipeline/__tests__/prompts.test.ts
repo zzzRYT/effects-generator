@@ -69,6 +69,16 @@ describe("buildCanonPrompt", () => {
     // 단일 의미 모듈엔 category 금지 안내
     expect(user).toMatch(/category .*금지|그 외 타입엔 category 금지/);
   });
+
+  test("실기 미문서화 곡은 캐릭터 매칭 폴백 — null 은 파트 부재에만 (tone-builder 계약)", () => {
+    const { system } = buildCanonPrompt(base);
+    // 장비 정보 부족 → 캐릭터 매칭 + 낮은 confidence 로 서술
+    expect(system).toMatch(/캐릭터에 가장 가까운 대표 실기/);
+    expect(system).toMatch(/confidence 를 낮게/);
+    // null 은 파트가 곡에 없을 때만 — 장비 부족은 null 사유 아님
+    expect(system).toMatch(/존재하지 않을 때만/);
+    expect(system).toMatch(/장비 정보 부족은 null 사유가 아니다/);
+  });
 });
 
 describe("buildSingleToneCanonPrompt", () => {
