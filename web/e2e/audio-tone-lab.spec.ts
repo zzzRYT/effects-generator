@@ -96,6 +96,8 @@ test("admin login → drag a point on the timeline → anonymous evaluation → 
   await fillExperiment(page);
 
   const timeline = page.getByTestId("point-timeline");
+  // 작은 뷰포트에선 타임라인이 폴드 아래라 마우스 좌표가 뷰포트 밖으로 떨어진다 — 스크롤 선행.
+  await timeline.scrollIntoViewIfNeeded();
   const box = await timeline.boundingBox();
   if (!box) throw new Error("timeline not rendered");
   await page.mouse.move(box.x + box.width * 0.2, box.y + box.height / 2);
