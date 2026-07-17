@@ -79,6 +79,13 @@ describe("buildCanonPrompt", () => {
     expect(system).toMatch(/존재하지 않을 때만/);
     expect(system).toMatch(/장비 정보 부족은 null 사유가 아니다/);
   });
+
+  test("대표 실기는 실존 브랜드+모델명 — 제네릭 분류명 금지, 알려진 어휘 우선", () => {
+    const { system } = buildCanonPrompt(base);
+    expect(system).toMatch(/브랜드\+모델명이어야 한다/);
+    expect(system).toMatch(/제네릭 분류명은 base_gear\.name 으로 금지/);
+    expect(system).toMatch(/알려진 실기 어휘.*우선/);
+  });
 });
 
 describe("buildSingleToneCanonPrompt", () => {
