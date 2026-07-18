@@ -27,7 +27,7 @@ confidence: 보통~높음        # 높음 | 보통 | 낮음 (+ 자유 텍스트 
 
 ```signal_chain
 [
-  {"type":"DST","category":"OD","model":"TS-808","base_gear":"Ibanez TS-808","enabled":false,"footswitch":"A",
+  {"type":"DST","category":"OD","model":"Green OD","base_gear":"Ibanez TS-808","enabled":false,"footswitch":"A",
    "knobs":[{"name":"Gain","value":2},{"name":"Tone","value":6},{"name":"Volume","value":6.5}]},
   {"type":"AMP","model":"UK 800","base_gear":"Marshall JCM800","enabled":true,
    "knobs":[{"name":"Gain","value":5.5},{"name":"Bass","value":5},{"name":"Mid","value":7},
@@ -42,7 +42,7 @@ confidence: 보통~높음        # 높음 | 보통 | 낮음 (+ 자유 텍스트 
 ]
 ```
 guitar: {"selector":1,"volume":10,"tone":7,"coilSplit":false,"note":"벌스 볼륨 6~7 롤백, 후렴 풀"}
-switching: {"A":"솔로 — TS-808 + Slapback ON","B":"EQ 미드 부스트 토글"}
+switching: {"A":"솔로 — Green OD + Slapback ON","B":"EQ 미드 부스트 토글"}
 
 ## Variation: 빈티지 Plexi
 … (같은 형태: 줄글 → signal_chain 펜스 → guitar → switching)
@@ -86,7 +86,7 @@ signal_chain(GP-150 이펙터)과 별개로, 톤의 출발점인 **기타 컨트
 |----|------|------|------|
 | `type` | ✓ | string | **GP-150 실제 모듈 슬롯.** `NR·PRE·WAH·DST·NS·AMP·CAB·EQ·MOD·DLY·RVB·VOL` 중 하나 (대문자). ↓ "모듈 ↔ 효과" 표 참조. |
 | `category` | – | string | 모듈 안의 **효과 종류**. PRE: `COMP·BOOST·FILTER·PITCH` / DST: `OD·DST·FUZZ`. 단일 의미 모듈(AMP·CAB·EQ·MOD·DLY·RVB·VOL·WAH·NR·NS)은 생략. |
-| `model` | ✓ | string | GP-150 모델명 (예: `UK 800`, `TS-808`). CAB도 `model`로 통일. |
+| `model` | ✓ | string | GP-150 모델명 = 매뉴얼 Effect List의 **FX Title** (예: `UK 800`, `Green OD`). 실기 이름 금지(그건 `base_gear`). CAB도 `model`로 통일. |
 | `base_gear` | – | string | 원본 실기 (예: `Marshall JCM800`, `Ibanez TS-808`). |
 | `enabled` | ✓ | bool | 기본 ON/OFF. 솔로 전용 등은 false. |
 | `footswitch` | – | string | 풋스위치 할당 (`A`/`B`). 없으면 생략. |
@@ -94,7 +94,7 @@ signal_chain(GP-150 이펙터)과 별개로, 톤의 출발점인 **기타 컨트
 
 #### 모듈 ↔ 효과 (왜 type이 효과명이 아니라 모듈인가)
 
-GP-150은 **12개 모듈 슬롯**만 있다(`models/processors/valeton-gp150/hardware.md` 권위). 오버드라이브·부스트·퍼즈는 **독립 슬롯이 아니라** 모듈 안의 모델이다. 그래서 `type`은 슬롯(모듈), `category`+`model`이 그 안의 효과를 가리킨다. (예: TS-808은 "OD 모듈"이 아니라 **DST 모듈의 오버드라이브 모델**.)
+GP-150은 **12개 모듈 슬롯**만 있다(`models/processors/valeton-gp150/hardware.md` 권위). 오버드라이브·부스트·퍼즈는 **독립 슬롯이 아니라** 모듈 안의 모델이다. 그래서 `type`은 슬롯(모듈), `category`+`model`이 그 안의 효과를 가리킨다. (예: `Green OD`(Ibanez TS-808 기반)는 "OD 모듈"이 아니라 **DST 모듈의 오버드라이브 모델**.)
 
 ```
 NR → PRE → WAH → DST → N→S(NS) → AMP → CAB → EQ → MOD → DLY → RVB → VOL
@@ -136,6 +136,7 @@ NR → PRE → WAH → DST → N→S(NS) → AMP → CAB → EQ → MOD → DLY 
 4. 각 block에 `type`(12모듈 허용 목록 중)·`model`·`enabled`·`knobs` 존재. `category` 있으면 **그 `type`에 허용된 종류** 중(PRE→`COMP·BOOST·FILTER·PITCH`, DST→`OD·DST·FUZZ`). 그 외 모듈에 `category`가 붙으면 실패(의미상 잘못된 조합 차단).
 5. 각 knob에 `name`·`value`(number) 존재.
 6. `guitar:` 있으면 — JSON 객체여야 함(깨지면 `guitar-json` 실패). `selector`는 1–5 정수 + **그 기타 모델 5-way 맵에 존재**(빌드 컨텍스트), `volume`/`tone`은 0–10, `coilSplit`은 bool. 위반 시 `guitar-field` 실패. rig에 맞는 기타 모델이 없으면 실패. `coilSplit:true`인데 기타 모델에 코일 스플릿 지원이 명시 안 됐으면 **경고**(실패 아님).
+7. 각 block의 `model`이 그 패치 rig 의 **프로세서 카탈로그**(`models/processors/<proc>/{amps,cabs,effects}.md` 의 모델명 = 매뉴얼 FX Title)에 존재. 실기/페달 이름(base-gear)을 `model`에 넣으면 `model-unknown`으로 실패(base-gear 는 `base_gear` 필드 전용). rig→프로세서는 `rigs/<rig>.md` frontmatter 의 `processor`로 해석. (카탈로그 매핑을 못 찾으면 이 검사만 스킵 — 신규 프로세서 부트스트랩 중 빌드가 막히지 않게.) 캐논·투영 시대엔 동일 규칙이 **투영 산출 검증**으로 재사용된다 → [캐논·투영 설계](plans/2026-06-28-canonical-projection-architecture-design.md) §4·§11.
 
 ## 빌드 동작
 
@@ -148,3 +149,4 @@ NR → PRE → WAH → DST → N→S(NS) → AMP → CAB → EQ → MOD → DLY 
 - **사이클 #0**: 오아시스 패치에 frontmatter + `## Variation:` + `signal_chain` 펜스 추가(데이터 모델 검증).
 - **사이클 #5 (block-module-taxonomy)**: `type`을 효과 카테고리(`OD`/`BOOST`/...)에서 **GP-150 실제 12모듈**(`NR·PRE·WAH·DST·NS·AMP·CAB·EQ·MOD·DLY·RVB·VOL`)로 교체하고, 효과 종류는 선택 필드 `category`로 분리. 근거·매핑은 위 "모듈 ↔ 효과" 표. 설계: `docs/plans/2026-06-23-block-module-taxonomy-design.md`.
 - **사이클 #6 (guitar-controls)**: 변주별 `pickup:` 자유 문자열을 **구조화 `guitar:` JSON**(셀렉터/볼륨/톤/코일스플릿/메모)으로 교체. 셀렉터 이름표는 rig→기타모델 5-way 맵에서 빌드 타임 파생(`selectorLabel`). 검증 규칙 6 추가. 기존 패치 전체 백필. 설계: `docs/plans/2026-06-23-guitar-controls-design.md`.
+- **P7 (main 정합, 2026-06-28)**: `model`을 매뉴얼 FX Title로 교정(`TS-808`→`Green OD`, `Fuzz Face`→`Red Haze`, `EP Booster`→`Boost`, `Comp`→`COMP`, CAB `Fender '65 Twin Reverb`→`Twin 2x12`; 실기명은 `base_gear`). 검증 규칙 7(model ↔ 프로세서 카탈로그) 추가 — base-gear 이름을 빌드에서 차단, 캐논·투영의 투영 검증으로 재사용. 그라운딩(`system-prompt.md`)·씨앗 패치·카탈로그 md 표기 정렬. 설계: `docs/plans/2026-06-28-canonical-projection-architecture-design.md` §11.

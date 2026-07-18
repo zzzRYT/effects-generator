@@ -52,6 +52,32 @@ export async function sbSelect<T>(table: string, query = "", admin = false): Pro
   return (await res.json()) as T[];
 }
 
+export interface SbInsertOptions {
+  /** on_conflict 컬럼(예: "song_id,role") + Prefer resolution=merge-duplicates 로 upsert. */
+  onConflict?: string;
+  /** 서버 전용 service 키(기본 true — 쓰기는 항상 admin). */
+  admin?: boolean;
+}
+
+/** INSERT/UPSERT 헬퍼. rows 를 적재하고 표현(representation)을 돌려준다. 쓰기 = service 키(서버 전용). */
+export async function sbInsert<T>(
+  table: string,
+  rows: unknown,
+  opts: SbInsertOptions = {},
+): Promise<T[]> {
+  const path = opts.onConflict ? `${table}?on_conflict=${encodeURIComponent(opts.onConflict)}` : table;
+  const prefer = opts.onConflict
+    ? "return=representation,resolution=merge-duplicates"
+    : "return=representation";
+  const res = await sbFetch(path, {
+    admin: opts.admin ?? true,
+    method: "POST",
+    body: rows,
+    headers: { Prefer: prefer },
+  });
+  return (await res.json()) as T[];
+}
+
 /** RPC 호출(예: save_generated_patch). 서버 전용(admin) 권장. */
 export async function sbRpc<T>(fn: string, args: Record<string, unknown>, admin = true): Promise<T> {
   const res = await sbFetch(`rpc/${fn}`, {

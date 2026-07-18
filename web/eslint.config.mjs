@@ -18,6 +18,12 @@ const eslintConfig = defineConfig([
     "test-results/**",
     "lib/patches.generated.ts",
   ]),
+  {
+    rules: {
+      // 이슈: ESLint/@next 플러그인이 [id] 같은 동적 라우트의 정규표현식을 잘못 파싱
+      "@next/next/no-html-link-for-pages": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

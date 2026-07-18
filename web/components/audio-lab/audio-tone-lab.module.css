@@ -1,0 +1,38 @@
+.page { width: min(100%, 1120px); margin: 0 auto; padding: clamp(1.5rem, 4vw, 3rem) 1rem 4rem; }
+.header { margin-bottom: 1.5rem; }
+.header h1 { color: var(--text); font-size: clamp(1.8rem, 5vw, 2.8rem); }
+.header p { margin-top: .5rem; color: var(--text-muted); line-height: 1.6; }
+.lab, .form { display: grid; gap: 1.25rem; }
+.scopeNote { padding: .75rem 1rem; border-left: 3px solid var(--color-dly); background: var(--lcd); color: var(--lcd-text); line-height: 1.5; }
+.inputPanel, .evaluation, .feedback, .progress { border: 1px solid var(--bezel); border-radius: 8px; background: var(--panel-2); padding: clamp(1rem, 3vw, 1.5rem); }
+.inputPanel { display: grid; gap: 1.25rem; }
+.inputPanel:disabled { opacity: .72; }
+.fieldGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.fieldGrid label, .urlRow label, .variant label { display: grid; gap: .4rem; color: var(--text-muted); font-size: .8rem; }
+.fieldGrid input, .fieldGrid select, .urlRow input, .variant select { min-height: 44px; width: 100%; border: 1px solid var(--bezel); border-radius: 4px; background: var(--panel); color: var(--text); padding: .55rem .7rem; }
+.urlRow { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: .75rem; }
+.urlRow button, .feedback button { min-height: 44px; border: 1px solid var(--color-amp); border-radius: 4px; background: transparent; color: var(--color-amp); padding: .5rem .85rem; }
+.playerFrame { border: 1px solid var(--bezel); border-radius: 8px; overflow: hidden; background: var(--lcd); }
+.player { width: 100%; aspect-ratio: 16 / 9; min-height: 180px; background: var(--lcd); }
+.timelineWrap { display: grid; gap: .5rem; padding: .75rem 1rem 1rem; border-top: 1px solid var(--bezel); background: var(--panel-2); }
+.timelineTrack { position: relative; height: 44px; border-radius: 4px; background: var(--panel); touch-action: none; cursor: pointer; }
+.timelinePlayhead { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--color-amp); pointer-events: none; }
+.timelineSelection { position: absolute; top: 0; bottom: 0; min-width: 4px; border-radius: 4px; background: color-mix(in oklch, var(--color-dly) 45%, transparent); border: 1px solid var(--color-dly); cursor: grab; }
+.timelineSelection:focus-visible { outline: 2px solid var(--color-dly); outline-offset: 2px; }
+.timelineControls { display: flex; align-items: center; justify-content: space-between; gap: .75rem; color: var(--text-muted); font-size: .85rem; }
+.timelineControls button { min-height: 44px; border: 1px solid var(--color-amp); border-radius: 4px; background: transparent; color: var(--color-amp); padding: .5rem .85rem; }
+.primary { min-height: 48px; border: 0; border-radius: 4px; background: var(--color-amp); color: #0a0a0c; font-weight: 750; padding: .7rem 1rem; }
+.primary:disabled { opacity: .5; }
+.error { color: var(--color-rvb); }
+.progress { text-align: center; }
+.progress p { margin-top: .5rem; color: var(--text-muted); }
+.evaluation { display: grid; gap: 1rem; }
+.evaluation > p { color: var(--text-muted); }
+.variantGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.variant { min-width: 0; display: grid; align-content: start; gap: .8rem; border: 1px solid var(--bezel); border-radius: 6px; background: var(--panel); padding: 1rem; overflow-wrap: anywhere; }
+.variant dl div { margin-top: .35rem; }
+.variant dt { color: var(--text-muted); font-size: .75rem; }
+.variant dd { margin-left: .6rem; }
+.feedback { width: min(100%, 640px); margin: 2rem auto; display: grid; gap: .75rem; }
+@media (max-width: 640px) { .fieldGrid, .variantGrid, .urlRow { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .progress * { animation: none !important; } }

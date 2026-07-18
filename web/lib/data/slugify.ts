@@ -3,11 +3,16 @@
 // 동적에선 균일하게 slugify(artist+title) 로 새로 만들고, slug→곡 해석은 같은 함수로 매칭(자기일관).
 // 한글 보존(퍼센트 인코딩 URL). 후일 로마자화/슬러그 컬럼으로 개선 가능.
 
-export function songSlug(artist: string, title: string): string {
-  return `${artist} ${title}`
+// 범용 slug — NFC·소문자·어포스트로피 제거·비영숫자런→하이픈. 곡 slug 와 기어 매칭(Resolver)이 공유.
+export function slugify(s: string): string {
+  return s
     .normalize("NFC") // 한글/악센트 합성형 고정 — URL 라우트 param 과 결정적 비교(NFD 불일치 방지)
     .toLowerCase()
     .replace(/['’`]/g, "") // 어포스트로피(직선·곱슬) 제거: don't / don’t → dont
     .replace(/[^a-z0-9가-힣]+/g, "-") // 영숫자·한글 외 런 → 하이픈
     .replace(/^-+|-+$/g, ""); // 양끝 하이픈 제거
+}
+
+export function songSlug(artist: string, title: string): string {
+  return slugify(`${artist} ${title}`);
 }

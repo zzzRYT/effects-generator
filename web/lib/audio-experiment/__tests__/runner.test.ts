@@ -1,0 +1,230 @@
+import { describe, expect, test, vi } from "vitest";
+import type { SingleCanonDraftResult } from "../../pipeline/canon-draft";
+import type { ProjectSingleToneResult } from "../../pipeline/project-draft";
+import type { ResolvedRequest } from "../../pipeline/types";
+import type { ExperimentRequest } from "../contracts";
+import { runToneExperiment, type RunnerDeps } from "../runner";
+
+const REQUEST: ExperimentRequest = {
+  youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  videoId: "dQw4w9WgXcQ",
+  durationMs: 180_000,
+  segment: { startMs: 10_000, endMs: 30_000 },
+  artist: "Oasis",
+  title: "Wonderwall",
+  guitar: "Cort G250",
+  processor: "Valeton GP-150",
+};
+
+const RESOLVED: ResolvedRequest = {
+  song: { id: "song-1", artist_norm: "oasis", title_norm: "wonderwall" },
+  guitar: { id: "g1", slug: "cort-g250", body_archetype: "superstrat" },
+  processor: { id: "p1", slug: "valeton-gp-150" },
+};
+
+const OBSERVATION = {
+  startMs: 10_000,
+  endMs: 30_000,
+  gain: "crunch" as const,
+  brightness: "balanced" as const,
+  compression: "medium" as const,
+  effects: [],
+  notes: "관측",
+  confidence: 0.8,
+};
+
+const CANON: SingleCanonDraftResult = {
+  status: "null",
+  chain: null,
+  nullReason: "fixture",
+  confidence: 0.5,
+  sources: [],
+  modelUsed: "gemini-2.5-flash",
+  rawResponseHash: "fixture-hash",
+};
+
+const PROJECTED: ProjectSingleToneResult = {
+  status: "projected",
+  chain: [],
+  nullReason: null,
+};
+
+function dependencies(overrides: Partial<RunnerDeps> = {}) {
+  const events: string[] = [];
+  const deps: RunnerDeps = {
+    ensureSong: vi.fn(async () => "song-new"),
+    research: vi.fn(async () => ({
+      notes: { notes: "same research" },
+      modelUsed: "gemini-2.5-flash",
+      cached: true,
+    })),
+    grounding: vi.fn(async () => ({ context: "same grounding" })),
+    catalog: vi.fn(async () => ({ entries: [] })),
+    analyze: vi.fn(async () => OBSERVATION),
+    generate: vi.fn(async () => CANON),
+    project: vi.fn(() => PROJECTED),
+    update: vi.fn(async (_id, status) => {
+      events.push(status);
+    }),
+    ready: vi.fn(async () => {
+      events.push("ready");
+    }),
+    fail: vi.fn(async () => {
+      events.push("failed");
+    }),
+    ...overrides,
+  };
+  return { deps, events };
+}
+
+describe("runToneExperiment", () => {
+  test("runs one analysis and a controlled paired generation to ready", async () => {
+    const { deps, events } = dependencies();
+
+    await runToneExperiment("exp-1", REQUEST, RESOLVED, deps);
+
+    expect(events).toEqual(["analyzing", "generating", "projecting", "ready"]);
+    expect(deps.analyze).toHaveBeenCalledOnce();
+    expect(deps.generate).toHaveBeenCalledTimes(2);
+    const [baseline, enriched] = vi.mocked(deps.generate).mock.calls.map(
+      ([call]) => call,
+    );
+    expect({ ...enriched, audioObservation: undefined }).toEqual(baseline);
+    expect(baseline.audioObservation).toBeUndefined();
+    expect(enriched.audioObservation).toEqual(OBSERVATION);
+    expect(deps.ready).toHaveBeenCalledOnce();
+    expect(deps.fail).not.toHaveBeenCalled();
+  });
+
+  test("uses the existing song without writing a songs row", async () => {
+    const { deps } = dependencies();
+    await runToneExperiment("exp-1", REQUEST, RESOLVED, deps);
+    expect(deps.ensureSong).not.toHaveBeenCalled();
+  });
+
+  test("fails atomically when either generation branch fails", async () => {
+    let call = 0;
+    const { deps, events } = dependencies({
+      generate: vi.fn(async () => {
+        call += 1;
+        if (call === 2) throw new Error("provider exploded");
+        return CANON;
+      }),
+    });
+
+    await runToneExperiment("exp-1", REQUEST, RESOLVED, deps);
+
+    expect(events).toEqual(["analyzing", "generating", "failed"]);
+    expect(deps.ready).not.toHaveBeenCalled();
+    expect(deps.project).not.toHaveBeenCalled();
+    expect(deps.fail).toHaveBeenCalledWith(
+      "exp-1",
+      "enriched:generation_failed",
+      expect.stringContaining("provider exploded"),
+    );
+  });
+
+  test("preserves explicit unsupported-video provider failures", async () => {
+    const { deps } = dependencies({
+      analyze: vi.fn(async () => {
+        throw new Error("provider:video_unsupported");
+      }),
+    });
+
+    await runToneExperiment("exp-1", REQUEST, RESOLVED, deps);
+
+    expect(deps.fail).toHaveBeenCalledWith(
+      "exp-1",
+      "provider:video_unsupported",
+      "provider:video_unsupported",
+    );
+  });
+
+  test("classifies only an explicit unavailable-video marker as unavailable", async () => {
+    const { deps } = dependencies({
+      analyze: vi.fn(async () => {
+        throw new Error("provider:video_unavailable private or deleted");
+      }),
+    });
+
+    await runToneExperiment("exp-1", REQUEST, RESOLVED, deps);
+
+    expect(deps.fail).toHaveBeenCalledWith(
+      "exp-1",
+      "media:video_unavailable",
+      "provider:video_unavailable private or deleted",
+    );
+  });
+
+  test("does not infer video unavailability from generic provider HTTP errors", async () => {
+    const { deps } = dependencies({
+      analyze: vi.fn(async () => {
+        throw new Error("LLM 404: upstream request failed");
+      }),
+    });
+
+    await runToneExperiment("exp-1", REQUEST, RESOLVED, deps);
+
+    expect(deps.fail).toHaveBeenCalledWith(
+      "exp-1",
+      "media:analysis_failed",
+      "LLM 404: upstream request failed",
+    );
+  });
+
+  test("classifies media parsing failures stably", async () => {
+    const { deps } = dependencies({
+      analyze: vi.fn(async () => {
+        throw new Error("audio_observations:invalid");
+      }),
+    });
+
+    await runToneExperiment("exp-1", REQUEST, RESOLVED, deps);
+
+    expect(deps.fail).toHaveBeenCalledWith(
+      "exp-1",
+      "media:analysis_failed",
+      "audio_observations:invalid",
+    );
+  });
+
+  test("fails the whole experiment when either projection is skipped", async () => {
+    const skipped: ProjectSingleToneResult = {
+      status: "skipped",
+      chain: null,
+      nullReason: null,
+      issues: [{ path: "chain", message: "미매핑" }],
+    };
+    const { deps } = dependencies({
+      project: vi
+        .fn()
+        .mockReturnValueOnce(PROJECTED)
+        .mockReturnValueOnce(skipped),
+    });
+
+    await runToneExperiment("exp-1", REQUEST, RESOLVED, deps);
+
+    expect(deps.ready).not.toHaveBeenCalled();
+    expect(deps.fail).toHaveBeenCalledWith(
+      "exp-1",
+      "enriched:projection_failed",
+      expect.any(String),
+    );
+  });
+
+  test("allows a legitimate null canon to reach ready", async () => {
+    const nullProjection: ProjectSingleToneResult = {
+      status: "null",
+      chain: null,
+      nullReason: "구간에서 톤을 확정하지 못함",
+    };
+    const { deps } = dependencies({
+      project: vi.fn(() => nullProjection),
+    });
+
+    await runToneExperiment("exp-1", REQUEST, RESOLVED, deps);
+
+    expect(deps.ready).toHaveBeenCalledOnce();
+    expect(deps.fail).not.toHaveBeenCalled();
+  });
+});

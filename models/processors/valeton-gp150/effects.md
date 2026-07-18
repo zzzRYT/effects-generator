@@ -15,7 +15,7 @@ AMP/CAB 외 모든 이펙트 모듈(NR · PRE · WAH · DST · EQ · MOD · DLY 
 
 ## COMP — 컴프레서
 
-- **Comp** (기반: Ross Compressor) — 컴프 효과의 원조, 자연스럽고 부드러움. 노브: Sustain, Volume
+- **COMP** (기반: Ross Compressor) — 컴프 효과의 원조, 자연스럽고 부드러움. 노브: Sustain, Volume
 - **COMP4** (기반: Keeley C4) — 4노브 스튜디오급, 맑은 위계감+고역 강화. 노브: Sustain, Attack, Volume, Clipping
 
 ## Boost — 부스트
@@ -23,13 +23,12 @@ AMP/CAB 외 모든 이펙트 모듈(NR · PRE · WAH · DST · EQ · MOD · DLY 
 - **Micro Boost** (기반: MXR M133 Micro Amp) — 20dB, 톤 유지 부스트. 노브: Gain
 - **B-Boost** (기반: Xotic BB Preamp) — 최대 30dB, 두껍고 크리미. 노브: Gain, Volume, Bass/Treble
 - **14 Boost** (기반: Fortin Grind) — 20dB, 타이트+어그레션, 저노이즈. 노브: Gain
-- **EP Booster** (기반: Xotic EP Booster) — 20dB, 강한 저역+밝은 고역. 노브: Gain, +3dB, Bright
+- **Boost** (기반: Xotic EP Booster) — 20dB, 강한 저역+밝은 고역. 노브: Gain, +3dB, Bright
 
 ## OD — 오버드라이브
 
-- **TS-808** (기반: Ibanez TS-808 Tube Screamer) — 전설의 투명 OD, 따뜻하고 섬세. 노브: Gain, Tone, Volume
-- **TS9** (기반: Ibanez TS9 Tube Screamer) — 프리앰프 푸시, 순수 OD/크런치. 노브: Gain, Tone, Volume
-- **OD 9** (기반: Ibanez TS9) — TS9 변형. 노브: Gain, Tone, Volume
+- **Green OD** (기반: Ibanez TS-808 Tube Screamer) — 전설의 투명 OD, 따뜻하고 섬세. OD/부스트 양용. 노브: Gain, Tone, Volume
+- **OD 9** (기반: Ibanez TS9 Tube Screamer) — TS9 기반, 프리앰프 푸시·순수 OD/크런치. 노브: Gain, Tone, Volume
 - **Yellow OD** — 비대칭 회로, 원음에 가까운 70년대 톤. 노브: Gain, Volume
 - **Penesas** (기반: Klon Centaur) — 앰프 인 어 박스, 미니 게인=클린 부스트. 노브: Gain, Tone, Volume
 - **Super OD** — 비대칭, 따뜻하고 유쾌한 OD. 노브: Gain, Tone, Volume
@@ -42,29 +41,35 @@ AMP/CAB 외 모든 이펙트 모듈(NR · PRE · WAH · DST · EQ · MOD · DLY 
 ## Fuzz — 퍼즈
 
 - **Lazaro** (기반: EHX Big Muff Pi) — 따뜻하고 두꺼운 사운드. 노브: Sustain, Tone, Volume
-- **Fuzz Face** (기반: Dallas-Arbiter Fuzz Face) — 1966 전설, 무겁고 예리. 노브: Fuzz, Volume
-- **Plustortion** (기반: MXR M104 Distortion+) — 게르마늄 소프트 클리핑(Randy Rhoads). 노브: Gain, Volume
+- **Red Haze** (기반: Dallas-Arbiter Fuzz Face) — 1966 전설, 무겁고 예리한 퍼즈. 노브: Fuzz, Volume
 
 ## DST — 디스토션
 
-- **Red Haze** — 클래식 3노브 디스토션, 70~80년대 톤. 노브: Gain, Tone, Volume
-- **SM Dist** — 클래식 3노브 디스토션, 70~80년대 톤. 노브: Gain, Tone, Volume
+- **Plustortion** (기반: MXR M104 Distortion+) — 게르마늄 소프트 클리핑(Randy Rhoads). 노브: Gain, Volume
+- **SM Dist** — 클래식 3노브 오렌지 디스토션, 70~80년대 톤. 노브: Gain, Tone, Volume
 - **Darktale** (기반: ProCo RAT, LM308) — 넓은 필터, 밝고 컴팩트. 노브: Gain, Filter, Volume
 - **Chief** (기반: Marshall Guv'nor) — 1988 마샬 튜브 사운드, 컴프레션 터치. 노브: Gain, Volume, Bass/Middle/Treble
 - **La Charger** (기반: Marshall Guv'nor) — 컴팩트 마샬 톤. 노브: Gain, Tone, Volume
 - **Flagman Dist** — 모던 영국 하이게인, 직관적 조작. 노브: Gain, Volume, Bass/Treble, Presence, Tight
 
+## Bass Drive — 베이스 드라이브/프리 (DST)
+
+- **Flex OD** — 기타/베이스 겸용 심플 드라이브. 노브: Gain, Tone, Volume, Mode(Normal/Scoop/Edge), Blend
+- **Bass OD** — 베이스 전용 오버드라이브(원음 블렌드). 노브: Gain, Blend, Volume, Bass/Treble
+- **Black Bass** (기반: Darkglass Microtubes B7K) — 베이스 프리/디스토션 + 4밴드 EQ. 노브: Gain, Blend, Volume, Low/Lo-mid/Hi-mid/Treble, Attack(Cut/Boost/Flat)
+- **Bass Hammer** (기반: Aguilar Tone Hammer) — 베이스 프리, 3밴드 + 미드 스윕. 노브: Gain, Master, Bass/Middle/Treble, Mid Freq, Drive
+
 ## Filter — 필터 (PRE)
 
 - **T-Wah** — 터치 민감 엔벨로프 필터(터치 와). 노브: Sens, Range, Q, Mix, Mode(Guitar/Bass)
-- **Auto Filter** — 레이트로 자동 반복되는 오토 와. 노브: Depth, Rate, Volume, Low, High, Q, Sync
+- **A-Wah** — 레이트로 자동 반복되는 오토 와(Auto Filter). 노브: Depth, Rate, Volume, Low, High, Q, Sync
 - **Step Filter** — 4스텝 오토 필터, 신스 사운드. 노브: Step 1–4, Rate, Sync
 
 ## Pitch — 피치 (PRE)
 
 - **OCTA** — 폴리포닉 옥타브. 노브: Low Oct, High Oct, Dry
-- **P-Bend** — 폴리포닉 피치 시프터/하모나이저. 노브: Low/Hi Pitch, Dry, Low/Hi Vol (변형: Wet, Range)
-- **A-Wah** — 오토 와 스타일 피치 효과.
+- **Pitch** — 폴리포닉 피치 시프터/하모나이저. 노브: Low/Hi Pitch, Dry, Low/Hi Vol
+- **P-Bend** — 폴리포닉 피치 시프터/하모나이저(레인지 조절형). 노브: Low/Hi Pitch, Wet, Dry, Range
 - **Hammy** (기반: DigiTech Whammy) — 모노 피치 시프터, 익스프레션 페달 제어. 노브: Range, Harmony, Volume, Position
 
 ## WAH — 와우 페달

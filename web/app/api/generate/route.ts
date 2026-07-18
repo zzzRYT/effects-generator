@@ -1,104 +1,126 @@
-// 톤 생성 트리거 — 캐시-우선 → 미스면 generation_jobs insert + n8n webhook 발사(ack).
-// 동기 60초를 피하려 n8n 응답을 기다리지 않는다(짧은 타임아웃 가드). 진행은 클라가 /api/jobs 폴링.
-// 권위: docs/plans/2026-06-26-web-dynamic-catalog-design.md §5.
+// 톤 생성 API v2 — tone_jobs 큐 + after() 파이프라인.
+// 권위: docs/trd/r4-web-rewire.md §2 데이터 흐름
 
-import { validateGenerate } from "@/lib/generate/validate";
-import { rateLimit } from "@/lib/generate/rateLimit";
-import { findCachedSlug } from "@/lib/data/catalog";
-import { sbFetch } from "@/lib/supabase/rest";
+import { after } from 'next/server';
+import { validateGenerate } from '@/lib/generate/validate';
+import { rateLimit } from '@/lib/generate/rateLimit';
+import { resolveRequest } from '@/lib/pipeline/resolver';
+import { handleGenerateRequest, buildGenerateJobResponse } from '@/lib/api/generate';
+import { sbInsert } from '@/lib/supabase/rest';
+import { runToneJobPipeline } from '@/lib/api/pipeline-runner';
+import type { GenerateInput } from '@/lib/generate/validate';
+import type { ToneJobInsertData } from '@/lib/api/generate';
+import type { ToneJob } from '@/lib/api/jobs';
 
-export const dynamic = "force-dynamic";
-
-const N8N_URL = process.env.N8N_GENERATE_WEBHOOK_URL;
-const TRIGGER_TIMEOUT_MS = 4000;
-
-interface JobRow {
-  id: string;
-}
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // TRD (a): Vercel Pro/Enterprise 최대
 
 export async function POST(req: Request): Promise<Response> {
-  let body: { artist?: unknown; song?: unknown; botcheck?: unknown };
+  // ① JSON 파싱
+  let body: {
+    artist?: unknown;
+    song?: unknown;
+    guitar?: unknown;
+    processor?: unknown;
+    botcheck?: unknown;
+  };
   try {
     body = await req.json();
   } catch {
-    return Response.json({ error: "잘못된 요청" }, { status: 400 });
+    return Response.json({ error: '잘못된 요청' }, { status: 400 });
   }
-  // 허니팟 — 숨김 필드가 채워졌으면 봇으로 보고 거부(정상 사용자는 비움).
-  if (typeof body.botcheck === "string" && body.botcheck.trim()) {
-    return Response.json({ error: "요청이 거부되었어요" }, { status: 400 });
-  }
-  const artist = String(body.artist ?? "");
-  const song = String(body.song ?? "");
 
-  const errors = validateGenerate({ artist, song });
+  // ② 허니팟 확인
+  if (typeof body.botcheck === 'string' && body.botcheck.trim()) {
+    return Response.json({ error: '요청이 거부되었어요' }, { status: 400 });
+  }
+
+  // ③ 입력 추출 & 검증 (4필드)
+  const input: GenerateInput = {
+    artist: String(body.artist ?? ''),
+    song: String(body.song ?? ''),
+    guitar: String(body.guitar ?? ''),
+    processor: String(body.processor ?? ''),
+  };
+
+  const errors = validateGenerate(input);
   if (Object.keys(errors).length > 0) {
     return Response.json({ errors }, { status: 400 });
   }
 
-  // 캐시-우선: 이미 있으면 즉시 그 곡으로(비용 0).
-  try {
-    const cached = await findCachedSlug(artist, song);
-    if (cached) return Response.json({ status: "ready", slug: cached });
-  } catch {
-    // 캐시 조회 실패는 치명적 아님 — 생성으로 진행.
-  }
-
-  // 레이트리밋 — 캐시 미스(실제 생성)만 제한. 캐시 히트는 위에서 이미 반환(무제한).
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  // ④ Rate limit (캐시 미스 시만, 일단 모든 요청에 적용 — TRD Phase 3 최적화).
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
   const rl = rateLimit(ip);
   if (!rl.ok) {
     return Response.json(
       { error: `요청이 너무 잦아요 — ${rl.retryAfter ?? 60}초 후 다시 시도하세요` },
-      { status: 429, headers: { "Retry-After": String(rl.retryAfter ?? 60) } },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter ?? 60) } }
     );
   }
 
-  if (!N8N_URL) {
-    return Response.json(
-      { error: "생성 서비스 미설정(N8N_GENERATE_WEBHOOK_URL)" },
-      { status: 500 },
-    );
-  }
-
-  // 진행 추적용 job 행.
-  let jobId: string;
+  // ⑤ Resolver 호출 (곡·기타·이펙터 정규화)
+  let resolveResult;
   try {
-    const res = await sbFetch("generation_jobs", {
-      admin: true,
-      method: "POST",
-      body: {
-        artist: artist.trim(),
-        title: song.trim(),
-        processor_slug: "gp150",
-        status: "pending",
-      },
-      headers: { Prefer: "return=representation" },
+    // GenerateInput.song → ToneRequest.title 변환
+    resolveResult = await resolveRequest({
+      artist: input.artist,
+      title: input.song,
+      guitar: input.guitar,
+      processor: input.processor,
     });
-    const rows = (await res.json()) as JobRow[];
-    jobId = rows[0].id;
   } catch {
-    return Response.json({ error: "작업 생성 실패" }, { status: 500 });
+    return Response.json({ error: '기어 조회 실패' }, { status: 500 });
   }
 
-  // n8n 발사 — 응답을 기다리지 않는다(타임아웃 가드). 요청은 전송되므로 n8n 은 처리·적재한다.
+  // ⑥ 로직 처리: unresolved/ready/queued
+  const response = await handleGenerateRequest(input, resolveResult);
+
+  if (response.status === 'unresolved') {
+    return Response.json(response, { status: 200 });
+  }
+
+  if (response.status === 'ready') {
+    // 캐시 히트 — 클라가 연출된 진행을 보여준 뒤 이동.
+    return Response.json(response, { status: 200 });
+  }
+
+  // ⑦ tone_jobs INSERT (queued 상태)
+  const jobData: ToneJobInsertData = {
+    request: {
+      artist: input.artist,
+      title: input.song, // GenerateInput.song → request.title
+      guitar: input.guitar,
+      processor: input.processor,
+    },
+    song_id: resolveResult.ok ? resolveResult.resolved.song.id : null,
+    body_archetype: resolveResult.ok ? resolveResult.resolved.guitar.body_archetype : null,
+    processor_id: resolveResult.ok ? resolveResult.resolved.processor.id : null,
+    status: 'queued',
+    progress: {},
+    failure_reason: null,
+    failure_detail: null,
+  };
+
+  let insertedJob: ToneJob;
   try {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), TRIGGER_TIMEOUT_MS);
-    await fetch(N8N_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        artist: artist.trim(),
-        song: song.trim(),
-        processor: "gp150",
-        job_id: jobId,
-      }),
-      signal: ctrl.signal,
-    }).catch(() => {});
-    clearTimeout(t);
+    const insertedRows = await sbInsert<ToneJob>('tone_jobs', jobData, { admin: true });
+    insertedJob = insertedRows[0];
   } catch {
-    // 발사 실패해도 job 은 남는다 — 폴링이 timeout 으로 처리.
+    return Response.json({ error: '작업 생성 실패' }, { status: 500 });
   }
 
-  return Response.json({ status: "pending", jobId });
+  // ⑧ 즉시 202 응답 반환
+  const jobResponse = buildGenerateJobResponse(insertedJob.id);
+
+  // ⑨ after() 콜백: 파이프라인 백그라운드 실행 (응답 후)
+  after(async () => {
+    try {
+      await runToneJobPipeline(insertedJob.id, input, resolveResult);
+    } catch (error) {
+      // 파이프라인 오류는 after() 실패로 취급 — 로깅만 (응답이 이미 전송됨)
+      console.error(`[tone-job] Pipeline failed for job ${insertedJob.id}:`, error);
+    }
+  });
+
+  return Response.json(jobResponse, { status: 202 });
 }

@@ -6,7 +6,7 @@ import { BlockModule } from "@/components/signal-chain/BlockModule";
 function block(overrides: Partial<Block> = {}): Block {
   return {
     type: "DST",
-    model: "TS-808",
+    model: "Green OD",
     enabled: true,
     knobs: [{ name: "Gain", value: 5.5 }],
     ...overrides,
@@ -16,7 +16,7 @@ function block(overrides: Partial<Block> = {}): Block {
 describe("BlockModule", () => {
   it("모델명·모듈 약어·효과종류 라벨·노브를 렌더한다", () => {
     render(<BlockModule block={block({ category: "OD" })} />);
-    expect(screen.getByText("TS-808")).toBeInTheDocument();
+    expect(screen.getByText("Green OD")).toBeInTheDocument();
     expect(screen.getByText("DST")).toBeInTheDocument(); // 모듈 배지 약어
     expect(screen.getByText("오버드라이브")).toBeInTheDocument(); // category 라벨
     expect(screen.getByText("Gain")).toBeInTheDocument();
@@ -52,7 +52,7 @@ describe("BlockModule", () => {
 
   it("enabled=false 면 data-enabled=false + OFF 라벨, 노브 값은 유지", () => {
     render(<BlockModule block={block({ enabled: false })} />);
-    const article = screen.getByText("TS-808").closest("article")!;
+    const article = screen.getByText("Green OD").closest("article")!;
     expect(article).toHaveAttribute("data-enabled", "false");
     expect(within(article).getByText(/OFF/)).toBeInTheDocument();
     expect(within(article).getByText(/5\.5/)).toBeInTheDocument();

@@ -1,14 +1,19 @@
 import Link from "next/link";
 import { GenerateForm } from "@/components/generate/GenerateForm";
 import { SongRow } from "@/components/song-index/SongRow";
-import { getRecent } from "@/lib/data/catalog";
+import { getRecent, getApprovedGuitars, getApprovedProcessors } from "@/lib/data/catalog";
 import styles from "@/components/generate/generate.module.css";
 
-// 홈 = 생성 폼 히어로(아티스트+곡 → Gen) + 최근 톤 미리보기. 전체 목록은 /tones.
+// 홈 = 생성 폼 히어로(아티스트+곡+기타+이펙터 → Gen) + 최근 톤 미리보기. 전체 목록은 /tones.
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const recent = await getRecent(6);
+  const [recent, guitars, processors] = await Promise.all([
+    getRecent(6),
+    getApprovedGuitars(),
+    getApprovedProcessors(),
+  ]);
+
   return (
     <main className={styles.hero}>
       <section className={styles.heroHead}>
@@ -18,7 +23,7 @@ export default async function Home() {
         </p>
       </section>
 
-      <GenerateForm />
+      <GenerateForm guitars={guitars} processors={processors} />
 
       {recent.length > 0 && (
         <section className={styles.recent}>

@@ -4,7 +4,7 @@ import type { Block } from "@/lib/types";
 import { SignalChain } from "@/components/signal-chain/SignalChain";
 
 const blocks: Block[] = [
-  { type: "DST", category: "OD", model: "TS-808", enabled: true, knobs: [] },
+  { type: "DST", category: "OD", model: "Green OD", enabled: true, knobs: [] },
   { type: "AMP", model: "UK 800", enabled: true, knobs: [] },
   { type: "CAB", model: "UK 30", enabled: true, knobs: [] },
 ];
@@ -14,7 +14,7 @@ describe("SignalChain", () => {
     render(<SignalChain blocks={blocks} />);
     const items = screen.getAllByRole("listitem");
     expect(items).toHaveLength(3);
-    expect(items[0]).toHaveTextContent("TS-808");
+    expect(items[0]).toHaveTextContent("Green OD");
     expect(items[1]).toHaveTextContent("UK 800");
     expect(items[2]).toHaveTextContent("UK 30");
   });

@@ -23,7 +23,7 @@ export const VALID = lines(
   "",
   "```signal_chain",
   "[",
-  '  {"type":"DST","category":"OD","model":"TS-808","base_gear":"Ibanez TS-808","enabled":false,"footswitch":"A","knobs":[{"name":"Gain","value":2},{"name":"Tone","value":6}]},',
+  '  {"type":"DST","category":"OD","model":"Green OD","base_gear":"Ibanez TS-808","enabled":false,"footswitch":"A","knobs":[{"name":"Gain","value":2},{"name":"Tone","value":6}]},',
   '  {"type":"AMP","model":"UK 800","base_gear":"Marshall JCM800","enabled":true,"knobs":[{"name":"Gain","value":5.5},{"name":"Mid","value":7}]},',
   '  {"type":"CAB","model":"UK 30","enabled":true,"knobs":[]},',
   '  {"type":"DLY","model":"Slapback","enabled":false,"footswitch":"A","knobs":[{"name":"Time","value":120,"unit":"ms"},{"name":"Mix","value":20,"unit":"%"}]},',
@@ -31,7 +31,7 @@ export const VALID = lines(
   "]",
   "```",
   'guitar: {"selector":1,"volume":8,"tone":7,"coilSplit":false,"note":"테스트 메모"}',
-  'switching: {"A":"솔로 — TS-808 + Slapback ON"}',
+  'switching: {"A":"솔로 — Green OD + Slapback ON"}',
 );
 
 /** frontmatter 없음 → 규칙1 위반. */
@@ -106,7 +106,7 @@ export const BAD_CATEGORY = lines(
   "## Variation: Base",
   "",
   "```signal_chain",
-  '[{"type":"DST","category":"NOPE","model":"TS-808","enabled":true,"knobs":[]}]',
+  '[{"type":"DST","category":"NOPE","model":"Green OD","enabled":true,"knobs":[]}]',
   "```",
 );
 
