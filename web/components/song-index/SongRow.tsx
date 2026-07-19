@@ -10,6 +10,11 @@ interface SongRowProps {
 // data-search 에 genre 까지 소문자로 녹여 검색 대상에 포함(genre 칩 대신 검색으로 커버).
 export function SongRow({ song }: SongRowProps) {
   const search = `${song.artist} ${song.title} ${song.genre ?? ""}`.toLowerCase();
+  // tones 기반 행은 rig=""·variations=[] 일 수 있다(R4 listSongs) — 빈 조각은 표기하지 않는다.
+  const metaParts = [
+    song.rig,
+    song.variations.length > 0 ? `변주 ${song.variations.length}` : "",
+  ].filter(Boolean);
   return (
     <li
       className={styles.row}
@@ -23,9 +28,9 @@ export function SongRow({ song }: SongRowProps) {
       >
         <span className={styles.rowArtist}>{song.artist}</span>
         <span className={styles.rowTitle}>{song.title}</span>
-        <span className={styles.rowMeta}>
-          {song.rig} · 변주 {song.variations.length}
-        </span>
+        {metaParts.length > 0 && (
+          <span className={styles.rowMeta}>{metaParts.join(" · ")}</span>
+        )}
       </Link>
     </li>
   );

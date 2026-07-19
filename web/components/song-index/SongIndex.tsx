@@ -42,7 +42,9 @@ export function SongIndex({ songs }: SongIndexProps) {
     );
   }
 
-  const rigs = [...new Set(songs.map((s) => s.rig))];
+  // tones 기반 목록은 rig 가 빈 문자열일 수 있다(R4 listSongs) — 빈 이름 칩은 접근명 없는
+  // 버튼(axe button-name 위반)이 되므로 제외. rig 가 하나도 없으면 '전체' 칩만 남는다.
+  const rigs = [...new Set(songs.map((s) => s.rig))].filter(Boolean);
   return (
     <main className={styles.index}>
       <header className={styles.head}>

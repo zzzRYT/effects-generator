@@ -28,9 +28,12 @@ export default defineConfig({
     },
   })),
   webServer: {
-    command: "npm run build && npm run start",
+    command: "pnpm run build && pnpm run start",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
+    // e2e 로그인(audio-tone-lab.spec)의 'e2e-admin'과 계약 — .env.local 실비밀번호에
+    // 의존하던 암묵 전제를 제거해 스위트를 자기완결로 만든다(env 가 .env.local 보다 우선).
+    env: { ...process.env, ADMIN_SECRET: "e2e-admin" },
   },
 });

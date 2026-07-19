@@ -188,6 +188,74 @@ describe("createGeminiClient", () => {
     });
   });
 
+  test("retries transient statuses with backoff and succeeds", async () => {
+    const bodies = [
+      new Response(JSON.stringify({ error: { code: 503 } }), { status: 503 }),
+      new Response(JSON.stringify({ error: { code: 500 } }), { status: 500 }),
+      new Response(
+        JSON.stringify({ candidates: [{ content: { parts: [{ text: "ok" }] } }] }),
+        { status: 200 },
+      ),
+    ];
+    const fetchImpl = vi.fn(async () => bodies.shift()!) as unknown as typeof fetch;
+    const client = createGeminiClient({
+      apiKey: "k",
+      defaultModel: "gemini-2.5-flash",
+      fetchImpl,
+      retryBaseDelayMs: 0,
+    });
+
+    await expect(client.chat(MSGS)).resolves.toBe("ok");
+    expect(fetchImpl).toHaveBeenCalledTimes(3);
+  });
+
+  test("does not retry non-transient statuses", async () => {
+    const fetchImpl = mockFetch({ error: { code: 400 } }, false, 400);
+    const client = createGeminiClient({
+      apiKey: "k",
+      defaultModel: "gemini-2.5-flash",
+      fetchImpl,
+      retryBaseDelayMs: 0,
+    });
+
+    await expect(client.chat(MSGS)).rejects.toThrow(/LLM 400/);
+    expect(fetchImpl).toHaveBeenCalledOnce();
+  });
+
+  test("throws the last transient error after exhausting retries", async () => {
+    const fetchImpl = mockFetch({ error: { code: 503 } }, false, 503);
+    const client = createGeminiClient({
+      apiKey: "k",
+      defaultModel: "gemini-2.5-flash",
+      fetchImpl,
+      retryBaseDelayMs: 0,
+    });
+
+    await expect(client.chat(MSGS)).rejects.toThrow(/LLM 503/);
+    expect(fetchImpl).toHaveBeenCalledTimes(3);
+  });
+
+  test("stops retrying when the abort signal fires", async () => {
+    const controller = new AbortController();
+    const fetchImpl = vi.fn(async () => {
+      controller.abort();
+      return new Response(JSON.stringify({ error: { code: 503 } }), {
+        status: 503,
+      });
+    }) as unknown as typeof fetch;
+    const client = createGeminiClient({
+      apiKey: "k",
+      defaultModel: "gemini-2.5-flash",
+      fetchImpl,
+      retryBaseDelayMs: 0,
+    });
+
+    await expect(
+      client.chat(MSGS, { signal: controller.signal }),
+    ).rejects.toThrow(/LLM 503/);
+    expect(fetchImpl).toHaveBeenCalledOnce();
+  });
+
   test("serializes grounded search without JSON mode and extracts deduplicated citations", async () => {
     const fetchImpl = mockFetch({
       candidates: [

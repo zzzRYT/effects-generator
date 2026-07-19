@@ -1,3 +1,5 @@
 .DS_Store
 *.pdf
 .worktrees/
+# 세션 로컬 스크래치(임시 이슈 트래커·작업 메모) — 정식 기록은 dev-hub·docs/
+.scratch/

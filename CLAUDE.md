@@ -3,9 +3,21 @@
 멀티 이펙터 **톤 생성기**. 곡명+아티스트+**내 기타+내 이펙터**를 입력하면 AI가 그 곡의 기타 톤을 조사해 **용도별(lead/backing/solo/real-amp/phone) 시그널 체인**으로 생성하고, 웹 카탈로그에 자동 축적·시각화한다.
 기어(기타·이펙터)는 각각 독립 KB 레코드이며, 데이터·구조는 **기기 비종속**으로 설계한다.
 
-> **2026-07-06 캐논·투영 부활:** 생성 구조 = **캐논(AI, 곡당 1회, 실기 기준 기기무관) + 투영(스크립트, AI 없이 결정적 변환)**. role 5종으로 확장. gear KB는 **크론 없이 어드민 수동 입력**(레퍼런스 업로드 포함), 온보딩 트리거도 자동 큐 대신 **문의 폼**(기타·이펙터 추가 요청). 개인용 우선(계정·공유캐시는 범위 밖). 07-04의 독립 엔티티 4·n8n 제거·LLM=Gemini seam은 그대로 유지.
-> 전체 설계(결정·아키텍처·단계): **`docs/plans/2026-07-06-canon-projection-revival-design.md`** — 이 헌법보다 상세. 충돌 시 설계 문서가 권위.
+> **2026-07-17 북극성 확정:** 이 프로젝트는 **공개 제품/서비스**다 — 07-06의 '개인용 우선'은 폐기. 상세 = 아래 "북극성" 섹션, 로드맵 = `docs/backlog.md` 상단 "북극성 로드맵(2026-07-17)".
+> **2026-07-06 캐논·투영 부활:** 생성 구조 = **캐논(AI, 곡당 1회, 실기 기준 기기무관) + 투영(스크립트, AI 없이 결정적 변환)**. role 5종으로 확장. gear KB는 **크론 없이 어드민 수동 입력**(레퍼런스 업로드 포함), 온보딩 트리거도 자동 큐 대신 **문의 폼**(기타·이펙터 추가 요청). ~~개인용 우선~~(07-17 폐기 — 계정·공유캐시는 여전히 첫 출시 범위 밖). 07-04의 독립 엔티티 4·n8n 제거·LLM=Gemini seam은 그대로 유지.
+> 전체 설계(결정·아키텍처·단계): **`docs/plans/2026-07-06-canon-projection-revival-design.md`** — 이 헌법보다 상세. 충돌 시 설계 문서가 권위(단, 그 문서 결정 #5 '개인용 우선'과 잔여 단계 순서는 07-17 북극성이 대체 — 문서 상단 노트).
 > 이전 설계: `2026-07-04-structure-reset-design.md`(생성 구조만 번복, 나머지 유효) · `2026-06-28-canonical-projection-architecture-design.md`(캐논·투영 핵심만 조건부 부활) · `2026-06-25-tone-generator-pivot-design.md`(피벗, 폐기) — 각 문서 상단 노트 참조.
+
+## 북극성 (2026-07-17 확정)
+
+5주간 설계가 4번 뒤집힌 근본 원인(목적 불명확 + 품질 확신 부족)을 dev-hub wayfinder 맵 `공개-제품-북극성-map`(결정 티켓 EG-T1~T9)에서 해소하고 확정했다. **이 섹션이 "누구를 위해, 무엇이 되면 완성인가"의 권위.**
+
+- **존재 이유 = 공개 제품/서비스.** '개인용 우선'(2026-07-06 결정 #5)은 폐기.
+- **타깃 유저 = 입문자(저가 멀티이펙터 사용자).** 톤 지식이 가장 부족해 "곡 이름 → 완성 패치"의 가치가 최대인 층. 기존 서비스는 중가 이상 기기 위주라 이 자리가 비어 있음(EG-T2·T5).
+- **핵심 가치 = "이 곡 + 내 기기 → 바로 걸 수 있는 패치".** 캐논·투영 아키텍처는 이 가치에 유효 판정 — 곡별 리서치 카탈로그·기기 비종속 범용 출력 방향은 기각.
+- **품질 게이트(공개 조건) = 본인 GP-150 독푸딩.** 라운드 10곡, 최종 라운드에서 **평균 ≥3.5 그리고 4점+ 곡 ≥60% 그리고 1점 0개**(EG-T1). 미통과 시 출시 보류. 프로토콜·기록 = `docs/dogfooding/`.
+- **첫 출시 범위**(EG-T5·T8·T9) = 기기 2종(GP-150 검증 기준기 + **Mooer GE-150** 온보딩) · **글로벌 + i18n 3언어(en/ko/ja)** · 곡 20~30 선적재(독푸딩 10곡 시드 + 입문 록·J-pop) · **정식 오픈 + 생성 가드 3종**(Gemini 일일 비용 상한·IP/세션 rate limit·경량 봇 방지) · **계정 없음(익명)** · `/gear/<slug>` 기기 페이지 + 톤 상세 base_gear 라벨 + 기본 SEO(SSG·메타·sitemap·hreflang).
+- 계정·저장·공유 캐시·수익화는 출시 후 신호가 오면 재검토(첫 출시 범위 밖).
 
 ## 아키텍처 골격 (설계 §1, 2026-07-06)
 
@@ -79,7 +91,7 @@ web/                                   # Next.js 앱 (public + /admin + api)
 
 ## 명령어
 
-`web/` 기준: `npm run dev` · `build` · `lint` / `lint:check` · `typecheck`(tsgo) / `typecheck:full`(tsc) · `test`(vitest) / `test:cov` · `test:visual`(playwright).
+`web/` 기준, **패키지 매니저 = pnpm**(2026-07-18 npm→pnpm 전환, `packageManager` 고정): `pnpm run dev` · `build` · `lint` / `lint:check` · `typecheck`(tsgo) / `typecheck:full`(tsc) · `test`(vitest) / `test:cov` · `test:visual`(playwright).
 
 ## 현재 상태 (캐논·투영 부활)
 
@@ -90,5 +102,6 @@ web/                                   # Next.js 앱 (public + /admin + api)
 - ✅ **R1 완료** — `web/lib/pipeline/` 골격: LLM seam(`lib/llm/client.ts`) + Resolver + Grounding + 검증 게이트(캐논·투영) + 타입 계약. 목 테스트 22건.
 - ✅ **R2 완료(라이브 검증 포함)** — 캐논 생성 end-to-end: `prompts.ts` + `research.ts`(song_research 캐시) + `generate.ts`(3-role 캐논→게이트→`canonical_tones`) + `json.ts` + `rest.sbInsert`. **캐논 게이트를 스키마+base_gear 모양으로 축소, gear KB 실존은 투영으로 이관**(부트스트랩 닭-달걀 해소). Gemini 실호출 스모크 통과(2026-07-08, `scripts/smoke-pipeline.ts`).
 - ✅ **R3 완료(라이브 검증 포함)** — `projector.ts`: base_gear 역인덱스(`effects_catalog.entries` 187건, md "(기반:)" 추출) + **3단 룩업**(정확→경계 포함→토큰 부분수열) + **기능 모듈 디폴트 폴백**(NR/EQ/DLY/RVB/VOL → `effects_catalog.defaults`) + kind 교차검증 + 대표 파트(lead→backing→solo) real-amp(CAB off)/phone(CAB on) 파생 + 게이트 + `tones` 적재. Resolver 슬러그 변형 조회(GP-150/GP150 호환). 라운드트립 골든(PATCHES 91블록: 84 정밀매핑·5 폴백·2 예외·mismatch 0). **라이브 스모크 2곡 통과**: Oasis DLBIA = 5-role 전부 적재(파생 포함), Radiohead Creep = 캐논 3행 + 정당한 미매핑(ShredMaster 등 → 어드민 온보딩 TODO). 테스트 391 그린.
-- ✅ **R4 완료(라이브 QA 포함)** — 웹 재배선(하네스 풀 사이클, 산출물 `docs/*/r4-web-rewire.md`): 생성 폼 4입력 → `tone_jobs`+`after()` 파이프라인(maxDuration=60) → 폴링(좀비 잡 가드) → **role 5탭**(`RoleTabs`, rendered/null/missing, 기존 렌더러 무수정) → tones 기반 카탈로그. n8n·구 테이블 참조 전수 제거. 라이브 QA: 신곡 36초 done·unresolved·실 Gemini 503 실패 경로 검증. 테스트 450·build 그린. 이월 = D6 비주얼 스냅샷(리뷰 문서). 다음 = **R5**(어드민 수동 입력 UI). 단계 전체 = 설계 §6.
-- ✅ **R4.5 멀티모달 오디오 톤 A/B 랩 코드·자동 게이트 완료(실환경 표본 대기, 2026-07-12)** — `/lab/audio-tone`에서 YouTube 역할별 구간을 선택하고 텍스트 baseline과 오디오 관측 enriched를 동일 조건으로 비영속 생성·GP-150 투영해 익명 설정표 평가. `ADMIN_SECRET` 서명 세션, Gemini 네이티브 미디어 계약 + 실제 검색 그라운딩(`groundedSearch`, 출처는 검색 메타데이터만 권위), `tone_experiments` 원자 실행·단회 평가 구현. `20260711090000` 원격 적용 후 RLS=true·공개 정책 0·update trigger·INSERT/UPDATE/DELETE 롤백 재검증 완료(2026-07-12). Task 11 수용 게이트 전수 실행: e2e(`audio-tone-lab.spec.ts`) 4브레이크포인트×3케이스 12건 그린 — 실행 중 블라인드 응답 계약 변경(`PublicProjection`)에 e2e 목이 안 맞아 화면이 에러 바운더리로 크래시하는 실결함 1건 발견·수정. `npm run test`(556)·`test:cov`(문장 87.59%/브랜치 80.56%/함수 87.85%/라인 89.86%, 전부 80%+)·`lint:check`·`typecheck`·`typecheck:full`·`build`·`test:visual` 전부 그린. 운영 `canonical_tones`·`tones` 쓰기 없음. **미완:** 실 Gemini smoke(사용자가 직접 진행 예정)와 10곡/30구간 표본. 설정표 평가만으로 실제 음향 유사도를 주장하지 않는다. 채택 게이트 = enriched 선호 ≥70%·평균 +0.5/5·투영 실패율 증가 없음.
+- ✅ **R4 완료(라이브 QA 포함)** — 웹 재배선(하네스 풀 사이클, 산출물 `docs/*/r4-web-rewire.md`): 생성 폼 4입력 → `tone_jobs`+`after()` 파이프라인(maxDuration=60) → 폴링(좀비 잡 가드) → **role 5탭**(`RoleTabs`, rendered/null/missing, 기존 렌더러 무수정) → tones 기반 카탈로그. n8n·구 테이블 참조 전수 제거. 라이브 QA: 신곡 36초 done·unresolved·실 Gemini 503 실패 경로 검증. 테스트 450·build 그린. 이월 = D6 비주얼 스냅샷(리뷰 문서). ~~다음 = R5(어드민 수동 입력 UI)~~ — 2026-07-17 재정렬로 R5는 출시 후 강등(아래 북극성 확정 항목).
+- ✅ **R4.5 멀티모달 오디오 톤 A/B 랩 코드·자동 게이트 완료(실환경 표본 대기, 2026-07-12)** — `/lab/audio-tone`에서 YouTube 역할별 구간을 선택하고 텍스트 baseline과 오디오 관측 enriched를 동일 조건으로 비영속 생성·GP-150 투영해 익명 설정표 평가. `ADMIN_SECRET` 서명 세션, Gemini 네이티브 미디어 계약 + 실제 검색 그라운딩(`groundedSearch`, 출처는 검색 메타데이터만 권위), `tone_experiments` 원자 실행·단회 평가 구현. `20260711090000` 원격 적용 후 RLS=true·공개 정책 0·update trigger·INSERT/UPDATE/DELETE 롤백 재검증 완료(2026-07-12). Task 11 수용 게이트 전수 실행: e2e(`audio-tone-lab.spec.ts`) 4브레이크포인트×3케이스 12건 그린 — 실행 중 블라인드 응답 계약 변경(`PublicProjection`)에 e2e 목이 안 맞아 화면이 에러 바운더리로 크래시하는 실결함 1건 발견·수정. `npm run test`(556)·`test:cov`(문장 87.59%/브랜치 80.56%/함수 87.85%/라인 89.86%, 전부 80%+)·`lint:check`·`typecheck`·`typecheck:full`·`build`·`test:visual` 전부 그린. 운영 `canonical_tones`·`tones` 쓰기 없음. 설정표 평가만으로 실제 음향 유사도를 주장하지 않는다. **2026-07-17 유보 판정(EG-T4):** 남은 작업(실 Gemini smoke·10곡/30구간 표본)은 중단 — 독푸딩 라운드 1은 baseline(현행 텍스트 생성)만. 재진입 = 라운드 1 저점 곡의 문제 모듈이 톤 정체성(AMP/DST/CAB)에 몰릴 때, 라운드 2 저점 곡 한정 **귀 A/B**로 채택 판정(기존 설정표 게이트 enriched 선호 ≥70% 등은 참고 지표로 강등). 코드·랩(`/lab/audio-tone`)은 보존.
+- 🧭 **2026-07-17 북극성 확정·로드맵 재정렬** — dev-hub wayfinder 맵(`공개-제품-북극성-map`, EG-T1~T9)으로 공개 제품 북극성 확정, 이 헌법 개정(위 "북극성" 섹션). R5(어드민 UI)는 출시 후 강등(EG-T6 — 온보딩·교정은 스크립트 경로가 공식 도구), R4.5는 유보(EG-T4). **다음 = 독푸딩 라운드 1**(10곡, GP-150, `docs/dogfooding/round-1.md`) → 품질 환류 → 출시 준비(GE-150 온보딩·i18n 3언어·`/gear` 페이지+SEO·생성 가드 3종·곡 선적재). 단계 상세 = `docs/backlog.md` 상단 "북극성 로드맵(2026-07-17)".
