@@ -19,9 +19,10 @@ export function GenerateForm({ guitars = [], processors = [] }: GenerateFormProp
   const router = useRouter();
   const [artist, setArtist] = useState("");
   const [song, setSong] = useState("");
-  const [guitar, setGuitar] = useState(guitars[0]?.model || ""); // 기타명 (선택 또는 직접 입력)
+  // 선택값 = 기어 slug(resolver 는 slug 로 조회). 직접입력 = 자유 텍스트(대개 미등록 → 문의 유도).
+  const [guitar, setGuitar] = useState(guitars[0]?.slug || "");
   const [guitarMode, setGuitarMode] = useState<"select" | "direct">("select"); // UI 모드
-  const [processor, setProcessor] = useState(processors[0]?.model || ""); // 이펙터명 (선택 또는 직접 입력)
+  const [processor, setProcessor] = useState(processors[0]?.slug || "");
   const [processorMode, setProcessorMode] = useState<"select" | "direct">("select"); // UI 모드
   const [errors, setErrors] = useState<GenerateErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -225,7 +226,7 @@ export function GenerateForm({ guitars = [], processors = [] }: GenerateFormProp
           >
             <option value="">기타 선택...</option>
             {guitars.map((g) => (
-              <option key={g.id} value={g.model}>
+              <option key={g.id} value={g.slug}>
                 {g.brand} {g.model}
               </option>
             ))}
@@ -249,7 +250,7 @@ export function GenerateForm({ guitars = [], processors = [] }: GenerateFormProp
               className={styles.modeToggle}
               onClick={() => {
                 setGuitarMode("select");
-                setGuitar(guitars[0]?.model || "");
+                setGuitar(guitars[0]?.slug || "");
               }}
             >
               목록으로
@@ -286,7 +287,7 @@ export function GenerateForm({ guitars = [], processors = [] }: GenerateFormProp
           >
             <option value="">멀티이펙터 선택...</option>
             {processors.map((p) => (
-              <option key={p.id} value={p.model}>
+              <option key={p.id} value={p.slug}>
                 {p.brand} {p.model}
               </option>
             ))}
@@ -310,7 +311,7 @@ export function GenerateForm({ guitars = [], processors = [] }: GenerateFormProp
               className={styles.modeToggle}
               onClick={() => {
                 setProcessorMode("select");
-                setProcessor(processors[0]?.model || "");
+                setProcessor(processors[0]?.slug || "");
               }}
             >
               목록으로

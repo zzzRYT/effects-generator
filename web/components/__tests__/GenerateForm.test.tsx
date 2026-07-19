@@ -14,8 +14,8 @@ vi.mock("@/components/generate/GenProgress", () => ({
 }));
 
 const props = {
-  guitars: [{ id: "g1", slug: "g250", brand: "Cort", model: "G250" }],
-  processors: [{ id: "p1", slug: "gp150", brand: "Valeton", model: "GP-150" }],
+  guitars: [{ id: "g1", slug: "cort-g250", brand: "Cort", model: "G250" }],
+  processors: [{ id: "p1", slug: "valeton-gp150", brand: "Valeton", model: "GP-150" }],
 };
 
 function fillText() {
@@ -41,12 +41,22 @@ describe("GenerateForm", () => {
     fireEvent.change(screen.getByLabelText("기타"), { target: { value: "__direct__" } });
     fireEvent.change(screen.getByLabelText("기타"), { target: { value: "Custom Guitar" } });
     fireEvent.click(screen.getAllByRole("button", { name: "목록으로" })[0]);
-    expect(screen.getByLabelText("기타")).toHaveValue("G250");
+    expect(screen.getByLabelText("기타")).toHaveValue("cort-g250");
 
     fireEvent.change(screen.getByLabelText("멀티이펙터"), { target: { value: "__direct__" } });
     fireEvent.change(screen.getByLabelText("멀티이펙터"), { target: { value: "Custom FX" } });
     fireEvent.click(screen.getByRole("button", { name: "목록으로" }));
-    expect(screen.getByLabelText("멀티이펙터")).toHaveValue("GP-150");
+    expect(screen.getByLabelText("멀티이펙터")).toHaveValue("valeton-gp150");
+  });
+
+  test("submits gear slug (not model) when selected from catalog", async () => {
+    render(<GenerateForm {...props} />);
+    fillText();
+    await submitResponse({ status: "queued", jobId: "job-x" });
+    const body = JSON.parse(vi.mocked(fetch).mock.calls[0]?.[1]?.body as string);
+    // resolver 는 slug 로 조회한다 — 드롭다운 선택값은 model 이 아니라 slug 여야 해소된다.
+    expect(body.guitar).toBe("cort-g250");
+    expect(body.processor).toBe("valeton-gp150");
   });
 
   test("shows server field errors and generic API errors", async () => {

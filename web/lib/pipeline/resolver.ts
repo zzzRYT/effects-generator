@@ -24,6 +24,35 @@ export function slugVariants(input: string): string[] {
   return Array.from(variants);
 }
 
+// slug 토큰화 — 문자↔숫자 경계 하이픈을 제거(gp-150→gp150)한 뒤 '-' 로 분할.
+// "cort-g250"→["cort","g250"], "valeton-gp-150"→["valeton","gp150"]. 브랜드 프리픽스 매칭용.
+export function slugTokens(slug: string): string[] {
+  return slugify(slug)
+    .replace(/-(?=[0-9])|(?<=[0-9])-/g, "")
+    .split("-")
+    .filter(Boolean);
+}
+
+// a 가 b 의 부분수열인가(순서 보존, 연속 불필요). ["g250"] ⊑ ["cort","g250"] = true.
+function isSubsequence(a: string[], b: string[]): boolean {
+  let i = 0;
+  for (const t of b) if (i < a.length && a[i] === t) i++;
+  return i === a.length;
+}
+
+// 3단 매칭(투영 정책): ① 정확/경계(slugVariants) → ② 토큰 부분수열.
+// bare 모델 입력("G250")을 브랜드 프리픽스 DB slug("cort-g250")에 해소한다.
+// 후보 중 첫 매치 반환(카탈로그는 어드민 큐레이션 소수 행 — 순서는 조회 정렬에 따름), 없으면 null.
+export function matchGear<T extends { slug: string }>(input: string, candidates: T[]): T | null {
+  const variants = new Set(slugVariants(input));
+  const exact = candidates.find((c) => variants.has(c.slug));
+  if (exact) return exact;
+
+  const inputTokens = slugTokens(input);
+  if (inputTokens.length === 0) return null;
+  return candidates.find((c) => isSubsequence(inputTokens, slugTokens(c.slug))) ?? null;
+}
+
 // 조회 결과 묶음. 신곡이면 songId=null(미등록 아님 — 캐논 생성으로 만든다). 기어 null 이면 미등록.
 export interface ResolverLookups {
   songId: string | null;
@@ -55,14 +84,13 @@ export interface ResolverDeps {
 
 const enc = encodeURIComponent;
 
-/** DB 조회 → resolveCore. songs/guitars/processors 를 병렬 조회(waterfall 회피). approved 기어만.
- * 기어는 slug 변형 집합으로 조회(정적/동적 규약 호환, 예: "gp-150" 또는 "gp150"). */
+/** DB 조회 → resolveCore. songs/guitars/processors 를 병렬 조회(waterfall 회피).
+ * songs 는 정규화 키로 좁혀 조회. 기어는 approved 전체를 받아 matchGear 로 3단 매칭한다
+ * (토큰 부분수열 tier 는 PostgREST in.() 로 표현 불가 — 소수 행이라 전체 fetch 비용 무시). */
 export async function resolveRequest(req: ToneRequest, deps: ResolverDeps = {}): Promise<ResolveResult> {
   const select = deps.select ?? sbSelect;
   const artist_norm = normArtist(req.artist);
   const title_norm = normTitle(req.title);
-  const guitarVariants = slugVariants(req.guitar);
-  const procVariants = slugVariants(req.processor);
 
   const [songs, guitars, processors] = await Promise.all([
     select<{ id: string }>(
@@ -71,17 +99,17 @@ export async function resolveRequest(req: ToneRequest, deps: ResolverDeps = {}):
     ),
     select<{ id: string; slug: string; body_archetype: BodyArchetype }>(
       "guitars",
-      `slug=in.(${guitarVariants.map(enc).join(",")})&status=eq.approved&select=id,slug,body_archetype`,
+      `status=eq.approved&select=id,slug,body_archetype`,
     ),
     select<{ id: string; slug: string }>(
       "processors",
-      `slug=in.(${procVariants.map(enc).join(",")})&status=eq.approved&select=id,slug`,
+      `status=eq.approved&select=id,slug`,
     ),
   ]);
 
   return resolveCore(req, {
     songId: songs[0]?.id ?? null,
-    guitar: guitars[0] ?? null,
-    processor: processors[0] ?? null,
+    guitar: matchGear(req.guitar, guitars),
+    processor: matchGear(req.processor, processors),
   });
 }
