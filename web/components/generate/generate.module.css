@@ -1,4 +1,5 @@
-/* 생성 폼 + 진행 UI — GP-150 패널 토큰 재사용(lib/tokens.css). 다크 패널·시안 포커스. */
+/* 생성 폼 + 진행 UI — Tone Forge 하드웨어 룩(디자인 TFGenerate 1a / TFGenerating 1b).
+ * 토큰은 lib/tokens.css. 클래스명은 GenerateForm/GenProgress 가 참조하므로 고정. */
 
 .hero {
   flex: 1;
@@ -15,30 +16,31 @@
 }
 
 .heroTitle {
-  font-size: clamp(2rem, 1.3rem + 3vw, 3.25rem);
-  font-weight: 700;
-  letter-spacing: -0.025em;
+  font-family: var(--font-display), sans-serif;
+  font-weight: 600;
+  font-size: clamp(2.25rem, 1.3rem + 3.4vw, 3.75rem);
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
   color: var(--text);
-  line-height: 1.05;
+  line-height: 1.02;
 }
 
 .heroSub {
-  margin-top: 0.7rem;
+  margin-top: 0.75rem;
   color: var(--text-muted);
   font-size: clamp(0.95rem, 0.9rem + 0.3vw, 1.1rem);
 }
 
-/* 폼 카드 — 본체 패널 위 모듈 표면 */
+/* 폼 카드 = 융기 섀시 유닛 */
 .form {
   display: grid;
-  gap: 1.1rem;
-  padding: clamp(1.25rem, 3vw, 1.75rem);
+  gap: 1.15rem;
+  padding: clamp(1.4rem, 3vw, 1.9rem);
   border: 1px solid var(--bezel);
-  border-radius: 8px;
-  background: var(--panel-2);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 4%),
-    0 8px 24px rgb(0 0 0 / 25%);
+  border-top-color: color-mix(in oklab, var(--chassis-500) 60%, var(--bezel));
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--chassis-800), var(--chassis-900));
+  box-shadow: var(--shadow-panel);
 }
 
 .field {
@@ -46,21 +48,26 @@
   gap: 0.4rem;
 }
 
+/* 실크스크린 라벨 */
 .label {
-  font-family: var(--font-geist-mono, monospace);
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
+  font-family: var(--font-mono), monospace;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--text-muted);
 }
 
+/* 입력 = 리세스 웰 */
 .input {
   min-height: 48px;
-  padding: 0.6rem 0.9rem;
-  border: 1px solid var(--bezel);
-  border-radius: var(--radius-module, 4px);
-  background: var(--panel);
+  padding: 0.6rem 0.95rem;
+  border: 1px solid var(--chassis-950);
+  border-radius: var(--radius-md);
+  background: var(--chassis-950);
+  box-shadow: var(--shadow-well);
   color: var(--text);
+  font-family: var(--font-body), sans-serif;
   font-size: 1rem;
 }
 
@@ -69,18 +76,48 @@
 }
 
 .input:focus-visible {
-  outline: 2px solid var(--color-dly);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
-  border-color: var(--color-amp);
+  border-color: var(--accent);
 }
 
 .input[aria-invalid="true"] {
-  border-color: var(--color-rvb);
+  border-color: var(--led-red);
 }
 
 .fieldErr {
+  font-family: var(--font-mono), monospace;
   color: var(--color-rvb);
-  font-size: 0.8rem;
+  font-size: var(--text-xs);
+}
+
+/* 입력 방식 전환(직접입력 ↔ 목록) — 작은 텍스트 토글 */
+.modeToggle {
+  justify-self: start;
+  min-height: 32px;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--bezel);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono), monospace;
+  font-size: var(--text-2xs);
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-mech),
+    border-color var(--dur-fast) var(--ease-mech);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .modeToggle:hover {
+    color: var(--text);
+    border-color: var(--accent);
+  }
+}
+
+.modeToggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* 허니팟 — 화면 밖(display:none 대신 off-screen, 일부 봇이 display:none 을 건너뛰므로). */
@@ -94,25 +131,32 @@
 }
 
 .formErr {
+  font-family: var(--font-mono), monospace;
   color: var(--color-rvb);
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
   text-align: center;
 }
 
-/* 주 액션 — 앰프 블루 채움, 검정 텍스트(토큰 대비 ≥4.5:1) */
+/* 주 액션 = 앰버 하드웨어 버튼(GEN) */
 .submit {
   min-height: 52px;
   margin-top: 0.25rem;
-  border: none;
-  border-radius: var(--radius-module, 4px);
-  background: var(--color-amp);
-  color: #0a0a0c;
-  font-size: 1.05rem;
+  border: 1px solid color-mix(in oklab, var(--amber-600) 80%, #000);
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, var(--amber-400), var(--amber-600));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 35%),
+    var(--glow-amber);
+  color: var(--chassis-950);
+  font-family: var(--font-mono), monospace;
+  font-size: var(--text-base);
   font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   cursor: pointer;
   transition:
-    filter var(--dur, 150ms) ease,
-    transform var(--dur, 150ms) ease;
+    filter var(--dur-fast) var(--ease-mech),
+    transform var(--dur-fast) var(--ease-mech);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -131,42 +175,123 @@
 }
 
 .submit:focus-visible {
-  outline: 2px solid var(--color-dly);
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
-/* 진행 화면 */
+/* ── 미지원 기어 안내 (unresolved) — 앰버 경고 명판 ────────────────── */
+.unresolved {
+  display: grid;
+  gap: 0.6rem;
+  justify-items: center;
+  padding: clamp(1.5rem, 4vw, 2.25rem) 1.25rem;
+  border: 1px solid var(--chassis-950);
+  border-left: 3px solid var(--amber-500);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--chassis-950), var(--chassis-900));
+  box-shadow: var(--shadow-well);
+  text-align: center;
+}
+
+.unresolvedTitle {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 600;
+  font-size: var(--text-xl);
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--amber-300);
+}
+
+.unresolvedDesc {
+  color: var(--text);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+}
+
+.unresolvedCta {
+  margin-top: 0.15rem;
+}
+
+.requestLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--amber-400);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.requestLink:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* 되돌아가기 — 융기 보조 버튼 */
+.backBtn {
+  min-height: 44px;
+  padding: 0.5rem 1.2rem;
+  border: 1px solid var(--bezel);
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, var(--chassis-700), var(--chassis-800));
+  box-shadow: var(--shadow-raised);
+  color: var(--text);
+  font-family: var(--font-mono), monospace;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-mech);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .backBtn:hover {
+    border-color: var(--accent);
+  }
+}
+
+.backBtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── 진행 화면 (TFGenerating) — 섀시 유닛 안의 LCD ─────────────────── */
 .progress {
   display: grid;
   justify-items: center;
-  gap: 0.9rem;
+  gap: 0.95rem;
   padding: clamp(2rem, 5vw, 3rem) 1.25rem;
   border: 1px solid var(--bezel);
-  border-radius: 8px;
-  background: var(--panel-2);
+  border-top-color: color-mix(in oklab, var(--chassis-500) 60%, var(--bezel));
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--chassis-800), var(--chassis-900));
+  box-shadow: var(--shadow-panel);
   text-align: center;
 }
 
 .progressText {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 500;
+  font-size: var(--text-xl);
+  letter-spacing: 0.01em;
   color: var(--text);
-  font-size: 1.05rem;
 }
 
 .progressSub {
   display: inline-flex;
   align-items: baseline;
   gap: 0.1rem;
+  font-family: var(--font-mono), monospace;
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
 }
 
 /* 순환 단계 라벨 — LCD 인광 톤, 모노. 교체 시 페이드인. */
 .stage {
-  font-family: var(--font-geist-mono, monospace);
-  font-size: 0.85rem;
+  font-family: var(--font-mono), monospace;
+  font-size: var(--text-sm);
   letter-spacing: 0.02em;
   color: var(--lcd-text);
-  animation: stage-in var(--dur, 240ms) ease-out;
+  text-shadow: 0 0 6px color-mix(in oklab, var(--lcd-text) 45%, transparent);
+  animation: stage-in var(--dur-base) var(--ease-mech);
 }
 
 @keyframes stage-in {
@@ -182,6 +307,7 @@
 
 .hint {
   color: var(--text-muted);
+  font-size: var(--text-sm);
 }
 
 /* 시각상 숨김, 스크린리더 전용 */
@@ -199,29 +325,31 @@
 
 .progressErr {
   color: var(--color-rvb);
-  font-size: 1rem;
+  font-size: var(--text-base);
 }
 
 .retry {
   min-height: 44px;
   padding: 0.5rem 1.2rem;
-  border: 1px solid var(--color-amp);
-  border-radius: var(--radius-module, 4px);
-  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, var(--chassis-700), var(--chassis-800));
+  box-shadow: var(--shadow-raised);
   color: var(--text);
-  font-size: 0.95rem;
+  font-family: var(--font-mono), monospace;
+  font-size: var(--text-sm);
   cursor: pointer;
 }
 
 .retry:focus-visible {
-  outline: 2px solid var(--color-dly);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
-/* 최근 톤 미리보기 */
+/* ── 최근 톤 미리보기 ────────────────────────────────────────────── */
 .recent {
   display: grid;
-  gap: 0.85rem;
+  gap: 0.9rem;
 }
 
 .recentHead {
@@ -232,14 +360,18 @@
 }
 
 .recentTitle {
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-family: var(--font-display), sans-serif;
+  font-weight: 500;
+  font-size: var(--text-lg);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   color: var(--text);
 }
 
 .recentMore {
-  font-size: 0.85rem;
-  color: var(--color-amp);
+  font-family: var(--font-mono), monospace;
+  font-size: var(--text-xs);
+  color: var(--amber-400);
   text-decoration: none;
 }
 
@@ -248,7 +380,7 @@
 }
 
 .recentMore:focus-visible {
-  outline: 2px solid var(--color-dly);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -264,7 +396,9 @@
   .stage {
     animation: none;
   }
-  .submit {
+  .submit,
+  .modeToggle,
+  .backBtn {
     transition: none;
   }
 }
