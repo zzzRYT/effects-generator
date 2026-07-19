@@ -1,9 +1,10 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
-// 동적 카탈로그(피벗 Phase 3) — 기능 + a11y(axe) + 반응형. 픽셀 스냅샷은 동적 데이터라 미사용.
-// 안정 시드(Oasis)로 상세를 검증한다. 카탈로그는 생성으로 계속 늘어 정확 카운트 대신 ≥ 단언.
-const OASIS_KEY = "g250-gp150/oasis-dont-look-back-in-anger";
+// 동적 카탈로그(R4 tones 기반) — 기능 + a11y(axe) + 반응형. 픽셀 스냅샷은 동적 데이터라 미사용.
+// 안정 시드(Oasis DLBIA, 5-role 적재)로 상세를 검증한다. 카운트·rig 는 라이브 데이터라 단언하지
+// 않고, data-key 는 rig 유무와 무관하게 slug 접미로 매칭한다(2026-07-18 현행화).
+const OASIS_ROW = '[data-key$="/oasis-dont-look-back-in-anger"]';
 const OASIS_DETAIL = "/songs/oasis-dont-look-back-in-anger";
 
 test.describe("홈 — 생성 폼", () => {
@@ -55,26 +56,26 @@ test.describe("홈 — 생성 폼", () => {
 });
 
 test.describe("톤 리스트 — /tones", () => {
-  test("시드 곡들이 렌더(≥7) + Oasis 존재", async ({ page }) => {
+  // 카탈로그는 라이브 tones 기반이라 정확 카운트 단언은 데이터 정리·축적에 취약 —
+  // 구조(목록 렌더)와 안정 시드(Oasis)만 단언한다(2026-07-18, 독푸딩 잔재 정리로 ≥7 폐기).
+  test("카탈로그 목록 렌더 + Oasis 존재", async ({ page }) => {
     await page.goto("/tones");
     await expect(page.locator("#song-list [data-key]")).not.toHaveCount(0);
-    const count = await page.locator("#song-list [data-key]").count();
-    expect(count).toBeGreaterThanOrEqual(7);
-    await expect(page.locator(`[data-key="${OASIS_KEY}"]`)).toBeVisible();
+    await expect(page.locator(OASIS_ROW)).toBeVisible();
   });
 
   test("검색이 행을 필터", async ({ page }) => {
     await page.goto("/tones");
     await page.getByRole("searchbox", { name: "곡 검색" }).fill("oasis");
-    await expect(page.locator(`[data-key="${OASIS_KEY}"]`)).toBeVisible();
-    // 다른 곡(muse)은 숨김
-    const muse = page.locator('[data-search*="muse"]');
-    if ((await muse.count()) > 0) await expect(muse.first()).toBeHidden();
+    await expect(page.locator(OASIS_ROW)).toBeVisible();
+    // 다른 곡(radwimps)은 숨김
+    const other = page.locator('[data-search*="radwimps"]');
+    if ((await other.count()) > 0) await expect(other.first()).toBeHidden();
   });
 
   test("Oasis 행 링크가 /songs/[slug] 로", async ({ page }) => {
     await page.goto("/tones");
-    const link = page.locator(`[data-key="${OASIS_KEY}"] a`);
+    const link = page.locator(`${OASIS_ROW} a`);
     await expect(link).toHaveAttribute("href", OASIS_DETAIL);
   });
 
@@ -88,16 +89,17 @@ test.describe("톤 리스트 — /tones", () => {
 });
 
 test.describe("곡 상세 — /songs/[slug] (Oasis 시드)", () => {
-  test("헤더 + 시그널 체인 + 변주 렌더", async ({ page }) => {
+  test("헤더 + role 5탭 + 시그널 체인 렌더", async ({ page }) => {
     await page.goto(OASIS_DETAIL);
     await expect(page.locator("h1")).toContainText("Don't Look Back");
-    const variations = page.locator('article[role="tabpanel"]');
-    await expect(variations).toHaveCount(3);
-    const firstChain = page
+    // R4 RoleTabs: role 5종 탭 + 활성 패널 1개(한 번에 하나).
+    await expect(page.getByRole("tab")).toHaveCount(5);
+    await expect(page.getByRole("tabpanel")).toBeVisible();
+    const chain = page
       .getByRole("list", { name: /시그널 체인/ })
       .first()
       .locator("> li");
-    await expect(firstChain).not.toHaveCount(0);
+    await expect(chain).not.toHaveCount(0);
   });
 
   test("없는 slug → 404", async ({ page }) => {
@@ -107,6 +109,11 @@ test.describe("곡 상세 — /songs/[slug] (Oasis 시드)", () => {
 
   test("axe 위반 0(비활성 블록 제외)", async ({ page }) => {
     await page.goto(OASIS_DETAIL);
+    // RoleTabs 패널 fadeIn(150ms) 도중 axe 가 중간 opacity 로 대비를 측정하는 레이스 방지 —
+    // 타임아웃이 아니라 실제 애니메이션 종료를 기다린다(결정적).
+    await page.evaluate(() =>
+      Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined))),
+    );
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa"])
       .exclude('article[data-enabled="false"]')

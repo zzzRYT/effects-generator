@@ -16,13 +16,16 @@ describe("StrumLoader", () => {
     expect(svg).toHaveAttribute("focusable", "false");
   });
 
-  it("각 현은 팔레트 색과 스트럼 시차(animation-delay)를 갖는다", () => {
+  it("각 현은 토큰 색과 스트럼 시차(animation-delay)를 갖는다", () => {
     const { container } = render(<StrumLoader />);
     const strings = Array.from(container.querySelectorAll("path"));
     // 첫 현은 시차 0, 이후 현은 0이 아닌 지연 → 다운스트럼.
     expect(strings[0].style.animationDelay).toBe("0s");
     expect(strings[5].style.animationDelay).not.toBe("0s");
-    // 색은 토큰 변수로 지정.
-    expect(strings[0].style.color).toContain("--color-");
+    // 색은 토큰 변수로 지정 — 섀시 금속 램프 + 앰버(정직한 기어색).
+    // 블록 타입색(--color-*)은 시그널 체인 길찾기 전용이라 여기 쓰지 않는다.
+    for (const s of strings) {
+      expect(s.style.color).toMatch(/var\(--(chassis|amber)-/);
+    }
   });
 });

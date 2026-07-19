@@ -16,7 +16,7 @@ export function BlockModule({ block }: BlockModuleProps) {
   const catLabel = block.category ? categoryLabel(block.category) : null;
   return (
     <article
-      className={styles.module}
+      className={`tf-panel ${styles.module}`}
       data-group={group}
       data-category={block.category ?? undefined}
       data-enabled={enabled}

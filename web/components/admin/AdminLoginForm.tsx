@@ -39,27 +39,29 @@ export function AdminLoginForm({ nextPath }: { nextPath: string }) {
 
   return (
     <form className={styles.form} onSubmit={submit}>
-      <label className={styles.label} htmlFor="admin-password">
-        관리자 비밀번호
-      </label>
-      <input
-        id="admin-password"
-        className={styles.input}
-        type="password"
-        value={password}
-        onChange={(event) => setPassword(event.target.value)}
-        autoComplete="current-password"
-        required
-        autoFocus
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error ? "admin-login-error" : undefined}
-      />
+      <div className={`tf-field`}>
+        <label className={`tf-field__label ${styles.label}`} htmlFor="admin-password">
+          관리자 비밀번호
+        </label>
+        <input
+          id="admin-password"
+          className={`tf-input ${styles.input}`}
+          type="password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          autoComplete="current-password"
+          required
+          autoFocus
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? "admin-login-error" : undefined}
+        />
+      </div>
       {error ? (
         <p id="admin-login-error" className={styles.error} role="alert">
           {error}
         </p>
       ) : null}
-      <button className={styles.submit} type="submit" disabled={submitting}>
+      <button className={`tf-btn tf-btn--primary ${styles.submit}`} type="submit" disabled={submitting}>
         {submitting ? "확인 중…" : "실험실 들어가기"}
       </button>
     </form>

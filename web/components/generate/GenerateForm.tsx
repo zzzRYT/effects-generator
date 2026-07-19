@@ -3,19 +3,30 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { GEN_MAX, type GenerateErrors } from "@/lib/generate/validate";
-import { decideAction, type GenerateApiResponse } from "@/lib/generate/decide-action";
+import {
+  decideAction,
+  type GenerateApiResponse,
+} from "@/lib/generate/decide-action";
 import { GenProgress } from "./GenProgress";
 import styles from "./generate.module.css";
 
 interface GenerateFormProps {
   guitars?: Array<{ id: string; slug: string; brand: string; model: string }>;
-  processors?: Array<{ id: string; slug: string; brand: string; model: string }>;
+  processors?: Array<{
+    id: string;
+    slug: string;
+    brand: string;
+    model: string;
+  }>;
 }
 
 // 생성 폼 — 아티스트+곡+기타+이펙터 입력 → /api/generate.
 // 캐시 히트면 연출 모드(GenProgress), 폴링이면 실시간 모드.
 // 미등록 기어면 요청 폼으로 유도(프리필).
-export function GenerateForm({ guitars = [], processors = [] }: GenerateFormProps) {
+export function GenerateForm({
+  guitars = [],
+  processors = [],
+}: GenerateFormProps) {
   const router = useRouter();
   const [artist, setArtist] = useState("");
   const [song, setSong] = useState("");
@@ -23,12 +34,17 @@ export function GenerateForm({ guitars = [], processors = [] }: GenerateFormProp
   const [guitar, setGuitar] = useState(guitars[0]?.slug || "");
   const [guitarMode, setGuitarMode] = useState<"select" | "direct">("select"); // UI 모드
   const [processor, setProcessor] = useState(processors[0]?.slug || "");
-  const [processorMode, setProcessorMode] = useState<"select" | "direct">("select"); // UI 모드
+  const [processorMode, setProcessorMode] = useState<"select" | "direct">(
+    "select",
+  ); // UI 모드
   const [errors, setErrors] = useState<GenerateErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
   const [stagedSlug, setStagedSlug] = useState<string | null>(null); // 캐시 히트 slug
-  const [unresolvedGear, setUnresolvedGear] = useState<Array<{ kind: string; query: string }> | null>(null); // 미등록 기어
+  const [unresolvedGear, setUnresolvedGear] = useState<Array<{
+    kind: string;
+    query: string;
+  }> | null>(null); // 미등록 기어
   const [submitting, setSubmitting] = useState(false);
   const honeypotRef = useRef<HTMLInputElement>(null); // 봇 트랩 — 숨김, 정상 사용자는 비움
 
@@ -128,21 +144,26 @@ export function GenerateForm({ guitars = [], processors = [] }: GenerateFormProp
 
   // 미등록 기어 — 요청 폼 프리필 링크로 유도
   if (unresolvedGear && unresolvedGear.length > 0) {
-    const gearList = unresolvedGear.map((g) => `${g.kind}: ${g.query}`).join(", ");
+    const gearList = unresolvedGear
+      .map((g) => `${g.kind}: ${g.query}`)
+      .join(", ");
     const requestUrl = `/request?song=${encodeURIComponent(gearList)}`;
     return (
-      <div className={styles.unresolved} role="alert">
+      <div className={`tf-panel ${styles.unresolved}`} role="alert">
         <p className={styles.unresolvedTitle}>지원 준비중이에요</p>
         <p className={styles.unresolvedDesc}>
           입력해주신 기어({gearList})는 아직 저희 라이브러리에 없어요.
         </p>
         <p className={styles.unresolvedCta}>
-          <a href={requestUrl} className={styles.requestLink}>
+          <a
+            href={requestUrl}
+            className={`tf-btn tf-btn--primary ${styles.requestLink}`}
+          >
             기어 추가 요청하기
           </a>
         </p>
         <button
-          className={styles.backBtn}
+          className={`tf-btn tf-btn--ghost ${styles.backBtn}`}
           type="button"
           onClick={() => {
             setUnresolvedGear(null);
@@ -156,7 +177,10 @@ export function GenerateForm({ guitars = [], processors = [] }: GenerateFormProp
   }
 
   return (
-    <form className={styles.form} onSubmit={onSubmit} noValidate>
+    <form className={`tf-panel ${styles.form}`} onSubmit={onSubmit} noValidate>
+      <span className="tf-panel__screws" aria-hidden="true">
+        <span />
+      </span>
       {/* 아티스트 */}
       <div className={styles.field}>
         <label className={styles.label} htmlFor="gen-artist">
@@ -164,7 +188,7 @@ export function GenerateForm({ guitars = [], processors = [] }: GenerateFormProp
         </label>
         <input
           id="gen-artist"
-          className={styles.input}
+          className={`tf-input ${styles.input}`}
           value={artist}
           onChange={(e) => setArtist(e.target.value)}
           placeholder="예: Oasis"
@@ -187,7 +211,7 @@ export function GenerateForm({ guitars = [], processors = [] }: GenerateFormProp
         </label>
         <input
           id="gen-song"
-          className={styles.input}
+          className={`tf-input ${styles.input}`}
           value={song}
           onChange={(e) => setSong(e.target.value)}
           placeholder="예: Don't Look Back in Anger"
@@ -211,7 +235,7 @@ export function GenerateForm({ guitars = [], processors = [] }: GenerateFormProp
         {guitarMode === "select" ? (
           <select
             id="gen-guitar"
-            className={styles.input}
+            className={`tf-select ${styles.input}`}
             value={guitar}
             onChange={(e) => {
               if (e.target.value === "__direct__") {
@@ -236,7 +260,7 @@ export function GenerateForm({ guitars = [], processors = [] }: GenerateFormProp
           <>
             <input
               id="gen-guitar"
-              className={styles.input}
+              className={`tf-input ${styles.input}`}
               value={guitar}
               onChange={(e) => setGuitar(e.target.value)}
               placeholder="예: Fender Stratocaster"
@@ -272,7 +296,7 @@ export function GenerateForm({ guitars = [], processors = [] }: GenerateFormProp
         {processorMode === "select" ? (
           <select
             id="gen-processor"
-            className={styles.input}
+            className={`tf-select ${styles.input}`}
             value={processor}
             onChange={(e) => {
               if (e.target.value === "__direct__") {
@@ -283,7 +307,9 @@ export function GenerateForm({ guitars = [], processors = [] }: GenerateFormProp
               }
             }}
             aria-invalid={errors.processor ? "true" : undefined}
-            aria-describedby={errors.processor ? "gen-processor-err" : undefined}
+            aria-describedby={
+              errors.processor ? "gen-processor-err" : undefined
+            }
           >
             <option value="">멀티이펙터 선택...</option>
             {processors.map((p) => (
@@ -297,14 +323,16 @@ export function GenerateForm({ guitars = [], processors = [] }: GenerateFormProp
           <>
             <input
               id="gen-processor"
-              className={styles.input}
+              className={`tf-input ${styles.input}`}
               value={processor}
               onChange={(e) => setProcessor(e.target.value)}
               placeholder="예: Boss GT-1"
               maxLength={GEN_MAX.processor}
               autoComplete="off"
               aria-invalid={errors.processor ? "true" : undefined}
-              aria-describedby={errors.processor ? "gen-processor-err" : undefined}
+              aria-describedby={
+                errors.processor ? "gen-processor-err" : undefined
+              }
             />
             <button
               type="button"
@@ -342,7 +370,11 @@ export function GenerateForm({ guitars = [], processors = [] }: GenerateFormProp
         </p>
       )}
 
-      <button className={styles.submit} type="submit" disabled={submitting}>
+      <button
+        className={`tf-btn tf-btn--primary tf-btn--lg ${styles.submit}`}
+        type="submit"
+        disabled={submitting}
+      >
         {submitting ? "생성 중…" : "톤 생성"}
       </button>
     </form>

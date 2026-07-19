@@ -1,0 +1,10 @@
+/* RADIUS — hardware corners are tight; enclosures get a modest bevel */
+:root {
+  --radius-none: 0;
+  --radius-sm: 3px;    /* chips, silkscreen boxes */
+  --radius-md: 5px;    /* buttons, inputs */
+  --radius-lg: 8px;    /* panels */
+  --radius-xl: 12px;   /* chassis enclosure */
+  --radius-pill: 999px;
+  --radius-round: 50%; /* knobs, LEDs, jacks */
+}

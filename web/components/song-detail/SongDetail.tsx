@@ -40,7 +40,7 @@ export function SongDetail({ song: songProp }: SongDetailProps) {
     return (
       <main className={styles.detail}>
         <nav className={styles.backNav} aria-label="곡 목록으로">
-          <Link className={styles.backLink} href="/">
+          <Link className={`tf-btn tf-btn--ghost ${styles.backLink}`} href="/">
             ← 곡 목록
           </Link>
         </nav>
@@ -57,7 +57,7 @@ export function SongDetail({ song: songProp }: SongDetailProps) {
   return (
     <main className={styles.detail}>
       <nav className={styles.backNav} aria-label="곡 목록으로">
-        <Link className={styles.backLink} href="/">
+        <Link className={`tf-btn tf-btn--ghost ${styles.backLink}`} href="/">
           ← 곡 목록
         </Link>
       </nav>

@@ -1,111 +1,185 @@
-/* Tone Forge 하드웨어 스킨 — 다크 단일 테마 토큰 (단일 출처).
- * 디자인 권위: ToneForgeRig.dc.html (근흑색 섀시 + 앰버 크롬 + LED/LCD/Display).
+/* Tone Forge — 디자인 토큰 단일 출처.
  *
- * 하이브리드 색 정책(docs/goal-toneforge-convergence.md):
- *   섀시/크롬 = 앰버 단일 악센트,  블록 타입 식별 = per-type hue 유지(데이터 계약 §2).
+ * 권위 = Claude Design 프로젝트 "Tone Forge Design System"
+ * (로컬 미러: docs/design-system/, 규칙: docs/design-system/RULES.md).
+ * 언어 = 투박한 하드웨어 스큐어모피즘 — 니어블랙 섀시 + 앰버 진공관 글로우 단일 악센트 +
+ * 실크스크린 대문자 라벨 + 융기(raised) vs 함몰(recessed) 릴리프.
  *
- * 확정 색은 lib/__tests__/tokens.test.ts 가 data-contract-ui.md §1 불변
- * (악센트 vs 배경 명도차 ≥0.20, 배지/본문/LCD 텍스트 대비 ≥4.5:1)을 자동 검증한다.
- * 이 파일의 토큰 이름(--panel/--panel-2/--bezel/--lcd/--text/--text-muted/--lcd-text/
- * --led-on/off/--color-*)은 테스트·컴포넌트가 참조하므로 이름은 고정, 값만 리맵한다. */
+ * 확정값은 lib/__tests__/tokens.test.ts 가 data-contract-ui.md §1 불변 제약
+ * (악센트 vs 배경 명도차 ≥0.20, 배지/텍스트 대비 ≥4.5:1)을 자동 검증한다. */
 
 :root {
-  /* ── 섀시 스케일 (근흑색 → 실크스크린) ─────────────────────── */
-  --chassis-950: #0d0d0f; /* 리세스 웰 바닥 */
-  --chassis-900: #131316; /* 유닛 본체 = 앱 배경 */
-  --chassis-800: #1b1b1f; /* 블록 모듈 raised 표면 */
-  --chassis-700: #24242a; /* 융기 컨트롤 표면 */
-  --chassis-600: #2e2e35; /* 베젤/구분선 */
-  --chassis-500: #3a3a42; /* 하이라이트 엣지 */
-  --silkscreen: #ece7d8; /* 실크스크린 인쇄(따뜻한 오프화이트) */
+  /* ── 섀시 뉴트럴 램프 (어두움 → 밝음) ─────────────────────────── */
+  --chassis-900: #131316; /* 최심부 인클로저 그림자 */
+  --chassis-800: #1a1a1e; /* 본체 섀시 */
+  --chassis-700: #232328; /* 융기 패널 */
+  --chassis-600: #2d2d33; /* 컨트롤 웰 / 함몰면 */
+  --chassis-500: #3a3a41; /* 헤어라인 / 금속 구분선 */
+  --chassis-400: #575760; /* 흐린 각인 */
+  --chassis-300: #83838d; /* 보조 라벨 */
+  --chassis-200: #b6b6bd; /* 브러시드 스틸 */
+  --chassis-100: #d8d8dc; /* 폴리시 하이라이트 */
+  --silkscreen: #ece7d8; /* 크림 실크스크린 인쇄 */
 
-  /* ── 앰버 크롬 (단일 악센트) ──────────────────────────────── */
+  /* ── 앰버 진공관 글로우 — 유일한 브랜드 악센트 ────────────────── */
   --amber-700: #a8560a;
   --amber-600: #d97613;
-  --amber-500: #f59422; /* 기본 악센트 */
+  --amber-500: #f59422; /* 기준 앰버 */
   --amber-400: #ffab3d;
   --amber-300: #ffc470;
   --amber-glow: #ffb347;
-  --accent: var(--amber-500);
-  --accent-dim: var(--amber-700);
 
-  /* ── 표면 (섀시 스케일의 시맨틱 별칭) ─────────────────────── */
-  --panel: #131316; /* 유닛 본체 */
-  --panel-2: #1b1b1f; /* 블록 모듈 표면 */
-  --bezel: #2e2e35; /* 모듈 베젤/구분선 */
-  --lcd: #0a1512; /* LCD 배경(녹청 틴트) */
-
-  /* ── 텍스트 (고대비) ─────────────────────────────────────── */
-  --text: #ece7d8; /* 본문/라벨(실크스크린) — 패널 대비 ≥4.5:1 */
-  --text-muted: #a8a29e; /* 보조 — 패널·LCD 대비 ≥4.5:1 */
-  --lcd-text: #7dffcb; /* LCD 인광 수치 — LCD 대비 ≥4.5:1 */
-
-  /* ── 상태 LED ───────────────────────────────────────────── */
-  --led-on: #34d158; /* enabled 점등(그린) */
-  --led-off: #24242a; /* enabled=false 소등 dot */
-  --led-red: #ff3b30;
-  --led-blue: #2f8fff;
+  /* ── LED 시맨틱 색 ──────────────────────────────────────────── */
+  --led-red: #ff3b30; /* 클립 / 바이패스-오프 */
+  --led-red-dim: #7a1c17;
+  --led-green: #34d158; /* 시그널 정상 / 인게이지 */
+  --led-green-dim: #14501f;
+  --led-blue: #2f8fff; /* 모듈레이션 / 정보 */
+  --led-blue-dim: #123a66;
   --led-amber: #ffab3d;
+  --led-amber-dim: #6b3a05;
 
-  /* ── 블록 타입 악센트 (per-type hue 유지 — 다크 위 발광) ──── */
-  --color-od: #fb923c; /* OD/BOOST/DST/FUZZ — 드라이브(주황) */
-  --color-amp: #60a5fa; /* AMP(파랑) */
-  --color-cab: #a78bfa; /* CAB(보라) */
-  --color-dly: #22d3ee; /* DLY(시안) */
-  --color-rvb: #f472b6; /* RVB(핑크) */
-  --color-mod: #34d399; /* MOD/FILTER/WAH/PITCH(초록) */
-  --color-util: #a8a29e; /* NR/COMP/EQ/VOL(회색) */
+  /* ── 시맨틱 표면·텍스트 별칭 ────────────────────────────────── */
+  --bg-app: var(--chassis-900);
+  --surface-chassis: var(--chassis-800);
+  --surface-panel: var(--chassis-700);
+  --surface-well: var(--chassis-600);
+  --surface-raised: var(--chassis-500);
+  --border-metal: var(--chassis-500);
+  --border-engrave: var(--chassis-600);
+  --divider: var(--chassis-600);
 
-  /* ── 타이포그래피 ───────────────────────────────────────── */
-  /* 실제 폰트 변수(--font-display/body/mono)는 app/layout.tsx 의 next/font 가 html 에 주입.
-     아래는 아직 리스킨 안 한 화면(--font-geist-*)을 새 폰트로 승격하는 legacy 별칭. */
-  --font-geist-sans: var(--font-body);
-  --font-geist-mono: var(--font-mono);
+  --text-label: var(--silkscreen);
+  --text-body: var(--chassis-200);
+  --text-faint: var(--chassis-400);
+  --text-on-accent: #201200;
 
-  --tracking-label: 0.14em; /* 실크스크린 라벨 자간 */
-  --tracking-tight: -0.02em;
+  --accent: var(--amber-500);
+  --accent-hover: var(--amber-400);
+  --accent-press: var(--amber-600);
+  --accent-glow: var(--amber-glow);
 
-  --text-2xs: 0.625rem; /* 10px */
-  --text-xs: 0.75rem; /* 12px — 최소 가독 */
-  --text-sm: 0.8125rem; /* 13px */
-  --text-base: 0.9375rem; /* 15px */
-  --text-lg: 1.125rem; /* 18px */
-  --text-xl: 1.375rem; /* 22px */
-  --text-2xl: 1.75rem; /* 28px */
+  --danger: var(--led-red);
+  --success: var(--led-green);
+  --info: var(--led-blue);
 
-  /* ── 간격·모양 ─────────────────────────────────────────── */
-  --radius-sm: 3px;
-  --radius-md: 5px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
+  /* ── LCD 리드아웃 ───────────────────────────────────────────── */
+  --lcd-bg: #0a1512;
+  --lcd-dim: #1f4a3c;
+
+  /* ── 레거시 별칭 (앱 전역이 쓰는 이름 — 새 램프에 매핑) ────────── */
+  --panel: #1a1a1e; /* = chassis-800, 유닛 본체. 토큰 테스트 기준 배경 */
+  --panel-2: #232328; /* = chassis-700, 블록 모듈 표면 */
+  --bezel: #3a3a41; /* = chassis-500, 모듈 베젤/구분선 */
+  --lcd: #0a1512; /* LCD 격자 배경 */
+  --text: #ece7d8; /* = silkscreen. 패널 대비 14.0:1 */
+  --text-muted: #83838d; /* = chassis-300. 패널 대비 4.6:1 */
+  --lcd-text: #7dffcb; /* 인광 녹색. LCD 대비 15.1:1 */
+  --led-on: #34d158; /* enabled 점등 */
+  --led-off: #3a3a40; /* enabled=false 소등 dot */
+
+  /* ── 블록 타입 악센트 ────────────────────────────────────────
+   * 앰버가 유일한 *브랜드* 악센트라는 DS 규칙을 지키면서도 12개 GP-150 모듈의
+   * 길찾기를 유지하기 위해, 타입 색은 네온을 걷어내고 실제 도장 인클로저 톤으로
+   * 채도를 낮춘 램프를 쓴다. CTA·포커스·활성 상태에는 절대 쓰지 않는다(= 앰버 전용).
+   * 전부 패널과 명도차 ≥0.20, 배지 텍스트 대비 ≥8:1. */
+  --color-od: #e8944a; /* OD/BOOST/DST/FUZZ — 드라이브 (웜 앰버오렌지) */
+  --color-amp: #7ea6d4; /* AMP (더스티 블루) */
+  --color-cab: #a99ac4; /* CAB (뮤티드 바이올렛) */
+  --color-dly: #6fc0c4; /* DLY (틸) */
+  --color-rvb: #d792a8; /* RVB (더스티 로즈) */
+  --color-mod: #7fc49a; /* MOD/FILTER/WAH/PITCH (세이지) */
+  --color-util: #b6b6bd; /* NR/COMP/EQ/VOL (브러시드 스틸) */
+
+  /* ── 타이포 ─────────────────────────────────────────────────
+   * Oswald = 실크스크린 디스플레이/라벨, Barlow = 본문, Space Mono = 모든 수치.
+   * 실제 폰트 로딩은 app/layout.tsx 의 next/font (self-host, display=swap). */
+  --font-display: var(--font-oswald), 'Arial Narrow', sans-serif;
+  --font-body: var(--font-barlow), system-ui, sans-serif;
+  --font-mono: var(--font-space-mono), ui-monospace, monospace;
+
+  --text-2xs: 10px;
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 19px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+  --text-3xl: 44px;
+  --text-4xl: 60px;
+  --text-5xl: 84px;
+
+  --leading-tight: 1.05;
+  --leading-snug: 1.2;
+  --leading-normal: 1.5;
+
+  --tracking-label: 0.14em; /* 실크스크린 라벨은 대문자 + 자간 */
+  --tracking-wide: 0.06em;
+  --tracking-normal: 0;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* ── 간격 — 4px 그리드 ──────────────────────────────────────── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  --control-gap: 20px; /* 노브/스위치 간격 */
+  --panel-pad: 24px; /* 섀시 패널 내부 패딩 */
+  --gap-block: 12px; /* 시그널 체인 블록 간격 */
+
+  /* ── 라운드 — 하드웨어 모서리는 타이트하다 ──────────────────── */
+  --radius-sm: 3px; /* 칩 / 실크스크린 박스 */
+  --radius-md: 5px; /* 버튼 / 인풋 */
+  --radius-lg: 8px; /* 패널 */
+  --radius-xl: 12px; /* 섀시 인클로저 */
   --radius-pill: 999px;
-  --radius-round: 50%;
-  --radius-module: 5px; /* 블록 모듈(legacy 별칭) */
-  --gap-block: 0.75rem;
-  --screw: 7px; /* 코너 스크류 지름 */
+  --radius-round: 50%; /* 노브 / LED / 잭 */
+  --radius-module: 5px; /* 시그널 체인 모듈 (레거시 이름) */
 
-  /* ── 그림자 (하드웨어 깊이) ─────────────────────────────── */
+  /* ── 릴리프 — 융기 vs 함몰이 이 언어의 핵심 기제 ───────────── */
   --shadow-panel:
-    0 1px 0 rgb(255 255 255 / 4%) inset, 0 2px 6px rgb(0 0 0 / 45%),
-    0 12px 28px rgb(0 0 0 / 35%);
+    0 2px 4px rgb(0 0 0 / 0.5), 0 8px 24px rgb(0 0 0 / 0.45),
+    inset 0 1px 0 rgb(255 255 255 / 0.06);
   --shadow-raised:
-    0 1px 0 rgb(255 255 255 / 6%) inset, 0 1px 3px rgb(0 0 0 / 50%);
+    0 1px 2px rgb(0 0 0 / 0.6), inset 0 1px 0 rgb(255 255 255 / 0.08);
   --shadow-well:
-    0 2px 5px rgb(0 0 0 / 55%) inset, 0 1px 0 rgb(255 255 255 / 4%);
+    inset 0 2px 6px rgb(0 0 0 / 0.7), inset 0 -1px 0 rgb(255 255 255 / 0.04);
+  --shadow-button:
+    0 3px 0 rgb(0 0 0 / 0.55), 0 5px 10px rgb(0 0 0 / 0.4),
+    inset 0 1px 0 rgb(255 255 255 / 0.12);
+  --shadow-button-press:
+    0 1px 0 rgb(0 0 0 / 0.55), inset 0 2px 5px rgb(0 0 0 / 0.5);
   --shadow-knob:
-    0 1px 2px rgb(0 0 0 / 55%), 0 0 0 1px rgb(0 0 0 / 30%) inset;
+    0 4px 8px rgb(0 0 0 / 0.55), inset 0 2px 3px rgb(255 255 255 / 0.14),
+    inset 0 -3px 6px rgb(0 0 0 / 0.5);
 
-  /* ── 글로우 (LED/악센트 발광, 절제) ────────────────────── */
-  --glow-amber: 0 0 6px rgb(245 148 34 / 55%);
-  --glow-green: 0 0 6px rgb(52 209 88 / 60%);
-  --glow-red: 0 0 6px rgb(255 59 48 / 55%);
+  /* LED 블룸 — 은은하게(정직한 기어색). 네온 금지. */
+  --glow-amber: 0 0 4px rgb(255 179 71 / 0.5);
+  --glow-red: 0 0 4px rgb(255 59 48 / 0.5);
+  --glow-green: 0 0 4px rgb(52 209 88 / 0.5);
 
-  /* ── 모션 ──────────────────────────────────────────────── */
+  /* 브러시드 메탈 표면 — 이미지 없음, 전부 CSS 그라디언트 */
+  --metal-panel: linear-gradient(180deg, #262630 0%, #232328 45%, #1e1e23 100%);
+  --metal-chassis: linear-gradient(180deg, #1d1d22 0%, #17171b 100%);
+
+  /* ── 모션 — 기계적이고 스냅. 긴 페이드·바운스·패럴랙스 금지 ──── */
   --ease-mech: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --ease-click: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-click: cubic-bezier(0.4, 0, 0.6, 1);
   --dur-instant: 80ms;
   --dur-fast: 140ms;
   --dur-base: 220ms;
   --dur-slow: 360ms;
-  --dur: 150ms; /* legacy 별칭(song-detail 등) */
 }

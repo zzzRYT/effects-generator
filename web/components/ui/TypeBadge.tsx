@@ -13,7 +13,7 @@ export function TypeBadge({ type, category }: TypeBadgeProps) {
   const { cssVar, abbr, textColor } = blockTypeToken(type, category);
   return (
     <span
-      className={styles.badge}
+      className={`tf-badge ${styles.badge}`}
       style={{ backgroundColor: `var(${cssVar})`, color: textColor }}
     >
       {abbr}

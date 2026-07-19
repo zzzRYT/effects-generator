@@ -1,12 +1,16 @@
-/* 생성 폼 + 진행 UI — Tone Forge 하드웨어 룩(디자인 TFGenerate 1a / TFGenerating 1b).
- * 토큰은 lib/tokens.css. 클래스명은 GenerateForm/GenProgress 가 참조하므로 고정. */
+/* 생성 폼 + 진행 UI — Tone Forge 하드웨어 언어.
+ * 프리미티브(패널 릴리프/버튼/웰 인풋)는 lib/hardware.css 의 .tf-* 전역 클래스를 쓰고,
+ * 여기에는 이 화면 고유의 레이아웃·상태만 둔다.
+ *
+ * 색 규칙: 인터랙션·CTA·포커스 = 앰버 단일 악센트. 에러 = LED 레드.
+ * 블록 타입색(--color-*)은 시그널 체인 길찾기 전용이라 이 화면에 등장하지 않는다. */
 
 .hero {
   flex: 1;
   width: 100%;
   max-width: 640px;
   margin: 0 auto;
-  padding: clamp(2.5rem, 7vw, 5.5rem) 1.25rem;
+  padding: clamp(2.5rem, 7vw, 4.5rem) var(--space-5);
   display: grid;
   gap: clamp(1.75rem, 4vw, 2.75rem);
 }
@@ -15,109 +19,61 @@
   text-align: center;
 }
 
+/* 디스플레이 = 콘덴스드 실크스크린. 패널에 찍힌 기기명처럼 크게. */
 .heroTitle {
-  font-family: var(--font-display), sans-serif;
-  font-weight: 600;
-  font-size: clamp(2.25rem, 1.3rem + 3.4vw, 3.75rem);
-  letter-spacing: var(--tracking-tight);
+  font-family: var(--font-display);
+  font-size: clamp(var(--text-2xl), 1.3rem + 3vw, var(--text-3xl));
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  color: var(--text);
-  line-height: 1.02;
+  color: var(--silkscreen);
+  line-height: var(--leading-tight);
 }
 
 .heroSub {
-  margin-top: 0.75rem;
+  margin-top: var(--space-3);
   color: var(--text-muted);
-  font-size: clamp(0.95rem, 0.9rem + 0.3vw, 1.1rem);
+  font-size: clamp(0.95rem, 0.9rem + 0.3vw, var(--text-lg));
 }
 
-/* 폼 카드 = 융기 섀시 유닛 */
+/* 폼 = 섀시 패널. 릴리프·나사는 .tf-panel 이 담당하고 여기선 배치만. */
 .form {
   display: grid;
-  gap: 1.15rem;
-  padding: clamp(1.4rem, 3vw, 1.9rem);
-  border: 1px solid var(--bezel);
-  border-top-color: color-mix(in oklab, var(--chassis-500) 60%, var(--bezel));
-  border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, var(--chassis-800), var(--chassis-900));
-  box-shadow: var(--shadow-panel);
+  gap: var(--space-5);
+  padding: clamp(1.75rem, 4vw, 2rem);
 }
 
 .field {
   display: grid;
-  gap: 0.4rem;
+  gap: 6px;
 }
 
-/* 실크스크린 라벨 */
+/* 실크스크린 라벨 — 각인 톤. */
 .label {
-  font-family: var(--font-mono), monospace;
-  font-size: var(--text-xs);
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-label);
 }
 
-/* 입력 = 리세스 웰 */
+/* 인풋/셀렉트의 릴리프는 .tf-input / .tf-select 가 준다. 터치 타깃만 여기서 보강. */
 .input {
-  min-height: 48px;
-  padding: 0.6rem 0.95rem;
-  border: 1px solid var(--chassis-950);
-  border-radius: var(--radius-md);
-  background: var(--chassis-950);
-  box-shadow: var(--shadow-well);
-  color: var(--text);
-  font-family: var(--font-body), sans-serif;
-  font-size: 1rem;
+  min-height: 44px;
 }
 
-.input::placeholder {
-  color: var(--text-muted);
-}
-
-.input:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-color: var(--accent);
-}
-
-.input[aria-invalid="true"] {
+.input[aria-invalid='true'] {
   border-color: var(--led-red);
+  box-shadow:
+    var(--shadow-well),
+    0 0 0 1px var(--led-red);
 }
 
 .fieldErr {
-  font-family: var(--font-mono), monospace;
-  color: var(--color-rvb);
+  color: #ff6f66;
+  font-family: var(--font-mono);
   font-size: var(--text-xs);
-}
-
-/* 입력 방식 전환(직접입력 ↔ 목록) — 작은 텍스트 토글 */
-.modeToggle {
-  justify-self: start;
-  min-height: 32px;
-  padding: 0.2rem 0.55rem;
-  border: 1px solid var(--bezel);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text-muted);
-  font-family: var(--font-mono), monospace;
-  font-size: var(--text-2xs);
-  letter-spacing: 0.03em;
-  cursor: pointer;
-  transition: color var(--dur-fast) var(--ease-mech),
-    border-color var(--dur-fast) var(--ease-mech);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .modeToggle:hover {
-    color: var(--text);
-    border-color: var(--accent);
-  }
-}
-
-.modeToggle:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 /* 허니팟 — 화면 밖(display:none 대신 off-screen, 일부 봇이 display:none 을 건너뛰므로). */
@@ -131,139 +87,27 @@
 }
 
 .formErr {
-  font-family: var(--font-mono), monospace;
-  color: var(--color-rvb);
+  color: #ff6f66;
   font-size: var(--text-sm);
   text-align: center;
 }
 
-/* 주 액션 = 앰버 하드웨어 버튼(GEN) */
+/* 주 액션 — 앰버 풋스위치. 릴리프·눌림은 .tf-btn 이 담당. */
 .submit {
-  min-height: 52px;
-  margin-top: 0.25rem;
-  border: 1px solid color-mix(in oklab, var(--amber-600) 80%, #000);
-  border-radius: var(--radius-md);
-  background: linear-gradient(180deg, var(--amber-400), var(--amber-600));
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 35%),
-    var(--glow-amber);
-  color: var(--chassis-950);
-  font-family: var(--font-mono), monospace;
-  font-size: var(--text-base);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition:
-    filter var(--dur-fast) var(--ease-mech),
-    transform var(--dur-fast) var(--ease-mech);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .submit:hover:not(:disabled) {
-    filter: brightness(1.08);
-  }
-}
-
-.submit:active:not(:disabled) {
-  transform: translateY(1px);
+  width: 100%;
+  margin-top: var(--space-1);
 }
 
 .submit:disabled {
-  opacity: 0.6;
   cursor: progress;
 }
 
-.submit:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
-}
-
-/* ── 미지원 기어 안내 (unresolved) — 앰버 경고 명판 ────────────────── */
-.unresolved {
-  display: grid;
-  gap: 0.6rem;
-  justify-items: center;
-  padding: clamp(1.5rem, 4vw, 2.25rem) 1.25rem;
-  border: 1px solid var(--chassis-950);
-  border-left: 3px solid var(--amber-500);
-  border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, var(--chassis-950), var(--chassis-900));
-  box-shadow: var(--shadow-well);
-  text-align: center;
-}
-
-.unresolvedTitle {
-  font-family: var(--font-display), sans-serif;
-  font-weight: 600;
-  font-size: var(--text-xl);
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
-  color: var(--amber-300);
-}
-
-.unresolvedDesc {
-  color: var(--text);
-  font-size: var(--text-sm);
-  line-height: 1.6;
-}
-
-.unresolvedCta {
-  margin-top: 0.15rem;
-}
-
-.requestLink {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  color: var(--amber-400);
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.requestLink:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* 되돌아가기 — 융기 보조 버튼 */
-.backBtn {
-  min-height: 44px;
-  padding: 0.5rem 1.2rem;
-  border: 1px solid var(--bezel);
-  border-radius: var(--radius-md);
-  background: linear-gradient(180deg, var(--chassis-700), var(--chassis-800));
-  box-shadow: var(--shadow-raised);
-  color: var(--text);
-  font-family: var(--font-mono), monospace;
-  font-size: var(--text-sm);
-  cursor: pointer;
-  transition: border-color var(--dur-fast) var(--ease-mech);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .backBtn:hover {
-    border-color: var(--accent);
-  }
-}
-
-.backBtn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* ── 진행 화면 (TFGenerating) — 섀시 유닛 안의 LCD ─────────────────── */
+/* ── 진행 화면 ─────────────────────────────────────────────── */
 .progress {
   display: grid;
   justify-items: center;
-  gap: 0.95rem;
-  padding: clamp(2rem, 5vw, 3rem) 1.25rem;
-  border: 1px solid var(--bezel);
-  border-top-color: color-mix(in oklab, var(--chassis-500) 60%, var(--bezel));
-  border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, var(--chassis-800), var(--chassis-900));
-  box-shadow: var(--shadow-panel);
+  gap: var(--space-3);
+  padding: clamp(2rem, 5vw, 3rem) var(--space-5);
   text-align: center;
 }
 
@@ -273,24 +117,28 @@
   font-size: var(--text-xl);
   letter-spacing: 0.01em;
   color: var(--text);
+  font-size: var(--text-base);
 }
 
 .progressSub {
   display: inline-flex;
   align-items: baseline;
   gap: 0.1rem;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-mono);
   color: var(--text-muted);
   font-size: var(--text-sm);
 }
 
-/* 순환 단계 라벨 — LCD 인광 톤, 모노. 교체 시 페이드인. */
+/* 순환 단계 라벨 — LCD 인광 리드아웃. 실제 LCD 창처럼 함몰 웰 안에 앉힌다. */
 .stage {
-  font-family: var(--font-mono), monospace;
+  padding: 6px var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--lcd-bg);
+  box-shadow: var(--shadow-well);
+  font-family: var(--font-mono);
   font-size: var(--text-sm);
-  letter-spacing: 0.02em;
+  letter-spacing: var(--tracking-wide);
   color: var(--lcd-text);
-  text-shadow: 0 0 6px color-mix(in oklab, var(--lcd-text) 45%, transparent);
   animation: stage-in var(--dur-base) var(--ease-mech);
 }
 
@@ -324,64 +172,53 @@
 }
 
 .progressErr {
-  color: var(--color-rvb);
+  color: #ff6f66;
   font-size: var(--text-base);
 }
 
+/* 재시도 — 고스트 버튼(.tf-btn--ghost)이 릴리프를 담당. */
 .retry {
   min-height: 44px;
-  padding: 0.5rem 1.2rem;
-  border: 1px solid var(--accent);
-  border-radius: var(--radius-md);
-  background: linear-gradient(180deg, var(--chassis-700), var(--chassis-800));
-  box-shadow: var(--shadow-raised);
-  color: var(--text);
-  font-family: var(--font-mono), monospace;
-  font-size: var(--text-sm);
-  cursor: pointer;
 }
 
-.retry:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* ── 최근 톤 미리보기 ────────────────────────────────────────────── */
+/* ── 최근 톤 미리보기 ──────────────────────────────────────── */
 .recent {
   display: grid;
-  gap: 0.9rem;
+  gap: var(--space-3);
 }
 
 .recentHead {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--space-4);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--divider);
 }
 
 .recentTitle {
-  font-family: var(--font-display), sans-serif;
-  font-weight: 500;
-  font-size: var(--text-lg);
-  letter-spacing: 0.02em;
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--text);
+  color: var(--text-label);
 }
 
 .recentMore {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-display);
   font-size: var(--text-xs);
-  color: var(--amber-400);
-  text-decoration: none;
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--accent);
+  transition: color var(--dur-fast) var(--ease-mech);
 }
 
-.recentMore:hover {
-  text-decoration: underline;
-}
-
-.recentMore:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+@media (hover: hover) and (pointer: fine) {
+  .recentMore:hover {
+    color: var(--accent-hover);
+  }
 }
 
 .recentList {
@@ -389,16 +226,48 @@
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 0.6rem;
+  gap: var(--space-2);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .stage {
     animation: none;
   }
-  .submit,
-  .modeToggle,
-  .backBtn {
-    transition: none;
-  }
+}
+
+/* ── 미등록 기어 안내 ──────────────────────────────────────────
+ * 생성 대신 문의 폼으로 유도하는 종착 화면. 패널 릴리프는 .tf-panel. */
+.unresolved {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  padding: clamp(2rem, 5vw, 2.75rem) var(--space-5);
+  text-align: center;
+}
+
+.unresolvedTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-label);
+}
+
+.unresolvedDesc {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}
+
+.unresolvedCta {
+  margin-top: var(--space-2);
+}
+
+.requestLink {
+  text-decoration: none;
+}
+
+.backBtn {
+  min-height: 44px;
 }

@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { decideJobAction, shouldNavigateFromStaged, type JobStatusResponse } from "@/lib/generate/decide-action";
+import {
+  decideJobAction,
+  shouldNavigateFromStaged,
+  type JobStatusResponse,
+} from "@/lib/generate/decide-action";
 import { StrumLoader } from "./StrumLoader";
 import styles from "./generate.module.css";
 
@@ -21,7 +25,13 @@ interface GenProgressProps {
 
 // 생성 진행 — /api/jobs/[id] 폴링. done/ready 면 상세로 이동, failed/timeout 이면 안내 + 재시도.
 // 캐시 히트(stagedSlug)면 연출 모드: MIN_STAGED_MS 동안 단계 순환 후 네비게이션.
-export function GenProgress({ jobId, artist, song, onReset, stagedSlug }: GenProgressProps) {
+export function GenProgress({
+  jobId,
+  artist,
+  song,
+  onReset,
+  stagedSlug,
+}: GenProgressProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [stageIndex, setStageIndex] = useState(0);
@@ -111,9 +121,13 @@ export function GenProgress({ jobId, artist, song, onReset, stagedSlug }: GenPro
 
   if (error) {
     return (
-      <div className={styles.progress} role="alert">
+      <div className={`tf-panel ${styles.progress}`} role="alert">
         <p className={styles.progressErr}>{error}</p>
-        <button className={styles.retry} type="button" onClick={onReset}>
+        <button
+          className={`tf-btn tf-btn--ghost ${styles.retry}`}
+          type="button"
+          onClick={onReset}
+        >
           다시 시도
         </button>
       </div>
@@ -127,14 +141,20 @@ export function GenProgress({ jobId, artist, song, onReset, stagedSlug }: GenPro
       : "톤을 만드는 중...";
 
   return (
-    <div className={styles.progress} role="status" aria-live="polite">
+    <div
+      className={`tf-panel ${styles.progress}`}
+      role="status"
+      aria-live="polite"
+    >
       <StrumLoader />
       <p className={styles.progressText}>
         <strong>{artist}</strong> — {song}
       </p>
       <p className={styles.progressSub}>
         {/* 스크린리더용 안정 문장 1회 안내. 순환 단계는 시각 전용(2.8s 마다 재낭독 방지). */}
-        <span className={styles.srOnly}>톤을 만드는 중이에요. 최대 1~2분 걸려요.</span>
+        <span className={styles.srOnly}>
+          톤을 만드는 중이에요. 최대 1~2분 걸려요.
+        </span>
         <span key={stageIndex} className={styles.stage} aria-hidden="true">
           {currentLabel}
         </span>

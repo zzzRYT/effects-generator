@@ -7,22 +7,28 @@
   display: flex;
   flex-wrap: wrap;
   align-items: stretch;
-  gap: var(--gap-block, 0.75rem);
+  gap: var(--gap-block);
 }
 
+/* 블록은 위쪽 기준 정렬 — center 로 두면 모듈 높이차만큼 계단처럼 어긋난다. */
 .node {
   display: flex;
-  align-items: center;
-  gap: var(--gap-block, 0.75rem);
+  align-items: flex-start;
+  gap: var(--gap-block);
+}
+
+/* 커넥터 화살표만 첫 모듈 헤더 높이에 맞춰 내린다. */
+.node .connector {
+  margin-top: var(--space-8);
 }
 
 /* 커넥터 = 패치 케이블 조인트(앰버 신호 흐름) */
 .connector {
-  color: var(--amber-500);
-  font-size: 1.1rem;
-  line-height: 1;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
   user-select: none;
-  text-shadow: var(--glow-amber);
+  flex: none;
 }
 
 /* 모바일(좁은 폭): 세로 스택 — 커넥터는 회전해 아래 방향 흐름 표시 */
@@ -41,70 +47,78 @@
   }
 }
 
-/* 스위칭 플랜 — signal_chain 과 분리된 섹션(리세스 명판) */
+/* 스위칭 플랜 — signal_chain 과 분리된 섹션. tf-panel 래퍼. */
 .switching {
-  margin-top: 1.1rem;
-  padding: 0.9rem 1rem;
-  border: 1px solid var(--chassis-950);
-  border-left: 3px solid var(--amber-500);
-  border-radius: var(--radius-md);
-  background: linear-gradient(180deg, var(--chassis-950), var(--chassis-900));
-  box-shadow: var(--shadow-well);
+  margin-top: var(--space-6);
+  padding: var(--panel-pad);
+  border: 1px solid var(--border-metal);
+  border-left: 4px solid var(--color-util);
+  border-radius: var(--radius-lg);
+  background: var(--surface-panel);
+  box-shadow: var(--shadow-panel);
 }
 
 .switchingHeading {
-  font-family: var(--font-mono), monospace;
-  font-size: var(--text-xs);
-  font-weight: 700;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--amber-400);
+  color: var(--text-label);
 }
 
 .pickup {
-  margin-top: 0.55rem;
-  font-size: var(--text-sm);
-  color: var(--text);
+  margin-top: var(--space-3);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--text-body);
+  line-height: var(--leading-snug);
 }
 .pickupLabel {
-  font-family: var(--font-mono), monospace;
-  font-size: var(--text-xs);
-  letter-spacing: 0.02em;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-label);
   color: var(--text-muted);
-  margin-right: 0.3rem;
+  margin-right: var(--space-1);
 }
 
 .switchingList {
-  margin-top: 0.65rem;
+  margin-top: var(--space-3);
   display: grid;
-  gap: 0.55rem;
+  gap: var(--space-3);
 }
 
 .switchingRow {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 0.65rem;
+  gap: var(--space-3);
   align-items: baseline;
 }
 
 .switchingKey {
-  font-family: var(--font-mono), monospace;
-  font-size: var(--text-xs);
-  font-weight: 700;
-  color: var(--amber-300);
+  font-family: var(--font-display);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-label);
   white-space: nowrap;
 }
 
 .switchingDesc {
+  font-family: var(--font-body);
   font-size: var(--text-sm);
-  color: var(--text);
-  line-height: 1.55;
+  color: var(--text-body);
+  line-height: var(--leading-normal);
 }
 
 .switchingModels {
   display: block;
-  margin-top: 0.15rem;
-  font-family: var(--font-mono), monospace;
-  font-size: var(--text-xs); /* ≥12px — cross-5.10 */
+  margin-top: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-regular);
   color: var(--text-muted);
 }

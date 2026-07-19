@@ -23,8 +23,8 @@ export default async function AdminLoginPage({
 
   return (
     <main className={styles.shell}>
-      <section className={styles.card} aria-labelledby="admin-login-title">
-        <div className={styles.status} aria-hidden="true">
+      <section className={`tf-panel ${styles.card}`} aria-labelledby="admin-login-title">
+        <div className={`tf-badge tf-badge--accent ${styles.status}`} aria-hidden="true">
           ADMIN
         </div>
         <h1 id="admin-login-title" className={styles.title}>

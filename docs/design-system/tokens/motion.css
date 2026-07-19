@@ -1,0 +1,9 @@
+/* MOTION — mechanical, snappy. Controls click into place; no lazy easing. */
+:root {
+  --ease-mech: cubic-bezier(0.2, 0.8, 0.2, 1); /* @kind other */
+  --ease-click: cubic-bezier(0.4, 0, 0.6, 1); /* @kind other */
+  --dur-instant: 80ms; /* @kind other */
+  --dur-fast: 140ms; /* @kind other */
+  --dur-base: 220ms; /* @kind other */
+  --dur-slow: 360ms; /* @kind other */
+}

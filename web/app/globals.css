@@ -1,4 +1,6 @@
-/* Tone Forge 하드웨어 스킨 — 다크 단일 테마. 토큰은 lib/tokens.css 에서. */
+/* Tone Forge 전역 베이스 — 하드웨어 스큐어모피즘. 토큰은 lib/tokens.css 에서.
+ * 여기에는 (1) 리셋 (2) 섀시 배경 (3) 재사용 실크스크린/릴리프 유틸리티만 둔다.
+ * 컴포넌트 스타일은 각 *.module.css 로. */
 
 html {
   height: 100%;
@@ -16,17 +18,18 @@ body {
   display: flex;
   flex-direction: column;
   color: var(--text);
-  /* 근흑색 섀시 + 미세한 상단 앰버 halo(장식) — 실제 유닛의 상단 조명 느낌 */
-  background:
-    radial-gradient(
-      120% 80% at 50% -10%,
-      color-mix(in srgb, var(--amber-500) 5%, transparent),
-      transparent 60%
-    ),
-    var(--panel);
+  /* 섀시 = 니어블랙 인클로저. 상단이 아주 미세하게 밝은 브러시드 금속 폴오프. */
+  background: var(--bg-app);
+  background-image: linear-gradient(
+    180deg,
+    var(--chassis-800) 0%,
+    var(--bg-app) 420px
+  );
+  background-repeat: no-repeat;
   background-attachment: fixed;
-  font-family: var(--font-body), system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font-body);
   font-size: var(--text-base);
+  line-height: var(--leading-normal);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -40,4 +43,70 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* 헤딩·라벨은 콘덴스드 실크스크린. */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-wide);
+}
+
+/* 모든 수치·유닛은 모노 (DS 규칙: "값은 항상 모노 + 단위"). */
+code,
+kbd,
+samp,
+output {
+  font-family: var(--font-mono);
+}
+
+/* ── 공용 포커스 링 — 앰버 단일 악센트 ─────────────────────────── */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ── 재사용 유틸리티 ───────────────────────────────────────────── */
+
+/* 실크스크린 라벨: 대문자 + 자간 + 콘덴스드. 하드웨어 각인 느낌. */
+.silkscreen {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* 융기 패널: 섀시 위로 솟은 금속면. */
+.panel-raised {
+  background: var(--metal-panel);
+  border: 1px solid var(--border-metal);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+}
+
+/* 함몰 웰: 컨트롤이 들어앉는 홈. */
+.well-recessed {
+  background: var(--surface-well);
+  border: 1px solid var(--chassis-900);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-well);
+}
+
+/* ── 모션 접근성 — 기계적 모션은 짧지만, 요청 시 전부 정지 ──────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

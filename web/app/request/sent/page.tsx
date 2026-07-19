@@ -11,7 +11,7 @@ export default function RequestSentPage() {
   return (
     <main className={styles.page}>
       <header className={styles.head}>
-        <h1 className={styles.title}>제보 고마워요 🎸</h1>
+        <h1 className={styles.title}>제보 고마워요</h1>
         <p className={styles.sub}>확인하고 곧 패치로 만들어 둘게요.</p>
       </header>
       <p className={styles.back}>

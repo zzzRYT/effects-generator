@@ -30,6 +30,8 @@ export const VALID = lines(
   '  {"type":"RVB","model":"Room","enabled":true,"knobs":[{"name":"Decay","value":0.8,"unit":"s"}]}',
   ']',
   '```',
+  // 사이클 #6 에서 pickup: 자유문자열 → guitar: 구조화 JSON 으로 바뀌었다.
+  // selector 1 은 REG(cort-g250) 의 5-way 맵에서 "브릿지 험버커" 라벨로 파생된다.
   'guitar: {"selector":1,"volume":8,"tone":7,"coilSplit":false,"note":"테스트 메모"}',
   'switching: {"A":"솔로 — Green OD + Slapback ON"}',
 );
