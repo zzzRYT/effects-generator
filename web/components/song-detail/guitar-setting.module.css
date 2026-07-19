@@ -6,16 +6,17 @@
   padding: 0.85rem 1rem;
   border: 1px solid var(--bezel);
   border-left: 3px solid var(--led-on);
-  border-radius: var(--radius-module, 4px);
-  background: var(--panel-2);
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, var(--chassis-800), var(--chassis-900));
+  box-shadow: var(--shadow-raised);
 }
 
 .heading {
-  font-size: 0.8rem;
+  font-size: var(--text-xs);
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--led-on);
 }
 
 .list {
@@ -32,7 +33,7 @@
 }
 
 .key {
-  font-family: var(--font-geist-mono, monospace);
+  font-family: var(--font-mono), monospace;
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--text-muted);
@@ -65,7 +66,7 @@
   background: var(--lcd);
   color: var(--lcd-text);
   border: 1px solid var(--bezel);
-  font-family: var(--font-geist-mono, monospace);
+  font-family: var(--font-mono), monospace;
   font-size: 0.8rem;
   font-weight: 700;
 }

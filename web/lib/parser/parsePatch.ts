@@ -55,11 +55,9 @@ export function parsePatch(
     ? String(ext.frontmatter.rig)
     : undefined;
   // 모델 카탈로그: model 이 그 rig 프로세서에 실제 존재하는 모델명인지 검증(P7). 옵션 없으면 null=스킵.
+  // rig 는 string|undefined 를 유지한다 — parseGuitar 가 `registry && rig` 로 분기해
+  // rig 미정 시 registry 룩업을 건너뛰므로, ''로 강제하면 그 분기가 깨진다.
   const allowedModels = resolveCatalog(rig ?? '', options);
-
-  // rig(frontmatter) → 프로세서 → 모델 카탈로그. 옵션 없으면 null → model 검증 스킵.
-  const rig = ext.hasFrontmatter ? String(ext.frontmatter.rig ?? '') : '';
-  const allowedModels = resolveCatalog(rig, options);
 
   // 규칙 1: frontmatter
   if (!ext.hasFrontmatter) {

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Block, Song } from "@/lib/types";
 import type { ToneRole } from "@/lib/pipeline/types";
+import { Panel } from "@/components/ui/Panel";
 import { VariationTabs } from "./VariationTabs";
 import { RoleTabs } from "./RoleTabs";
 import type { RoleTabData } from "./RoleTabs";
@@ -43,10 +44,10 @@ export function SongDetail({ song: songProp }: SongDetailProps) {
             ← 곡 목록
           </Link>
         </nav>
-        <header className={styles.songHead}>
+        <Panel as="header" className={styles.songHead}>
           <p className={styles.artist}>{data.song.artist}</p>
           <h1 className={styles.title}>{data.song.title}</h1>
-        </header>
+        </Panel>
         <RoleTabs roles={roles} />
       </main>
     );
@@ -60,7 +61,7 @@ export function SongDetail({ song: songProp }: SongDetailProps) {
           ← 곡 목록
         </Link>
       </nav>
-      <header className={styles.songHead}>
+      <Panel as="header" className={styles.songHead}>
         <p className={styles.artist}>{legacySong.artist}</p>
         <h1 className={styles.title}>{legacySong.title}</h1>
         <dl className={styles.meta}>
@@ -81,7 +82,7 @@ export function SongDetail({ song: songProp }: SongDetailProps) {
             {legacySong.confidence}
           </p>
         ) : null}
-      </header>
+      </Panel>
 
       <VariationTabs song={legacySong} />
     </main>

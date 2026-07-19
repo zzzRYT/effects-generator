@@ -1,4 +1,4 @@
-/* 다크 단일 테마 — GP-150 기계 패널. 토큰은 lib/tokens.css 에서. */
+/* Tone Forge 하드웨어 스킨 — 다크 단일 테마. 토큰은 lib/tokens.css 에서. */
 
 html {
   height: 100%;
@@ -16,9 +16,17 @@ body {
   display: flex;
   flex-direction: column;
   color: var(--text);
-  background: var(--panel);
-  font-family:
-    var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* 근흑색 섀시 + 미세한 상단 앰버 halo(장식) — 실제 유닛의 상단 조명 느낌 */
+  background:
+    radial-gradient(
+      120% 80% at 50% -10%,
+      color-mix(in srgb, var(--amber-500) 5%, transparent),
+      transparent 60%
+    ),
+    var(--panel);
+  background-attachment: fixed;
+  font-family: var(--font-body), system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: var(--text-base);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
