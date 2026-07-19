@@ -54,12 +54,9 @@ export function parsePatch(
   const rig = present(ext.frontmatter.rig)
     ? String(ext.frontmatter.rig)
     : undefined;
-  // 모델 카탈로그: model 이 그 rig 프로세서에 실제 존재하는 모델명인지 검증(P7). 옵션 없으면 null=스킵.
+  // rig(frontmatter) → 프로세서 → 모델 카탈로그: model 이 그 rig 프로세서에 실제 존재하는
+  // 모델명인지 검증(P7). options 없으면 null → model 검증 스킵.
   const allowedModels = resolveCatalog(rig ?? '', options);
-
-  // rig(frontmatter) → 프로세서 → 모델 카탈로그. 옵션 없으면 null → model 검증 스킵.
-  const rig = ext.hasFrontmatter ? String(ext.frontmatter.rig ?? '') : '';
-  const allowedModels = resolveCatalog(rig, options);
 
   // 규칙 1: frontmatter
   if (!ext.hasFrontmatter) {

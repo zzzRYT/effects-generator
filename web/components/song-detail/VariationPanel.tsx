@@ -27,7 +27,7 @@ export function VariationPanel({ variation, index, tabbed }: VariationPanelProps
       }
     : { "aria-label": `변주 ${index + 1}` };
   return (
-    <article className={styles.variation} {...tabProps}>
+    <article className={`tf-panel ${styles.variation}`} {...tabProps}>
       <header className={styles.variationHead}>
         <span className={styles.variationNo}>{index + 1}</span>
         <h2 className={styles.variationLabel}>{variation.label}</h2>

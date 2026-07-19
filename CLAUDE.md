@@ -42,7 +42,19 @@
 - **Supabase** — DB(Postgres) + Realtime(잡 진행 푸시) + Auth(admin role) + Storage(원본 문서·레퍼런스) + RLS(공개읽기=approved/done만, 쓰기=서버). 프로젝트 ref: `mooypzyzymussbeszcao`.
 - **파이프라인 = 앱 내부 TS** (`web/lib/pipeline/`) — 리서치→캐논 생성→투영→검증, Route Handler/백그라운드 함수로 실행. **n8n 없음**(근거 = `2026-07-04-structure-reset-design.md` §6).
 - **LLM = Gemini**(검색 그라운딩 + 실험용 YouTube 미디어 입력, 투영은 AI 없음). 호출은 `web/lib/llm/client.ts` 공용 텍스트·미디어 인터페이스 한 곳 — Gemini는 네이티브 `generateContent`, Ollama는 텍스트 전용 OpenAI 호환 seam.
-- **Tailwind + shadcn(themed) + 디자인 토큰(OKLCH)** — 맥북 니어블랙 + 정직한 실제 기어색(네온 X). react-icons.
+- **CSS Modules + 디자인 토큰** — Tailwind·shadcn 미사용. 스타일 = `web/lib/tokens.css`(토큰) + `web/lib/hardware.css`(프리미티브) + 화면별 `*.module.css`.
+
+## 디자인 시스템 (Tone Forge — 전역 규칙)
+
+**모든 UI 작업은 `docs/design-system/RULES.md` 를 따른다. 이 절보다 그 문서가 상세하고, 충돌 시 그쪽이 권위.**
+
+- **권위 소스** = Claude Design 프로젝트 "Tone Forge Design System"(`d8ed3286-46e5-40e7-a0b3-b5b7d815bf30`). 토큰 원본 미러 = `docs/design-system/tokens/*.css`.
+- **언어** = 투박한 하드웨어 스큐어모피즘. 니어블랙 섀시 + **앰버 단일 악센트** + 실크스크린 대문자 라벨 + **융기 vs 함몰 릴리프**. 정직한 실제 기어색, **네온 금지**.
+- **타이포 3종** — Oswald(라벨·디스플레이) · Barlow(본문) · Space Mono(**모든 수치·유닛**). 폰트는 `next/font` self-host.
+- **색 규칙 (핵심)** — 인터랙션·CTA·포커스는 **앰버(`--accent`) 하나뿐**. 블록 타입색(`--color-od/amp/cab/…`)은 **시그널 체인 길찾기 전용**이라 링크·포커스·에러에 쓰지 않는다. 에러 = `--led-red`.
+- **프리미티브 재사용** — 패널·버튼·인풋·배지·LED 는 `web/lib/hardware.css` 의 `.tf-*` 전역 클래스를 쓴다. 릴리프 레시피를 모듈 CSS 에 복붙하지 않는다.
+- **이모지 금지.** 기능적 유니코드 마크(`→` `▼` `⤓`)만 허용.
+- 새 화면·컴포넌트는 이 규칙을 만족해야 리뷰 통과. 대비 불변 제약은 `web/lib/__tests__/tokens.test.ts` 가 자동 검증.
 
 ## 데이터 계약 (척추)
 

@@ -23,11 +23,11 @@ export function SongIndex({ songs }: SongIndexProps) {
           <h1 className={styles.title}>GP-150 톤 라이브러리</h1>
           <p className={styles.sub}>아직 생성된 톤이 없습니다.</p>
         </header>
-        <div className={styles.emptyState}>
+        <div className={`tf-panel ${styles.emptyState}`}>
           <p className={styles.emptyMessage}>
             첫 번째 톤을 생성해서 라이브러리를 채워보세요!
           </p>
-          <Link href="/" className={styles.ctaButton}>
+          <Link href="/" className={`tf-btn tf-btn--primary ${styles.ctaButton}`}>
             톤 생성 시작
           </Link>
           {songs.length > 0 && (
@@ -42,9 +42,12 @@ export function SongIndex({ songs }: SongIndexProps) {
     );
   }
 
-  // tones 기반 목록은 rig 가 빈 문자열일 수 있다(R4 listSongs) — 빈 이름 칩은 접근명 없는
-  // 버튼(axe button-name 위반)이 되므로 제외. rig 가 하나도 없으면 '전체' 칩만 남는다.
-  const rigs = [...new Set(songs.map((s) => s.rig))].filter(Boolean);
+  // 빈 rig 는 칩으로 만들지 않는다 — tones 기반 목록은 rig 가 빈 문자열일 수 있고(R4 listSongs),
+  // 라벨 없는 버튼은 접근명이 없어 스크린리더가 읽지 못한다(axe button-name 위반).
+  // 공백만 있는 값도 같은 이유로 제외. rig 가 하나도 없으면 '전체' 칩만 남는다.
+  const rigs = [...new Set(songs.map((s) => s.rig))].filter(
+    (r) => typeof r === "string" && r.trim() !== "",
+  );
   return (
     <main className={styles.index}>
       <header className={styles.head}>

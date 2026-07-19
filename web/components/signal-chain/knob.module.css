@@ -1,0 +1,158 @@
+/* 로터리 노브 — Tone Forge DS `SignalChainBlock.jsx` 의 ChainKnob 이식.
+ * 전부 CSS 그라디언트(이미지·SVG 자산 0). 읽기 전용이라 드래그 핸들러는 없다.
+ *
+ * 구조: .dial > .ticks(눈금 링) + .cap(널링 캡) > .capTop + .pointer(크림 인디케이터)
+ * 각도는 --knob-angle, 점등 구간은 --knob-lit 로 컴포넌트가 주입한다. */
+
+/* 한 셀 = <dt>이름 + <dd>값. dl 안에서 세로로 쌓인다. */
+.cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 64px;
+}
+
+.dialValue,
+.lcdValue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.dial {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  flex: none;
+}
+
+/* 눈금 링 — 시작(-135°)부터 --knob-lit 만큼 앰버, 나머지는 죽은 금속.
+ * conic-gradient 를 링 모양으로 마스킹해 21개 span 없이 같은 그림을 만든다. */
+.ticks {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-round);
+  background: conic-gradient(
+    from 225deg,
+    var(--amber-600) 0deg var(--knob-lit, 0deg),
+    var(--chassis-600) var(--knob-lit, 0deg) 270deg,
+    transparent 270deg 360deg
+  );
+  /* 캡 바깥 가장자리의 얇은 밸류 아크 한 겹 (DS readme: "a subtle amber value-arc").
+   * 두꺼운 아크는 네온처럼 번들거리고, mask-composite 로 눈금을 새기는 방식은
+   * 브라우저별 합성 순서가 갈려 시작 지점에 통짜 쐐기가 남는다 — 단순한 링이 정답.
+   * closest-side 필수 — 기본값 farthest-corner 는 100% 를 대각(=반지름×1.41)으로 잡아
+   * 밴드가 요소 밖으로 나가고 링이 통째로 사라진다. */
+  mask: radial-gradient(
+    circle closest-side,
+    transparent 0 86%,
+    #000 90% 97%,
+    transparent 100%
+  );
+  -webkit-mask: radial-gradient(
+    circle closest-side,
+    transparent 0 86%,
+    #000 90% 97%,
+    transparent 100%
+  );
+}
+
+/* 널링 캡 — 융기 금속 손잡이. */
+.cap {
+  position: absolute;
+  inset: 16%;
+  border-radius: var(--radius-round);
+  background: radial-gradient(
+    circle at 38% 28%,
+    var(--chassis-300),
+    var(--chassis-600) 60%,
+    var(--chassis-800) 100%
+  );
+  border: 2px solid var(--chassis-900);
+  box-shadow: var(--shadow-knob);
+}
+
+/* 널링(knurl) — 톱니 홈. 바깥 테두리에만 보이도록 마스킹. */
+.knurl {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-round);
+  background: repeating-conic-gradient(
+    rgb(255 255 255 / 0.05) 0deg 6deg,
+    rgb(0 0 0 / 0.24) 6deg 12deg
+  );
+  mask: radial-gradient(circle closest-side, transparent 60%, #000 62%);
+  -webkit-mask: radial-gradient(circle closest-side, transparent 60%, #000 62%);
+}
+
+.capTop {
+  position: absolute;
+  inset: 22%;
+  border-radius: var(--radius-round);
+  background: radial-gradient(
+    circle at 42% 34%,
+    var(--chassis-400),
+    var(--chassis-700)
+  );
+  box-shadow:
+    inset 0 1px 2px rgb(255 255 255 / 0.1),
+    inset 0 -2px 4px rgb(0 0 0 / 0.5);
+}
+
+/* 인디케이터 — 크림 실크스크린 선. 발광하지 않는다(정직한 기어). */
+.pointer {
+  position: absolute;
+  inset: 0;
+  transform: rotate(var(--knob-angle, 0deg));
+}
+
+.pointer::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 10%;
+  width: 3px;
+  height: 32%;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: var(--silkscreen);
+  box-shadow: 0 1px 1px rgb(0 0 0 / 0.5);
+}
+
+/* 라벨 = 실크스크린 각인, 값 = 모노. 값의 권위는 언제나 이 텍스트다. */
+.name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--text-label);
+  text-align: center;
+  line-height: var(--leading-snug);
+}
+
+.value {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--amber-300);
+  text-align: center;
+  line-height: var(--leading-snug);
+}
+
+/* ── scale 없는 unit 값 — 각도 대신 LCD 리드아웃 ────────────── */
+.lcd {
+  padding: 5px var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--lcd-bg);
+  border: 1px solid var(--chassis-900);
+  box-shadow: var(--shadow-well);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wide);
+  color: var(--lcd-text);
+  white-space: nowrap;
+}

@@ -253,22 +253,22 @@ export function AudioToneLab({ guitars, processors }: AudioToneLabProps) {
 
   if (phase.type === "failed") {
     return (
-      <section className={styles.feedback} role="alert">
+      <section className={`tf-panel ${styles.feedback}`} role="alert">
         <h2>실험을 완료하지 못했어요</h2>
         <p>{phase.message}</p>
-        <button type="button" onClick={() => setPhase({ type: "editing" })}>다시 시도</button>
+        <button type="button" className={`tf-btn tf-btn--ghost`} onClick={() => setPhase({ type: "editing" })}>다시 시도</button>
       </section>
     );
   }
 
   if (phase.type === "revealed") {
     return (
-      <section className={styles.feedback}>
+      <section className={`tf-panel ${styles.feedback}`}>
         <h2>평가 결과</h2>
         <p>A = {phase.result.reveal?.A}</p>
         <p>B = {phase.result.reveal?.B}</p>
         <p>선호 결과: {phase.result.preferredVariant}</p>
-        <button type="button" onClick={restartWithNewSegment}>다른 구간 다시 보기</button>
+        <button type="button" className={`tf-btn tf-btn--ghost`} onClick={restartWithNewSegment}>다른 구간 다시 보기</button>
       </section>
     );
   }
@@ -279,16 +279,16 @@ export function AudioToneLab({ guitars, processors }: AudioToneLabProps) {
         이 실험은 설정의 타당성을 비교하며 실제 음향 유사도를 입증하지 않습니다.
       </p>
       <form className={styles.form} onSubmit={startExperiment}>
-        <fieldset className={styles.inputPanel} disabled={locked}>
+        <fieldset className={`tf-panel ${styles.inputPanel}`} disabled={locked}>
           <div className={styles.fieldGrid}>
-            <label>아티스트<input required value={artist} onChange={(e) => setArtist(e.target.value)} /></label>
-            <label>곡명<input required value={title} onChange={(e) => setTitle(e.target.value)} /></label>
-            <label>기타<select value={guitar} onChange={(e) => setGuitar(e.target.value)}>{guitars.map((item) => <option key={item.id} value={gearLabel(item)}>{gearLabel(item)}</option>)}</select></label>
-            <label>프로세서<select value={processor} onChange={(e) => setProcessor(e.target.value)}>{processors.map((item) => <option key={item.id} value={gearLabel(item)}>{gearLabel(item)}</option>)}</select></label>
+            <label>아티스트<input className={`tf-input`} required value={artist} onChange={(e) => setArtist(e.target.value)} /></label>
+            <label>곡명<input className={`tf-input`} required value={title} onChange={(e) => setTitle(e.target.value)} /></label>
+            <label>기타<select className={`tf-input`} value={guitar} onChange={(e) => setGuitar(e.target.value)}>{guitars.map((item) => <option key={item.id} value={gearLabel(item)}>{gearLabel(item)}</option>)}</select></label>
+            <label>프로세서<select className={`tf-input`} value={processor} onChange={(e) => setProcessor(e.target.value)}>{processors.map((item) => <option key={item.id} value={gearLabel(item)}>{gearLabel(item)}</option>)}</select></label>
           </div>
           <div className={styles.urlRow}>
-            <label>YouTube URL<input required value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} /></label>
-            <button type="button" onClick={loadVideo}>영상 불러오기</button>
+            <label>YouTube URL<input className={`tf-input`} required value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} /></label>
+            <button type="button" className={`tf-btn tf-btn--ghost`} onClick={loadVideo}>영상 불러오기</button>
           </div>
           {formError ? <p className={styles.error} role="alert">{formError}</p> : null}
           {videoId ? (
@@ -304,12 +304,12 @@ export function AudioToneLab({ guitars, processors }: AudioToneLabProps) {
               />
             </div>
           ) : null}
-          <button className={styles.primary} type="submit">A/B 분석 시작</button>
+          <button className={`tf-btn tf-btn--primary ${styles.primary}`} type="submit">A/B 분석 시작</button>
         </fieldset>
       </form>
 
       {(phase.type === "submitting" || phase.type === "polling") ? (
-        <section className={styles.progress} role="status" aria-live="polite">
+        <section className={`tf-panel ${styles.progress}`} role="status" aria-live="polite">
           <h2>분석 진행 중</h2>
           <p>{phase.type === "submitting" ? "실험 생성" : phase.status}</p>
           <p>영상 확인 → 오디오 관측 → A/B 캐논 생성 → GP-150 투영</p>
@@ -317,7 +317,7 @@ export function AudioToneLab({ guitars, processors }: AudioToneLabProps) {
       ) : null}
 
       {phase.type === "evaluating" && phase.result.variants ? (
-        <form className={styles.evaluation} onSubmit={submitEvaluation}>
+        <form className={`tf-panel ${styles.evaluation}`} onSubmit={submitEvaluation}>
           <h2>익명 A/B 평가</h2>
           <p>설정의 논리와 실사용성을 평가합니다. 실제 음향 유사도를 입증하지 않습니다.</p>
           <div className={styles.variantGrid}>
@@ -327,7 +327,7 @@ export function AudioToneLab({ guitars, processors }: AudioToneLabProps) {
                 <VariantSettings variant={phase.result.variants![label]} />
                 {METRICS.map(([metric, metricLabel]) => (
                   <label key={metric}>{label} {metricLabel}
-                    <select aria-label={`${label} ${metricLabel}`} value={scores[label][metric]} onChange={(event) => setScores((current) => ({ ...current, [label]: { ...current[label], [metric]: event.target.value } }))}>
+                    <select className={`tf-input`} aria-label={`${label} ${metricLabel}`} value={scores[label][metric]} onChange={(event) => setScores((current) => ({ ...current, [label]: { ...current[label], [metric]: event.target.value } }))}>
                       <option value="">선택</option>
                       {[1, 2, 3, 4, 5].map((score) => <option key={score} value={score}>{score}</option>)}
                     </select>
@@ -337,7 +337,7 @@ export function AudioToneLab({ guitars, processors }: AudioToneLabProps) {
               </section>
             ))}
           </div>
-          <button className={styles.primary} type="submit" disabled={!evaluationValid}>평가 제출</button>
+          <button className={`tf-btn tf-btn--primary ${styles.primary}`} type="submit" disabled={!evaluationValid}>평가 제출</button>
         </form>
       ) : null}
     </div>

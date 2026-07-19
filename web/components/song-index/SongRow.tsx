@@ -23,7 +23,7 @@ export function SongRow({ song }: SongRowProps) {
       data-rig={song.rig}
     >
       <Link
-        className={styles.rowLink}
+        className={`tf-panel ${styles.rowLink}`}
         href={`/songs/${song.slug}`}
       >
         <span className={styles.rowArtist}>{song.artist}</span>

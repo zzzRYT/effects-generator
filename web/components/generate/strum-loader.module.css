@@ -1,5 +1,5 @@
 /* 기타 줄 튕김 로더 — 정상파 진동(scaleY 반전) + 스트럼 글린트.
- * compositor 친화 속성(transform, opacity)만 애니메이트. 토큰은 lib/tokens.css. */
+ * compositor 친화 속성(transform, opacity)만 애니메이트. 토큰 = lib/tokens.css. */
 
 .wrap {
   width: min(280px, 80%);
@@ -14,13 +14,13 @@
 
 /* 프렛보드 표면 — 베젤을 또렷이 해 함몰된 LCD 패널 느낌을 강조 */
 .board {
-  fill: var(--lcd);
-  stroke: var(--bezel);
+  fill: var(--lcd-bg);
+  stroke: var(--border-metal);
   stroke-width: 1.5;
 }
 
 .fret {
-  stroke: var(--bezel);
+  stroke: var(--border-metal);
   stroke-width: 1;
   opacity: 0.55;
 }
@@ -41,7 +41,7 @@
   transform-box: fill-box;
   transform-origin: 50% 50%;
   transform: scaleY(0.04);
-  animation: pluck 2.6s cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
+  animation: pluck 2.6s var(--ease-mech) infinite;
 }
 
 /* 픽이 닿는 순간 풀 진폭 → 감쇠 링다운 → 다음 스트럼까지 휴지. */
@@ -79,9 +79,9 @@
   }
 }
 
-/* 스트럼 글린트 — 위→아래로 쓸며 현 튕김과 동기. 어두운 LCD 위 반투명 광원(blend 불필요). */
+/* 스트럼 글린트 — 위→아래로 쓸며 현 튕김과 동기. LCD 위 반투명 앰버 광원. */
 .sweep {
-  fill: var(--lcd-text);
+  fill: var(--accent);
   opacity: 0;
   animation: sweep 2.6s linear infinite;
 }

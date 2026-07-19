@@ -1,13 +1,18 @@
+/* 모듈 타입 배지 = 실크스크린 칩. 배경색은 block-type 길찾기 토큰(길찾기 전용),
+   텍스트색은 대비 자동선택. 색만으로 의미 전달 금지 — 항상 약어 텍스트 병기. */
+
 .badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-width: 2.25rem;
-  padding: 0.1rem 0.4rem;
-  border-radius: 3px;
-  font-family: var(--font-geist-mono, monospace);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  padding: 3px 9px;
+  border: 1px solid var(--chassis-500);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-label);
   line-height: 1.2;
+  text-transform: uppercase;
 }

@@ -1,0 +1,73 @@
+/* 상단 섀시 바 — Tone Forge DS `ui_kits/tone-forge-web/Header.jsx` 이식.
+ * 유닛의 앞면 패널처럼 sticky 로 붙어 있고, 아래로 헤어라인 + 패널 그림자를 떨군다. */
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-5);
+  padding: 14px var(--space-6);
+  background: linear-gradient(180deg, var(--chassis-700), var(--chassis-800));
+  border-bottom: 1px solid var(--border-metal);
+  box-shadow: var(--shadow-panel);
+}
+
+/* 워드마크 — 로고 파일 없음, Oswald 로 타입세팅(DS readme CAVEATS). */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.03em;
+  color: var(--silkscreen);
+  white-space: nowrap;
+}
+
+.wordmarkAccent {
+  color: var(--amber-500);
+}
+
+/* 전원 LED — 상시 점등(유닛이 켜져 있다는 신호). */
+.tagline {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+.nav {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* 좁은 화면: 태그라인은 접고 워드마크·내비만 남긴다(오버플로 0). */
+@media (max-width: 640px) {
+  .header {
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .tagline {
+    display: none;
+  }
+
+  .wordmark {
+    font-size: var(--text-lg);
+  }
+}

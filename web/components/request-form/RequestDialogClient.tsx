@@ -164,9 +164,9 @@ export function RequestDialogClient() {
       onClick={onDialogClick}
       onClose={onClose}
     >
-      <div className={styles.dialogInner}>
-        <div className={styles.dialogHead}>
-          <h2 id="request-dialog-title" className={styles.dialogTitle}>
+      <div className={`tf-panel ${styles.dialogInner}`}>
+        <div className={`tf-panel__head ${styles.dialogHead}`}>
+          <h2 id="request-dialog-title" className={`tf-panel__title ${styles.dialogTitle}`}>
             곡 제보
           </h2>
           <button
@@ -182,17 +182,17 @@ export function RequestDialogClient() {
         {phase === "success" ? (
           <div className={styles.success} role="status">
             <p className={styles.successMsg} tabIndex={-1} ref={successRef}>
-              제보 고마워요 🎸
+              제보 고마워요
               <br />
               확인하고 곧 패치로 만들어 둘게요.
             </p>
             <div className={styles.successActions}>
-              <button type="button" className={styles.submit} onClick={close}>
+              <button type="button" className={`tf-btn tf-btn--primary ${styles.submit}`} onClick={close}>
                 닫기
               </button>
               <button
                 type="button"
-                className={styles.ghost}
+                className={`tf-btn tf-btn--ghost ${styles.ghost}`}
                 onClick={() => {
                   setDefaultSong("");
                   setPhase("idle");
