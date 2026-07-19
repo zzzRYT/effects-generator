@@ -7,14 +7,15 @@
   justify-content: center;
   gap: 0.4rem 0.9rem;
   margin-top: auto;
-  padding: 2.5rem 1.25rem;
+  padding: 2.75rem 1.25rem;
   border-top: 1px solid var(--bezel);
+  box-shadow: 0 1px 0 rgb(255 255 255 / 4%) inset;
   text-align: center;
 }
 
 .note {
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
 }
 
 .cta {
