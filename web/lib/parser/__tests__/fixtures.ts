@@ -30,7 +30,7 @@ export const VALID = lines(
   '  {"type":"RVB","model":"Room","enabled":true,"knobs":[{"name":"Decay","value":0.8,"unit":"s"}]}',
   ']',
   '```',
-  'pickup: 브릿지 험버커',
+  'guitar: {"selector":1,"volume":8,"tone":7,"coilSplit":false,"note":"테스트 메모"}',
   'switching: {"A":"솔로 — Green OD + Slapback ON"}',
 );
 

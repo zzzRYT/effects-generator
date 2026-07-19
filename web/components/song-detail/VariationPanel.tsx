@@ -2,6 +2,7 @@ import type { Variation } from "@/lib/types";
 import { panelId, tabId } from "@/lib/variationTab";
 import { SignalChain } from "@/components/signal-chain/SignalChain";
 import { SwitchingPlan } from "@/components/signal-chain/SwitchingPlan";
+import { Panel } from "@/components/ui/Panel";
 import { GuitarSetting } from "./GuitarSetting";
 import styles from "./song-detail.module.css";
 
@@ -27,7 +28,7 @@ export function VariationPanel({ variation, index, tabbed }: VariationPanelProps
       }
     : { "aria-label": `변주 ${index + 1}` };
   return (
-    <article className={styles.variation} {...tabProps}>
+    <Panel as="article" className={styles.variation} {...tabProps}>
       <header className={styles.variationHead}>
         <span className={styles.variationNo}>{index + 1}</span>
         <h2 className={styles.variationLabel}>{variation.label}</h2>
@@ -35,6 +36,6 @@ export function VariationPanel({ variation, index, tabbed }: VariationPanelProps
       <GuitarSetting guitar={variation.guitar} />
       <SignalChain blocks={variation.signalChain} />
       <SwitchingPlan switching={variation.switching} />
-    </article>
+    </Panel>
   );
 }

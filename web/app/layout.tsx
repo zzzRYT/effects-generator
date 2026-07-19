@@ -1,18 +1,28 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Oswald, Barlow, Space_Mono } from "next/font/google";
 import "@/lib/tokens.css";
 import "./globals.css";
 import { Footer } from "@/components/layout/Footer";
 import { RequestDialogClient } from "@/components/request-form/RequestDialogClient";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Tone Forge 타이포그래피 — Oswald(디스플레이) / Barlow(본문) / Space Mono(수치·라벨).
+// next/font 가 빌드타임에 셀프호스트(외부 요청 0, CSP 안전) + font-display: swap 기본.
+const oswald = Oswald({
+  variable: "--font-display",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const barlow = Barlow({
+  variable: "--font-body",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const spaceMono = Space_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  weight: ["400", "700"],
 });
 
 export const metadata: Metadata = {
@@ -30,7 +40,7 @@ export default function RootLayout({
     // 더하므로 server/client className 이 의도적으로 다르다(next-themes 패턴). 이 요소만 경고 억제.
     <html
       lang="ko"
-      className={`${geistSans.variable} ${geistMono.variable}`}
+      className={`${oswald.variable} ${barlow.variable} ${spaceMono.variable}`}
       suppressHydrationWarning
     >
       <body>
