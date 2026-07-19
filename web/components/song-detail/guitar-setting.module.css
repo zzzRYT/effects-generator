@@ -1,40 +1,42 @@
-/* 기타 세팅 박스 — 스위칭 플랜과 같은 패널 어휘, 단 출발점(기타)을 뜻하는 초록 악센트.
- * GP-150 스킨 토큰(lib/tokens.css) 재사용. */
+/* 기타 세팅 박스 — 섀시 패널. 출발점(기타)을 뜻하는 초록 LED 좌측 악센트 유지.
+ * Tone Forge 하드웨어 언어. */
 
 .guitar {
-  margin-top: 1rem;
-  padding: 0.85rem 1rem;
-  border: 1px solid var(--bezel);
-  border-left: 3px solid var(--led-on);
-  border-radius: var(--radius-module, 4px);
-  background: var(--panel-2);
+  margin-top: var(--space-4);
+  padding: var(--panel-pad);
+  border: 1px solid var(--border-metal);
+  border-left: 3px solid var(--led-green);
+  border-radius: var(--radius-lg);
+  background: var(--metal-panel);
+  box-shadow: var(--shadow-panel);
 }
 
 .heading {
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-family: var(--font-display);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-label);
 }
 
 .list {
-  margin-top: 0.6rem;
+  margin-top: var(--space-3);
   display: grid;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .row {
   display: grid;
   grid-template-columns: 5.5rem 1fr;
-  gap: 0.6rem;
+  gap: var(--space-2);
   align-items: baseline;
 }
 
 .key {
-  font-family: var(--font-geist-mono, monospace);
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
   color: var(--text-muted);
   white-space: nowrap;
 }
@@ -44,7 +46,7 @@
   color: var(--text);
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: var(--space-2);
 }
 
 .valNote {
@@ -61,11 +63,12 @@
   width: 1.4rem;
   height: 1.4rem;
   flex: 0 0 auto;
-  border-radius: 50%;
-  background: var(--lcd);
+  border-radius: var(--radius-round);
+  background: var(--lcd-bg);
   color: var(--lcd-text);
-  border: 1px solid var(--bezel);
-  font-family: var(--font-geist-mono, monospace);
+  border: 1px solid var(--chassis-500);
+  box-shadow: var(--shadow-well);
+  font-family: var(--font-mono);
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: var(--weight-bold);
 }

@@ -1,0 +1,366 @@
+/* Tone Forge 하드웨어 프리미티브 — 전역 클래스 레이어.
+ *
+ * 권위 = Claude Design "Tone Forge Design System" 의 components/ JSX 프리미티브
+ * (Panel · Button · Input · Select · Badge · LED). 그 인라인 스타일을 CSS 클래스로 1:1 이식했다.
+ * 여기 있는 릴리프 레시피(융기/함몰)를 각 module.css 가 복제하지 않도록 한 곳에 둔다(DRY).
+ *
+ * 대응표
+ *   Panel   → .tf-panel (+ .tf-panel--well, .tf-panel__head, .tf-panel__title)
+ *   Button  → .tf-btn (+ --primary/--secondary/--ghost/--danger, --sm/--lg)
+ *   Input   → .tf-field (라벨) · .tf-input · .tf-select
+ *   Badge   → .tf-badge (+ --accent/--success/--danger/--info)
+ *   LED     → .tf-led (+ --on, --amber/--green/--red/--blue)
+ */
+
+/* ── 실크스크린 라벨 ────────────────────────────────────────────
+ * 하드웨어 각인. 대문자 + 자간 + 콘덴스드. 한글은 케이스가 없으므로
+ * text-transform 은 라틴 문자에만 실질 적용되고 자간·서체로 각인감을 낸다. */
+.tf-silkscreen {
+  font-family: var(--font-display);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--text-label);
+}
+
+/* ── Panel — 융기 금속 인클로저 ─────────────────────────────── */
+.tf-panel {
+  position: relative;
+  padding: var(--panel-pad);
+  background: var(--metal-panel);
+  border: 1px solid var(--border-metal);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+}
+
+.tf-panel--well {
+  background: var(--surface-well);
+  box-shadow: var(--shadow-well);
+}
+
+/* 코너 나사 4개 — ::before/::after 로 2개씩, 배경 이미지 없이 순수 CSS.
+ * .tf-panel__screws 를 패널 안에 두면 4모서리에 박힌다. */
+.tf-panel__screws {
+  position: absolute;
+  inset: 8px;
+  pointer-events: none;
+}
+
+.tf-panel__screws::before,
+.tf-panel__screws::after,
+.tf-panel__screws > span::before,
+.tf-panel__screws > span::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-round);
+  background: radial-gradient(
+    circle at 40% 35%,
+    var(--chassis-300),
+    var(--chassis-700)
+  );
+  box-shadow:
+    inset 0 0 0 1px rgb(0 0 0 / 0.5),
+    0 1px 1px rgb(0 0 0 / 0.4);
+}
+
+.tf-panel__screws::before {
+  top: 0;
+  left: 0;
+}
+.tf-panel__screws::after {
+  top: 0;
+  right: 0;
+}
+.tf-panel__screws > span::before {
+  bottom: 0;
+  left: 0;
+}
+.tf-panel__screws > span::after {
+  bottom: 0;
+  right: 0;
+}
+
+/* 패널 실크스크린 헤더 + 헤어라인 구분선 */
+.tf-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--divider);
+}
+
+.tf-panel__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--text-label);
+}
+
+/* ── Button — 눌리는 청키 패널 버튼 ─────────────────────────── */
+.tf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 40px;
+  padding: 10px 18px;
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  white-space: nowrap;
+  user-select: none;
+  cursor: pointer;
+  border: 1px solid rgb(0 0 0 / 0.5);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-button);
+  /* 물리적 눌림: transform + box-shadow 만 (컴포지터 친화). */
+  transition:
+    transform var(--dur-instant) var(--ease-click),
+    box-shadow var(--dur-instant) var(--ease-click),
+    color var(--dur-fast) var(--ease-mech),
+    background-color var(--dur-fast) var(--ease-mech);
+}
+
+.tf-btn--sm {
+  min-height: 30px;
+  padding: 7px 12px;
+  font-size: var(--text-xs);
+}
+
+.tf-btn--lg {
+  min-height: 52px;
+  padding: 14px 26px;
+  font-size: var(--text-base);
+}
+
+.tf-btn--primary {
+  color: var(--text-on-accent);
+  background: linear-gradient(180deg, var(--amber-400), var(--amber-500));
+}
+
+.tf-btn--secondary {
+  color: var(--silkscreen);
+  background: linear-gradient(180deg, var(--chassis-400), var(--chassis-500));
+}
+
+.tf-btn--danger {
+  color: #2a0705;
+  background: linear-gradient(180deg, #ff5b52, var(--led-red));
+}
+
+/* ghost = 평면. 릴리프 없음, hover 시 앰버 쪽으로. */
+.tf-btn--ghost {
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-metal);
+  box-shadow: none;
+}
+
+.tf-btn--ghost:hover:not(:disabled) {
+  color: var(--amber-300);
+  border-color: var(--amber-600);
+}
+
+.tf-btn--primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, var(--amber-300), var(--amber-400));
+}
+
+.tf-btn--secondary:hover:not(:disabled) {
+  background: linear-gradient(180deg, var(--chassis-300), var(--chassis-400));
+}
+
+/* 누름 = 강한 신호: 2px 내려앉고 그림자가 inset 으로 뒤집힌다. */
+.tf-btn:active:not(:disabled),
+.tf-btn[data-pressed="true"] {
+  transform: translateY(2px);
+  box-shadow: var(--shadow-button-press);
+}
+
+.tf-btn--ghost:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: var(--shadow-button-press);
+}
+
+.tf-btn:disabled,
+.tf-btn[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Field / Input / Select — 함몰 웰 ──────────────────────────
+ * 값·수치는 전부 모노(DS 규칙). placeholder 는 흐린 각인. */
+.tf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tf-field__label {
+  font-family: var(--font-display);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--text-label);
+}
+
+.tf-input,
+.tf-select {
+  width: 100%;
+  padding: 9px 12px;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--silkscreen);
+  background: var(--surface-well);
+  border: 1px solid var(--chassis-900);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-well);
+  outline: none;
+  transition: box-shadow var(--dur-fast) var(--ease-mech);
+}
+
+.tf-input::placeholder {
+  color: var(--text-faint);
+}
+
+/* 포커스 = 앰버 링. 웰 그림자를 유지한 채 링만 덧댄다. */
+.tf-input:focus-visible,
+.tf-select:focus-visible {
+  outline: none;
+  box-shadow:
+    var(--shadow-well),
+    0 0 0 2px rgb(245 148 34 / 0.5);
+}
+
+.tf-input:disabled,
+.tf-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 셀렉트 캐럿 — DS 가 허용한 기능적 유니코드 마크(▼) 하나만. */
+.tf-select {
+  appearance: none;
+  padding-right: 32px;
+  background-image: linear-gradient(
+      transparent,
+      transparent
+    ),
+    url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath fill='%2383838d' d='M0 0h10L5 6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position:
+    center,
+    right 12px center;
+  background-size:
+    auto,
+    10px 6px;
+  cursor: pointer;
+}
+
+/* 인풋 우측 유닛 접미사 */
+.tf-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.tf-input-wrap__unit {
+  position: absolute;
+  right: 12px;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* ── Badge — 각인 실크스크린 칩 ─────────────────────────────── */
+.tf-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  font-family: var(--font-display);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  border-radius: var(--radius-sm);
+  color: var(--text-body);
+  background: var(--chassis-600);
+  border: 1px solid var(--chassis-500);
+}
+
+.tf-badge--accent {
+  color: var(--amber-300);
+  background: rgb(245 148 34 / 0.16);
+  border-color: var(--amber-600);
+}
+
+.tf-badge--success {
+  color: var(--led-green);
+  background: rgb(52 209 88 / 0.15);
+  border-color: var(--led-green-dim);
+}
+
+.tf-badge--danger {
+  color: #ff6f66;
+  background: rgb(255 59 48 / 0.15);
+  border-color: var(--led-red-dim);
+}
+
+.tf-badge--info {
+  color: #7fb8ff;
+  background: rgb(47 143 255 / 0.15);
+  border-color: var(--led-blue-dim);
+}
+
+/* ── LED — 상태 렌즈. 점등 = 은은한 4px 블룸(네온 금지). ─────── */
+.tf-led {
+  display: inline-block;
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-round);
+  background: var(--led-amber-dim);
+  box-shadow: inset 0 1px 1px rgb(0 0 0 / 0.6);
+}
+
+.tf-led--on {
+  background: var(--led-amber);
+  box-shadow: var(--glow-amber);
+}
+
+.tf-led--green.tf-led--on {
+  background: var(--led-green);
+  box-shadow: var(--glow-green);
+}
+.tf-led--green {
+  background: var(--led-green-dim);
+}
+
+.tf-led--red.tf-led--on {
+  background: var(--led-red);
+  box-shadow: var(--glow-red);
+}
+.tf-led--red {
+  background: var(--led-red-dim);
+}
+
+.tf-led--blue.tf-led--on {
+  background: var(--led-blue);
+  box-shadow: 0 0 4px rgb(47 143 255 / 0.5);
+}
+.tf-led--blue {
+  background: var(--led-blue-dim);
+}

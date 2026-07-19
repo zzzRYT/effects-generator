@@ -38,7 +38,7 @@ export function VariationTabs({ song }: VariationTabsProps) {
             aria-controls={panelId(i)}
             aria-selected={i === 0}
             data-active={i === 0 ? "true" : "false"}
-            className={styles.tab}
+            className={`tf-btn tf-btn--ghost ${styles.tab}`}
           >
             {v.label}
           </a>

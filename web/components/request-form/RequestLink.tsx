@@ -6,10 +6,16 @@ import styles from "./request-form.module.css";
 interface RequestLinkProps {
   className?: string;
   children?: React.ReactNode;
+  /** true 면 기본 링크 스킨(.trigger)을 빼고 className 만 쓴다 — 헤더처럼 버튼으로 낼 때. */
+  unstyled?: boolean;
 }
 
-export function RequestLink({ className, children }: RequestLinkProps) {
-  const cls = className ? `${styles.trigger} ${className}` : styles.trigger;
+export function RequestLink({ className, children, unstyled }: RequestLinkProps) {
+  const cls = unstyled
+    ? (className ?? "")
+    : className
+      ? `${styles.trigger} ${className}`
+      : styles.trigger;
   return (
     <a href="/request" data-request-trigger="" className={cls}>
       {children ?? "곡 제보"}

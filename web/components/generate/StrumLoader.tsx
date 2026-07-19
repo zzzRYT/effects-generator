@@ -13,14 +13,16 @@ interface StringDef {
   wave: Wave;
 }
 
-// 위 = 가는 고음현(2-노드 고차 진동), 아래 = 굵은 저음현(단일 배). 색은 팔레트 순환.
+// 위 = 가는 고음현(2-노드 고차 진동), 아래 = 굵은 저음현(단일 배).
+// 색은 정직한 실제 기어색 — 얇은 플레인현은 밝은 강선, 굵은 와운드현은 어두운 니켈/브론즈로
+// 내려간다. 무지개(블록 타입색) 금지: 그건 시그널 체인 길찾기 전용이고 여기선 의미가 없다.
 const STRINGS: readonly StringDef[] = [
-  { cy: 16, color: "var(--color-dly)", width: 1.0, wave: "double" },
-  { cy: 28, color: "var(--color-mod)", width: 1.2, wave: "double" },
-  { cy: 40, color: "var(--color-amp)", width: 1.5, wave: "single" },
-  { cy: 52, color: "var(--color-cab)", width: 1.8, wave: "single" },
-  { cy: 64, color: "var(--color-od)", width: 2.1, wave: "single" },
-  { cy: 76, color: "var(--color-rvb)", width: 2.4, wave: "single" },
+  { cy: 16, color: "var(--chassis-100)", width: 1.0, wave: "double" },
+  { cy: 28, color: "var(--chassis-200)", width: 1.2, wave: "double" },
+  { cy: 40, color: "var(--chassis-200)", width: 1.5, wave: "single" },
+  { cy: 52, color: "var(--chassis-300)", width: 1.8, wave: "single" },
+  { cy: 64, color: "var(--amber-300)", width: 2.1, wave: "single" },
+  { cy: 76, color: "var(--amber-500)", width: 2.4, wave: "single" },
 ];
 
 const STRUM_STAGGER_S = 0.07; // 현 간 시차 → 다운스트럼 쓸어내림
@@ -47,7 +49,14 @@ export function StrumLoader() {
         focusable="false"
       >
         {/* 프렛보드 */}
-        <rect className={styles.board} x="2" y="6" width="240" height="80" rx="7" />
+        <rect
+          className={styles.board}
+          x="2"
+          y="6"
+          width="240"
+          height="80"
+          rx="7"
+        />
         {FRET_X.map((x) => (
           <line key={x} className={styles.fret} x1={x} y1="10" x2={x} y2="82" />
         ))}
@@ -69,7 +78,14 @@ export function StrumLoader() {
         ))}
 
         {/* 스트럼 글린트 — 픽이 현을 쓸어내리는 하이라이트 */}
-        <rect className={styles.sweep} x="8" y="8" width="228" height="2.5" rx="1.25" />
+        <rect
+          className={styles.sweep}
+          x="8"
+          y="8"
+          width="228"
+          height="2.5"
+          rx="1.25"
+        />
       </svg>
     </div>
   );

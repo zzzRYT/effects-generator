@@ -5,8 +5,8 @@ import styles from "./footer.module.css";
 export function Footer() {
   return (
     <footer className={styles.footer}>
-      <p className={styles.note}>찾는 곡이 없나요?</p>
-      <RequestLink className={styles.cta}>곡 제보하기</RequestLink>
+      <p className={`tf-silkscreen ${styles.note}`}>찾는 곡이 없나요?</p>
+      <RequestLink className={`tf-silkscreen ${styles.cta}`}>곡 제보하기</RequestLink>
     </footer>
   );
 }

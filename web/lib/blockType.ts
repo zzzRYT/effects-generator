@@ -10,13 +10,13 @@ export type TokenGroup = "od" | "amp" | "cab" | "dly" | "rvb" | "mod" | "util";
 // 악센트 hex — lib/tokens.css 와 동일해야 한다(드리프트 가드: tokens.test.ts).
 // 배지 텍스트색 자동선택(pickTextColor)에만 쓰인다. 배경/보더 색은 cssVar 토큰으로 참조.
 export const ACCENT_HEX: Record<TokenGroup, string> = {
-  od: "#fb923c",
-  amp: "#60a5fa",
-  cab: "#a78bfa",
-  dly: "#22d3ee",
-  rvb: "#f472b6",
-  mod: "#34d399",
-  util: "#a8a29e",
+  od: "#e8944a",
+  amp: "#7ea6d4",
+  cab: "#a99ac4",
+  dly: "#6fc0c4",
+  rvb: "#d792a8",
+  mod: "#7fc49a",
+  util: "#b6b6bd",
 };
 
 // category 우선 — PRE/DST 는 효과 종류에 따라 색이 갈린다(부스트/드라이브=od, 컴프=util, 필터/피치=mod).

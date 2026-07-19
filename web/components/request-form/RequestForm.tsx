@@ -50,7 +50,7 @@ export function RequestForm({
   return (
     <form
       id={REQUEST_FORM_ID}
-      className={styles.form}
+      className={`tf-panel ${styles.form}`}
       method="POST"
       action={isIsland ? undefined : WEB3FORMS_ENDPOINT}
       onSubmit={onSubmit}
@@ -66,13 +66,13 @@ export function RequestForm({
         </>
       )}
 
-      <div className={styles.field}>
-        <label className={styles.label} htmlFor={IDS.song}>
+      <div className={`tf-field ${styles.field}`}>
+        <label className={`tf-field__label ${styles.label}`} htmlFor={IDS.song}>
           곡 <span className={styles.req} aria-hidden="true">*</span>
         </label>
         <input
           id={IDS.song}
-          className={styles.input}
+          className={`tf-input ${styles.input}`}
           name={FIELD_NAMES.song}
           type="text"
           required
@@ -89,13 +89,13 @@ export function RequestForm({
         )}
       </div>
 
-      <div className={styles.field}>
-        <label className={styles.label} htmlFor={IDS.artist}>
+      <div className={`tf-field ${styles.field}`}>
+        <label className={`tf-field__label ${styles.label}`} htmlFor={IDS.artist}>
           아티스트 <span className={styles.req} aria-hidden="true">*</span>
         </label>
         <input
           id={IDS.artist}
-          className={styles.input}
+          className={`tf-input ${styles.input}`}
           name={FIELD_NAMES.artist}
           type="text"
           required
@@ -111,13 +111,13 @@ export function RequestForm({
         )}
       </div>
 
-      <div className={styles.field}>
-        <label className={styles.label} htmlFor={IDS.requester}>
+      <div className={`tf-field ${styles.field}`}>
+        <label className={`tf-field__label ${styles.label}`} htmlFor={IDS.requester}>
           요청자 <span className={styles.optional}>(이름 또는 이메일, 선택)</span>
         </label>
         <input
           id={IDS.requester}
-          className={styles.input}
+          className={`tf-input ${styles.input}`}
           name={FIELD_NAMES.requester}
           type="text"
           maxLength={MAX_LEN.requester}
@@ -132,13 +132,13 @@ export function RequestForm({
         )}
       </div>
 
-      <div className={styles.field}>
-        <label className={styles.label} htmlFor={IDS.memo}>
+      <div className={`tf-field ${styles.field}`}>
+        <label className={`tf-field__label ${styles.label}`} htmlFor={IDS.memo}>
           메모 <span className={styles.optional}>(선택)</span>
         </label>
         <textarea
           id={IDS.memo}
-          className={styles.textarea}
+          className={`tf-input ${styles.textarea}`}
           name={FIELD_NAMES.memo}
           rows={3}
           maxLength={MAX_LEN.memo}
@@ -169,7 +169,7 @@ export function RequestForm({
         </p>
       )}
 
-      <button type="submit" className={styles.submit} disabled={submitting}>
+      <button type="submit" className={`tf-btn tf-btn--primary ${styles.submit}`} disabled={submitting}>
         {submitting ? "보내는 중…" : "제보 보내기"}
       </button>
     </form>

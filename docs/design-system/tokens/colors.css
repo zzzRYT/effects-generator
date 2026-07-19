@@ -1,0 +1,63 @@
+/* COLORS — hardware chassis palette.
+   Base ramp = powder-coated metal & silkscreen. Accents = tube-glow amber + LED colors. */
+:root {
+  /* Chassis / neutral ramp (dark → light) */
+  --chassis-900: #131316;   /* deepest enclosure shadow */
+  --chassis-800: #1a1a1e;   /* main chassis body */
+  --chassis-700: #232328;   /* raised panel */
+  --chassis-600: #2d2d33;   /* control well / recessed */
+  --chassis-500: #3a3a41;   /* hairline / divider metal */
+  --chassis-400: #575760;   /* muted engraving */
+  --chassis-300: #83838d;   /* secondary label */
+  --chassis-200: #b6b6bd;   /* brushed steel */
+  --chassis-100: #d8d8dc;   /* polished highlight */
+  --silkscreen:  #ece7d8;   /* cream silkscreen print */
+
+  /* Tube-glow amber — PRIMARY accent */
+  --amber-700: #a8560a;
+  --amber-600: #d97613;
+  --amber-500: #f59422;   /* base amber */
+  --amber-400: #ffab3d;
+  --amber-300: #ffc470;
+  --amber-glow: #ffb347;
+
+  /* LED semantic colors */
+  --led-red: #ff3b30;      /* clip / record / bypass-off */
+  --led-red-dim: #7a1c17;
+  --led-green: #34d158;    /* signal ok / engaged */
+  --led-green-dim: #14501f;
+  --led-blue: #2f8fff;     /* modulation / info */
+  --led-blue-dim: #123a66;
+  --led-amber: #ffab3d;
+  --led-amber-dim: #6b3a05;
+
+  /* ---- Semantic aliases ---- */
+  --bg-app: var(--chassis-900);
+  --surface-chassis: var(--chassis-800);
+  --surface-panel: var(--chassis-700);
+  --surface-well: var(--chassis-600);
+  --surface-raised: var(--chassis-500);
+  --border-metal: var(--chassis-500);
+  --border-engrave: var(--chassis-600);
+  --divider: var(--chassis-600);
+
+  --text-label: var(--silkscreen);
+  --text-body: var(--chassis-200);
+  --text-muted: var(--chassis-300);
+  --text-faint: var(--chassis-400);
+  --text-on-accent: #201200;
+
+  --accent: var(--amber-500);
+  --accent-hover: var(--amber-400);
+  --accent-press: var(--amber-600);
+  --accent-glow: var(--amber-glow);
+
+  --danger: var(--led-red);
+  --success: var(--led-green);
+  --info: var(--led-blue);
+
+  /* LCD readout screen */
+  --lcd-bg: #0a1512;
+  --lcd-text: #7dffcb;
+  --lcd-dim: #1f4a3c;
+}

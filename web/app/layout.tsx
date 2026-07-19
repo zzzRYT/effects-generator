@@ -1,18 +1,33 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Oswald, Barlow, Space_Mono } from "next/font/google";
 import "@/lib/tokens.css";
+import "@/lib/hardware.css";
 import "./globals.css";
+import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { RequestDialogClient } from "@/components/request-form/RequestDialogClient";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Tone Forge 타이포 3종 — Oswald(실크스크린 라벨/디스플레이) · Barlow(본문) · Space Mono(모든 수치).
+// self-host + display:swap (외부 CSS @import 는 렌더 블로킹이라 쓰지 않는다).
+const oswald = Oswald({
+  variable: "--font-oswald",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const barlow = Barlow({
+  variable: "--font-barlow",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const spaceMono = Space_Mono({
+  variable: "--font-space-mono",
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -30,7 +45,7 @@ export default function RootLayout({
     // 더하므로 server/client className 이 의도적으로 다르다(next-themes 패턴). 이 요소만 경고 억제.
     <html
       lang="ko"
-      className={`${geistSans.variable} ${geistMono.variable}`}
+      className={`${oswald.variable} ${barlow.variable} ${spaceMono.variable}`}
       suppressHydrationWarning
     >
       <body>
@@ -43,6 +58,7 @@ export default function RootLayout({
             __html: "document.documentElement.classList.add('js')",
           }}
         />
+        <Header />
         {children}
         <Footer />
         {/* 전역 제보 dialog — 닫힘=display:none(흐름 영향 0). no-JS 면 트리거 <a> 가 /request 로 navigate. */}

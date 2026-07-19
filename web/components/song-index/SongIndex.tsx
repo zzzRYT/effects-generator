@@ -23,11 +23,11 @@ export function SongIndex({ songs }: SongIndexProps) {
           <h1 className={styles.title}>GP-150 톤 라이브러리</h1>
           <p className={styles.sub}>아직 생성된 톤이 없습니다.</p>
         </header>
-        <div className={styles.emptyState}>
+        <div className={`tf-panel ${styles.emptyState}`}>
           <p className={styles.emptyMessage}>
             첫 번째 톤을 생성해서 라이브러리를 채워보세요!
           </p>
-          <Link href="/" className={styles.ctaButton}>
+          <Link href="/" className={`tf-btn tf-btn--primary ${styles.ctaButton}`}>
             톤 생성 시작
           </Link>
           {songs.length > 0 && (
@@ -42,7 +42,11 @@ export function SongIndex({ songs }: SongIndexProps) {
     );
   }
 
-  const rigs = [...new Set(songs.map((s) => s.rig))];
+  // 빈 rig 는 칩으로 만들지 않는다 — 라벨 없는 버튼은 화면에서 정체불명의 원으로 보이고
+  // 접근성 이름도 없어 스크린리더가 읽을 수 없다(빈 문자열 필터는 '전체' 칩이 이미 담당).
+  const rigs = [...new Set(songs.map((s) => s.rig))].filter(
+    (r) => typeof r === "string" && r.trim() !== "",
+  );
   return (
     <main className={styles.index}>
       <header className={styles.head}>

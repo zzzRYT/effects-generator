@@ -64,7 +64,7 @@ export function RoleTabs({ roles }: RoleTabsProps) {
             role="tab"
             aria-selected={activeRole === role.role}
             aria-controls={`tab-panel-${role.role}`}
-            className={`${styles.tabButton} ${activeRole === role.role ? styles.active : ""}`}
+            className={`tf-btn tf-btn--ghost ${styles.tabButton} ${activeRole === role.role ? styles.active : ""}`}
             onClick={() => setActiveRole(role.role)}
           >
             {roleLabel(role.role)}
@@ -90,12 +90,12 @@ export function RoleTabs({ roles }: RoleTabsProps) {
           </div>
         ) : status === "null" ? (
           // D3: signal_chain null → null_reason 표시.
-          <div className={styles.statusBox}>
+          <div className={`tf-panel tf-panel--well ${styles.statusBox}`}>
             <p className={styles.statusMessage}>{activeData.nullReason || "정보 없음"}</p>
           </div>
         ) : (
           // D4: missing → "이 기기로 낼 수 없음" + 기어 요청 링크.
-          <div className={styles.statusBox}>
+          <div className={`tf-panel tf-panel--well ${styles.statusBox}`}>
             <p className={styles.statusMessage}>이 기기로 낼 수 없습니다</p>
             <p className={styles.statusHint}>
               기타나 멀티이펙터를 추가하면 더 많은 톤을 생성할 수 있습니다.{" "}
