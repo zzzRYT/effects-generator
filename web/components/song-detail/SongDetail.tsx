@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Song } from "@/lib/types";
+import { Panel } from "@/components/ui/Panel";
 import { VariationTabs } from "./VariationTabs";
 import styles from "./song-detail.module.css";
 
@@ -7,7 +8,7 @@ interface SongDetailProps {
   song: Song;
 }
 
-// 곡 상세 — 헤더(아티스트·제목·rig·confidence) + 변주 세로 나열.
+// 곡 상세 — 유닛 헤더 패널(아티스트·제목·rig·confidence) + 변주 세로 나열.
 export function SongDetail({ song }: SongDetailProps) {
   return (
     <main className={styles.detail}>
@@ -16,7 +17,7 @@ export function SongDetail({ song }: SongDetailProps) {
           ← 곡 목록
         </Link>
       </nav>
-      <header className={styles.songHead}>
+      <Panel as="header" className={styles.songHead}>
         <p className={styles.artist}>{song.artist}</p>
         <h1 className={styles.title}>{song.title}</h1>
         <dl className={styles.meta}>
@@ -37,7 +38,7 @@ export function SongDetail({ song }: SongDetailProps) {
             {song.confidence}
           </p>
         ) : null}
-      </header>
+      </Panel>
 
       <VariationTabs song={song} />
     </main>

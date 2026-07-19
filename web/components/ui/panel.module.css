@@ -1,0 +1,57 @@
+/* Panel — Tone Forge 섀시 표면. raised(융기) / recessed(리세스 웰) 두 종. */
+
+.panel {
+  position: relative;
+  border: 1px solid var(--bezel);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--chassis-800) 92%, var(--chassis-500)),
+    var(--chassis-900)
+  );
+}
+
+.raised {
+  box-shadow: var(--shadow-panel);
+  /* 상단 하이라이트 엣지 — 금속 융기감 */
+  border-top-color: color-mix(in oklab, var(--chassis-500) 70%, var(--bezel));
+}
+
+.recessed {
+  background: linear-gradient(180deg, var(--chassis-950), var(--chassis-900));
+  box-shadow: var(--shadow-well);
+  border-color: var(--chassis-950);
+}
+
+/* 네 모서리 스크류 — 단일 요소 + 4 코너 radial-gradient(마크업 1개, 장식) */
+.screws {
+  pointer-events: none;
+  position: absolute;
+  inset: 9px;
+  border-radius: inherit;
+  background-image: radial-gradient(
+    circle at center,
+    var(--chassis-500) 0 22%,
+    var(--chassis-950) 30% 46%,
+    transparent 52%
+  );
+  background-repeat: no-repeat;
+  background-position:
+    top left,
+    top right,
+    bottom left,
+    bottom right;
+  background-size: var(--screw) var(--screw);
+  /* 스크류 슬롯(일자 홈) — 미세 그림자 */
+  filter: drop-shadow(0 1px 0 rgb(255 255 255 / 6%));
+}
+
+/* recessed 웰 위 스크류는 더 어둡게 가라앉음 */
+.recessed > .screws {
+  background-image: radial-gradient(
+    circle at center,
+    var(--chassis-700) 0 22%,
+    #000 30% 46%,
+    transparent 52%
+  );
+}

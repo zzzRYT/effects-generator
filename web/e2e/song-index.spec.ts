@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
 // 사이클 #3 song-index — 홈 곡 목록 + 검색 + rig 칩. docs/prd/song-index.md AC1~AC11.
-// 실데이터: 7곡(g250-gp150 6 + xt-450-gp150 1=yb). genre 는 검색 대상에 포함.
+// 실데이터: 8곡(g250-gp150 7 + xt-450-gp150 1=yb). genre 는 검색 대상에 포함.
 const OASIS_KEY = "g250-gp150/oasis-dont-look-back-in-anger";
 const YB_XT_KEY = "xt-450-gp150/yb-white-whale";
 
@@ -10,8 +10,8 @@ test.describe("song-index — 목록 & 검색", () => {
   test("AC1/AC7 — 전체 목록 + 곡 수 count", async ({ page }) => {
     await page.goto("/");
     await expect(page.locator("h1")).toBeVisible();
-    await expect(page.locator("#song-list [data-key]")).toHaveCount(7);
-    await expect(page.locator("#song-count")).toHaveText("7곡");
+    await expect(page.locator("#song-list [data-key]")).toHaveCount(8);
+    await expect(page.locator("#song-count")).toHaveText("8곡");
   });
 
   test("AC2 — 검색이 행을 필터하고 ?q= 에 반영", async ({ page }) => {
@@ -83,7 +83,7 @@ test.describe("song-index — 목록 & 검색", () => {
     await expect(empty).toContainText("검색 결과가 없습니다");
     await empty.getByRole("link", { name: "필터 초기화" }).click();
     await expect(page).toHaveURL(/\/$/);
-    await expect(page.locator("#song-count")).toHaveText("7곡");
+    await expect(page.locator("#song-count")).toHaveText("8곡");
   });
 
   test("AC9 — axe 위반 0", async ({ page }) => {
@@ -129,7 +129,7 @@ test.describe("song-index — no-JS 폴백 (AC8)", () => {
 
   test("JS 없으면 전체 목록만(필터 컨트롤 부재)", async ({ page }) => {
     await page.goto("/");
-    await expect(page.locator("#song-list [data-key]")).toHaveCount(7);
+    await expect(page.locator("#song-list [data-key]")).toHaveCount(8);
     // 모든 행 visible
     await expect(page.locator(`[data-key="${OASIS_KEY}"]`)).toBeVisible();
     await expect(page.locator(`[data-key="${YB_XT_KEY}"]`)).toBeVisible();
